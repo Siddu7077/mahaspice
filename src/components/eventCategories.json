@@ -1,0 +1,46 @@
+{
+  "wedding-events": [
+    "Haldi Ceremony",
+    "Mehendi Ceremony", 
+    "Engagement Party",
+    "Wedding Reception",
+    "Sangeet Night",
+    "Vratham Ceremony"
+  ],
+  "corporate-events": [
+    "Annual Conference",
+    "Product Launch",
+    "Team Building Retreat",
+    "Gala Dinner",
+    "Awards Ceremony",
+    "Networking Event",
+    "Holiday Party",
+    "Seminar Catering"
+  ],
+  "event-catering": [
+    "Buffet Service",
+    "Plated Dinner",
+    "Cocktail Reception",
+    "Family-Style Dining",
+    "Food Stations",
+    "BBQ Catering",
+    "Vegetarian Options",
+    "Vegan Menus"
+  ],
+  "design-menu": [
+    "Custom Menu Creation",
+    "Cuisine Selection",
+    "Dietary Accommodations",
+    "Wine Pairing",
+    "Appetizer Design",
+    "Main Course Planning",
+    "Dessert Customization",
+    "Beverage Packages"
+  ],
+  "Our Services": [
+    "Box Genie",
+    "Home Delivery",
+    "Catering Service"
+  ]
+
+}
