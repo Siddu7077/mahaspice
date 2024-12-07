@@ -193,7 +193,7 @@ const Navbar = () => {
               {dropdownConfig.map((item) => (
                 <div 
                   key={item.key} 
-                  className="relative b-2"
+                  className="relative bottom-1"
                   onMouseEnter={() => toggleDropdown(item.key)}
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
