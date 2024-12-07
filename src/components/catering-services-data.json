@@ -1,0 +1,213 @@
+{
+  "Wedding Catering": {
+    "mainTitle": "Wedding Catering Services",
+    "mainDescription": "Comprehensive wedding celebration catering solutions",
+    "services": [
+      {
+        "title": "Engagement Ceremony",
+        "description": "Elegant catering for your engagement celebration",
+        "startingPrice": 50000,
+        "image": "https://example.com/engagement-catering.jpg",
+        "highlights": [
+          "Customized menu",
+          "Traditional and modern cuisine",
+          "Professional service"
+        ]
+      },
+      {
+        "title": "Haldi Ceremony",
+        "description": "Special catering for the auspicious Haldi event",
+        "startingPrice": 35000,
+        "image": "https://example.com/haldi-catering.jpg",
+        "highlights": [
+          "Traditional snacks",
+          "Color-themed catering",
+          "Intimate setting arrangements"
+        ]
+      },
+      {
+        "title": "Pelli Koduku & Pelli Kuthuru",
+        "description": "Comprehensive catering for groom and bride's special events",
+        "startingPrice": 75000,
+        "image": "https://example.com/pelli-catering.jpg",
+        "highlights": [
+          "Multi-course meals",
+          "Cultural specialties",
+          "Personalized menu options"
+        ]
+      },
+      {
+        "title": "Wedding Reception",
+        "description": "Grand catering for wedding reception celebrations",
+        "startingPrice": 100000,
+        "image": "https://example.com/reception-catering.jpg",
+        "highlights": [
+          "Lavish buffet",
+          "Multiple cuisine stations",
+          "Premium service"
+        ]
+      },
+      {
+        "title": "Vratham Ceremony",
+        "description": "Traditional catering for sacred wedding rituals",
+        "startingPrice": 25000,
+        "image": "https://example.com/vratham-catering.jpg",
+        "highlights": [
+          "Ritual-specific menu",
+          "Vegetarian options",
+          "Respectful service"
+        ]
+      }
+    ]
+  },
+  "Corporate Events": {
+    "mainTitle": "Corporate Event Catering",
+    "mainDescription": "Professional catering solutions for business gatherings",
+    "services": [
+      {
+        "title": "Corporate Meetings",
+        "description": "Sophisticated catering for business meetings",
+        "startingPrice": 20000,
+        "image": "https://example.com/corporate-meetings.jpg",
+        "highlights": [
+          "Professional plating",
+          "Healthy options",
+          "Punctual service"
+        ]
+      },
+      {
+        "title": "Get Together",
+        "description": "Casual and elegant catering for team gatherings",
+        "startingPrice": 15000,
+        "image": "https://example.com/get-together.jpg",
+        "highlights": [
+          "Variety of cuisines",
+          "Interactive food stations",
+          "Team-building friendly"
+        ]
+      },
+      {
+        "title": "Corporate Celebrations",
+        "description": "Festive catering for company milestones",
+        "startingPrice": 30000,
+        "image": "https://example.com/corporate-celebrations.jpg",
+        "highlights": [
+          "Custom branding",
+          "Theme-based menus",
+          "Comprehensive event support"
+        ]
+      },
+      {
+        "title": "Annual Day Parties",
+        "description": "Comprehensive catering for corporate annual events",
+        "startingPrice": 50000,
+        "image": "https://example.com/annual-day.jpg",
+        "highlights": [
+          "Elaborate buffets",
+          "Entertainment-friendly setup",
+          "Flexible menu options"
+        ]
+      }
+    ]
+  },
+  "Event Caterers": {
+    "mainTitle": "Special Event Catering",
+    "mainDescription": "Versatile catering for various personal and social events",
+    "services": [
+      {
+        "title": "Birthday Parties",
+        "description": "Fun and delightful catering for birthday celebrations",
+        "startingPrice": 25000,
+        "image": "https://example.com/birthday-catering.jpg",
+        "highlights": [
+          "Theme-based menus",
+          "Kid-friendly options",
+          "Customized cake services"
+        ]
+      },
+      {
+        "title": "House Warming",
+        "description": "Welcoming catering for new home celebrations",
+        "startingPrice": 20000,
+        "image": "https://example.com/housewarming.jpg",
+        "highlights": [
+          "Traditional welcome spreads",
+          "Vegetarian and non-vegetarian options",
+          "Elegant presentation"
+        ]
+      },
+      {
+        "title": "Festival Catering",
+        "description": "Authentic catering for traditional festivals",
+        "startingPrice": 30000,
+        "image": "https://example.com/festival-catering.jpg",
+        "highlights": [
+          "Cultural specialties",
+          "Regional cuisine focus",
+          "Large-scale arrangements"
+        ]
+      },
+      {
+        "title": "Social Gatherings",
+        "description": "Flexible catering for various social events",
+        "startingPrice": 15000,
+        "image": "https://example.com/social-gatherings.jpg",
+        "highlights": [
+          "Customizable menus",
+          "Diverse cuisine options",
+          "Intimate and large-scale setups"
+        ]
+      }
+    ]
+  },
+  "Design your own Menu": {
+    "mainTitle": "Personalized Catering Solutions",
+    "mainDescription": "Fully customizable catering to match your unique requirements",
+    "services": [
+      {
+        "title": "Corporate Custom Menus",
+        "description": "Tailored menus for corporate event specifics",
+        "startingPrice": 25000,
+        "image": "https://example.com/corporate-custom.jpg",
+        "highlights": [
+          "Dietary accommodation",
+          "Brand-aligned menus",
+          "Consultation services"
+        ]
+      },
+      {
+        "title": "Personal Event Customization",
+        "description": "Personalized menus for private celebrations",
+        "startingPrice": 20000,
+        "image": "https://example.com/personal-custom.jpg",
+        "highlights": [
+          "Individual preference mapping",
+          "Culinary creativity",
+          "Flexible planning"
+        ]
+      },
+      {
+        "title": "Themed Menu Design",
+        "description": "Creative catering concepts for unique events",
+        "startingPrice": 35000,
+        "image": "https://example.com/themed-menu.jpg",
+        "highlights": [
+          "Conceptual dining experiences",
+          "Interactive food stations",
+          "Artistic presentation"
+        ]
+      },
+      {
+        "title": "Fusion Cuisine Exploration",
+        "description": "Innovative culinary experiences",
+        "startingPrice": 40000,
+        "image": "https://example.com/fusion-cuisine.jpg",
+        "highlights": [
+          "Cross-cultural recipes",
+          "Innovative flavor combinations",
+          "Expert chef consultations"
+        ]
+      }
+    ]
+  }
+}

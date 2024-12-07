@@ -25,6 +25,8 @@ import About from "../About";
 import eventCategories from './eventCategories.json';
 import FeedbackForm from "../Feedback";
 import EventCatMenu from "./EventCatMenu";
+import MealBox from "./BoxGenie";
+import DeliveryMenu from "./Delivery";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -105,8 +107,8 @@ const Navbar = () => {
       "corporate-events": <div className="p-4">corporate-events</div>,
       "event-catering": <div className="p-4">event-catering</div>,
       "design-menu": <div className="p-4">design-menu</div>,
-      "Box Genie": <div className="p-4">Box Genie Content</div>,
-      "Home Delivery": <div className="p-4">Home Delivery Content</div>,
+      "Box Genie": <MealBox />,
+      "Home Delivery":<DeliveryMenu />,
       "Catering": <div className="p-4">Catering Content</div>,
     };
 
@@ -249,7 +251,7 @@ const Navbar = () => {
                     <FaChevronDown className="w-3 h-3" />
                   </a>
                   {openDropdown === item.key && (
-                    <ul className=" z-10 absolute top-full left-0 w-48 bg-white shadow-lg rounded-md border">
+                    <ul className=" z-10 absolute top-full text-xs left-0 w-48 bg-white shadow-lg rounded-md border">
                       {renderDropdownItems(item.key)}
                     </ul>
                   )}
