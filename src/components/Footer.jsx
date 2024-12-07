@@ -4,8 +4,8 @@ import { Facebook, Instagram, Youtube, Send } from 'lucide-react';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-800 text-white py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <footer className="min-w-screen bg-gray-800 text-white py-8">
+      <div className=" mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Social Media Links */}
           <div className="flex justify-center md:justify-start space-x-6">

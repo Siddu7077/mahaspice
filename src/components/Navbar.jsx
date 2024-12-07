@@ -31,9 +31,14 @@ const Navbar = () => {
   const [selectedComponent, setSelectedComponent] = useState("home");
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const toggleNavbar = () => {
     setIsNavExpanded(!isNavExpanded);
+  };
+
+  const toggleSearch = () => {
+    setIsSearchVisible(!isSearchVisible);
   };
 
   const navItems = [
@@ -44,9 +49,6 @@ const Navbar = () => {
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder" },
   ];
-
-
-  
 
   const toggleDropdown = (category) => {
     setOpenDropdown(openDropdown === category ? null : category);
@@ -66,32 +68,28 @@ const Navbar = () => {
       </li>
     ));
   };
+
   const dropdownConfig = [
     {
       key: "wedding-events",
-      icon: <FaRing className="w-3 h-3" />,
+      icon: <FaRing className="w-3 h-3 text-green-500" />,
       label: "Wedding Events"
     },
     {
       key: "corporate-events",
-      icon: <FaBuilding className="w-3 h-3" />,
+      icon: <FaBuilding className="w-3 h-3 text-green-500" />,
       label: "Corporate Events"
     },
     {
       key: "event-catering",
-      icon: <FaUtensils className="w-3 h-3" />,
+      icon: <FaUtensils className="w-3 h-3 text-green-500" />,
       label: "Event Catering"
     },
     {
       key: "design-menu",
-      icon: <FaBookOpen className="w-3 h-3" />,
+      icon: <FaBookOpen className="w-3 h-3 text-green-500" />,
       label: "Design Your Menu"
     },
-    {
-      key: "Our Services",
-      icon: <FaBookOpen className="w-3 h-3" />,
-      label: "Our Services"
-    }
   ];
 
   const renderComponent = () => {
@@ -107,9 +105,9 @@ const Navbar = () => {
       "corporate-events": <div className="p-4">corporate-events</div>,
       "event-catering": <div className="p-4">event-catering</div>,
       "design-menu": <div className="p-4">design-menu</div>,
-      "Box Genie": <div className="p-4">Box Genie</div>,
-      "Home Delivery": <div className="p-4">Home Delivery</div>,
-      "Catering": <div className="p-4">Catering</div>,
+      "Box Genie": <div className="p-4">Box Genie Content</div>,
+      "Home Delivery": <div className="p-4">Home Delivery Content</div>,
+      "Catering": <div className="p-4">Catering Content</div>,
     };
 
     return components[selectedComponent] || components.home;
@@ -166,8 +164,6 @@ const Navbar = () => {
               </a>
             ))}
           </div>
-          <div>
-          </div>
         </nav>
       </div>
       {/* Top Navigation and Content Area */}
@@ -178,17 +174,57 @@ const Navbar = () => {
             <button onClick={toggleNavbar} className="p-2 text-green-500">
               <AiOutlineMenu className="w-6 h-6" />
             </button>
-            <AiOutlineSearch className="text-green-500 w-6 h-6" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="border border-green-500 p-2 rounded-lg w-54 text-gray-800 placeholder-gray-500"
-            />
+            <div className="flex items-center relative">
+              <AiOutlineSearch 
+                className="text-green-500 w-6 h-6 cursor-pointer" 
+                onClick={toggleSearch} 
+              />
+              {isSearchVisible && (
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  className="absolute left-8 top-1/2 transform -translate-y-1/2 border border-green-500 p-2 rounded-lg w-54 text-gray-800 placeholder-gray-500 z-10"
+                />
+              )}
+            </div>
           </div>
           {/* Right Section: User Profile, Theme Toggle, and Navigation */}
           <div className="flex items-center space-x-6">
             {/* Navigation Links */}
-            <nav className="hidden lg:flex items-center space-x-4 relative">
+            <nav className="flex items-center space-x-4 relative">
+              {/* Always visible links */}
+              <div className="flex items-center justify-center space-x-4 text-[12px]">
+                <a 
+                  onClick={() => setSelectedComponent("Box Genie")}
+                  className={`cursor-pointer ${
+                    selectedComponent === "Box Genie" 
+                      ? "text-green-600 font-bold" 
+                      : "text-black hover:text-green-500"
+                  }`}
+                >
+                  Box Genie
+                </a>
+                <a 
+                  onClick={() => setSelectedComponent("Home Delivery")}
+                  className={`cursor-pointer ${
+                    selectedComponent === "Home Delivery" 
+                      ? "text-green-600 font-bold" 
+                      : "text-black hover:text-green-500"
+                  }`}
+                >
+                  Home Delivery
+                </a>
+                <a 
+                  onClick={() => setSelectedComponent("Catering")}
+                  className={`cursor-pointer ${
+                    selectedComponent === "Catering" 
+                      ? "text-green-600 font-bold" 
+                      : "text-black hover:text-green-500"
+                  }`}
+                >
+                  Bulk Catering
+                </a>
+              </div>
             
               {dropdownConfig.map((item) => (
                 <div 
@@ -198,25 +234,29 @@ const Navbar = () => {
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <a
-                    className={`flex text-sm items-center space-x-2 ${
+                    className={`flex text-[12px] items-center justify-center mt-2 space-x-2 ${
                       selectedComponent === item.key
-                        ? "text-green-700"
-                        : "text-green-500 hover:text-green-600"
+                        ? "text-black"
+                        : "text-grey-500 hover:text-grey-600"
                     } cursor-pointer`}
                   >
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span className={`${
+                      selectedComponent === item.key
+                        ? "text-black"
+                        : "text-grey-500 hover:text-grey-600"
+                    }`}>{item.label}</span>
                     <FaChevronDown className="w-3 h-3" />
                   </a>
                   {openDropdown === item.key && (
-                    <ul className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-md border">
+                    <ul className=" z-10 absolute top-full left-0 w-48 bg-white shadow-lg rounded-md border">
                       {renderDropdownItems(item.key)}
                     </ul>
                   )}
                 </div>
               ))}
             </nav>
-                    {/* User Profile Dropdown */}
+            {/* User Profile Dropdown */}
             <div className="relative">
               <img
                 src={user}
@@ -246,7 +286,6 @@ const Navbar = () => {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto bg-white">
           {renderComponent()}
-          
         </div>
       </div>
     </div>
@@ -254,4 +293,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-

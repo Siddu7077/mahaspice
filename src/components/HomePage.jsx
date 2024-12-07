@@ -90,7 +90,7 @@ const HomePage = () => {
           </div>
           <a
             href="#"
-            className="bg-black text-white w-[130px] px-6 py-2 rounded-3xl font-medium shadow-md hover:shadow-lg transition-transform transform self-center"
+            className="bg-black text-center text-white w-[150px] px-6 py-2 rounded-3xl font-medium shadow-md hover:shadow-lg transition-transform transform self-center"
           >
             {buttonText}
           </a>
