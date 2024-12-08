@@ -10,7 +10,7 @@ import MealBox from "./components/BoxGenie";
 const App = () => {
   return (
     <>
-      {/* <Navbar /> */}
+      <Navbar />
       <Router>
         <Routes>
           <Route path="/catmenu" element={<EventCatMenu />} />
