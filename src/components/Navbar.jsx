@@ -185,7 +185,7 @@ const Navbar = () => {
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="absolute left-8 top-1/2 transform -translate-y-1/2 border border-green-500 p-2 rounded-lg w-54 text-gray-800 placeholder-gray-500 z-10"
+                  className="absolute left-8 w-32 top-1/2 transform -translate-y-1/2 border border-green-500 p-2 rounded-lg w-54 text-gray-800 placeholder-gray-500 z-10"
                 />
               )}
             </div>

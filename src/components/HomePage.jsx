@@ -4,12 +4,13 @@ import AppStoreIcon from "../assets/app-store.svg";
 import dl from "../assets/dl.png";
 import db from "../assets/dl.jpg";
 import dlb from "../assets/dlb.png";
+import Carousel from './Carousel';
 import "./del.css";
 import CateringServices from "./CateringServices";
 const HomePage = () => {
   return (
     <div className="bg-aliceBlue text-black font-sans ">
-      <div className="flex">
+      {/* <div className="flex">
         <section className="py-7 p-8">
           <div className="max-w-3xl p-1  text-center">
             <h1 className="text-5xl font-extrabold mb-4 text-gray-800">
@@ -54,7 +55,8 @@ const HomePage = () => {
         <section className="flex items-center justify-center ">
           <img src={dl} alt="Description" className="object-contain  " />
         </section>
-      </div>
+      </div> */}
+      <Carousel />
       {/* Rest of the component remains the same */}
       <section className="py-10">
         <div className="max-w-1/2 mx-4 flex justify-evenly items-stretch space-x-4 h-[450px]">
