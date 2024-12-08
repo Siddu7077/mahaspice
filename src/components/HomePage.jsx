@@ -6,6 +6,7 @@ import db from "../assets/dl.jpg";
 import dlb from "../assets/dlb.png";
 import Carousel from './Carousel';
 import "./del.css";
+import { Link } from "react-router-dom";
 import CateringServices from "./CateringServices";
 const HomePage = () => {
   return (
@@ -107,90 +108,91 @@ const HomePage = () => {
 
 
       <section className="p-10 max-h-[900px]">
-        <h2 className="text-3xl font-bold mb-12  text-left text-green-700">
-          CATERING FOR ALL OF VARIETIES
-        </h2>
-        <div className="max-w-[110%]  mx-auto">
-          <div className="flex space-x-4 no-scrollbar pb-4 overflow-x-auto">
-            {[
-              {
-                title: "Wedding Catering",
-                description: [
-                  { text: "Engagement", link: "/wedding-catering" },
-                  { text: "Haldhi", link: "/wedding-catering" },
-                  { text: "Pelli koduku & Pelli Kuthuru", link: "/wedding-catering" },
-                  { text: "Vratham", link: "/wedding-catering" }
-                ],
-                image: "https://static01.nyt.com/images/2023/05/14/multimedia/FAT-INDIAN-WEDDINGS-01-hptq/FAT-INDIAN-WEDDINGS-01-hptq-articleLarge.jpg?quality=75&auto=webp&disable=upscale",
-              },
-              {
-                title: "Corporate Events",
-                description: [
-                  { text: "Corporate Meeting", link: "/corporate-events" },
-                  { text: "Get together", link: "/corporate-events" },
-                  { text: "Celebrations", link: "/corporate-events" },
-                  { text: "Birthday Parties", link: "/corporate-events" }
-                ],
-                image: "https://shahipakwaan.in/wp-content/uploads/2023/02/business-people-taking-snacks-from-buffet-table_1262-1701-1.png",
-              },
-              {
-                title: "Event Caterers",
-                description: [
-                  { text: "Birthday", link: "/event-caterers" },
-                  { text: "House warming", link: "/event-caterers" },
-                  { text: "Cardel", link: "/event-caterers" },
-                  { text: "Festivals", link: "/event-caterers" }
-                ],
-                image: "https://www.shutterstock.com/image-photo/big-family-celebrating-diwali-indian-600nw-2334107349.jpg",
-              },
-              {
-                title: "Design your own Menu",
-                description: [
-                  { text: "Corporate Meetings", link: "/personalized-menu" },
-                  { text: "Birthdays", link: "/personalized-menu" },
-                  { text: "Marriage", link: "/personalized-menu" },
-                  { text: "Reception", link: "/personalized-menu" }
-                ],
-                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxa7JfqO3EaPKyw7DOlOFIADBQ8Y-FP7MfLw&s",
-              }
-            ].map(({ title, description, image }) => (
-              <div
-                key={title}
-                className="flex-shrink-0 min-w-[22%] h-[90%]  bg-white  rounded-lg shadow-md hover:shadow-lg transition"
+  <h2 className="text-3xl font-bold mb-12 text-left text-green-700">
+    CATERING FOR ALL OF VARIETIES
+  </h2>
+  <div className="max-w-[110%] mx-auto">
+    <div className="flex space-x-4 no-scrollbar pb-4 overflow-x-auto">
+      {[
+        {
+          title: "Wedding Catering",
+          description: [
+            { text: "Engagement", link: "/wedding-catering" },
+            { text: "Haldhi", link: "/wedding-catering" },
+            { text: "Pelli koduku & Pelli Kuthuru", link: "/wedding-catering" },
+            { text: "Vratham", link: "/wedding-catering" },
+          ],
+          image: "https://static01.nyt.com/images/2023/05/14/multimedia/FAT-INDIAN-WEDDINGS-01-hptq/FAT-INDIAN-WEDDINGS-01-hptq-articleLarge.jpg?quality=75&auto=webp&disable=upscale",
+        },
+        {
+          title: "Corporate Events",
+          description: [
+            { text: "Corporate Meeting", link: "/corporate-events" },
+            { text: "Get together", link: "/corporate-events" },
+            { text: "Celebrations", link: "/corporate-events" },
+            { text: "Birthday Parties", link: "/corporate-events" },
+          ],
+          image: "https://shahipakwaan.in/wp-content/uploads/2023/02/business-people-taking-snacks-from-buffet-table_1262-1701-1.png",
+        },
+        {
+          title: "Event Caterers",
+          description: [
+            { text: "Birthday", link: "/event-caterers" },
+            { text: "House warming", link: "/event-caterers" },
+            { text: "Cardel", link: "/event-caterers" },
+            { text: "Festivals", link: "/event-caterers" },
+          ],
+          image: "https://www.shutterstock.com/image-photo/big-family-celebrating-diwali-indian-600nw-2334107349.jpg",
+        },
+        {
+          title: "Design your own Menu",
+          description: [
+            { text: "Corporate Meetings", link: "/personalized-menu" },
+            { text: "Birthdays", link: "/personalized-menu" },
+            { text: "Marriage", link: "/personalized-menu" },
+            { text: "Reception", link: "/personalized-menu" },
+          ],
+          image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxa7JfqO3EaPKyw7DOlOFIADBQ8Y-FP7MfLw&s",
+        },
+      ].map(({ title, description, image }) => (
+        <div
+          key={title}
+          className="flex-shrink-0 min-w-[22%] h-[90%] bg-white rounded-lg shadow-md hover:shadow-lg transition group overflow-hidden"
+        >
+          <img
+            src={image}
+            alt={title}
+            className="w-full h-48 object-cover mb-4"
+          />
+          <div className="pl-5 pt-2">
+            <h3 className="text-lg font-bold text-green-700">{title}</h3>
+            <ul className="list-disc list-inside mt-2 text-sm text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {description.map(({ text, link }, index) => (
+                <li key={index}>
+                  <a
+                    href={link}
+                    className="text-gray-600 transition hover:text-gray-800"
+                  >
+                    {text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            <div className="text-right mt-4 pr-4 pb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <a
+                href={`/catmenu`}
+                className="text-sm font-medium text-green-500 hover:text-green-600 transition"
               >
-                <img
-                  src={image}
-                  alt={title}
-                  className="w-full h-48 object-cover  mb-4"
-                />
-                <div className="pl-5 pt-2" >
-                  <h3 className="text-lg font-bold text-green-700">{title}</h3>
-                  <ul className="list-disc list-inside mt-2 text-sm text-gray-600">
-                    {description.map(({ text, link }, index) => (
-                      <li key={index}>
-                        <a
-                          href={link}
-                          className="text-gray-600 transition"
-                        >
-                          {text}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="text-right mt-4 pr-4 pb-4">
-                    <a
-                      href={`/catmenu`}
-                      className="text-sm font-medium text-green-500 hover:text-green-600 transition"
-                    >
-                      View More
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
+                View More
+              </a>
+            </div>
           </div>
         </div>
-      </section>
+      ))}
+    </div>
+  </div>
+</section>
+
 
     </div>
   );
