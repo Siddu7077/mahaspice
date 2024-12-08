@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRoutes } from "react-router-dom";
 import {
   Home,
   Users,
@@ -14,26 +15,39 @@ import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
 import logo from "../assets/logo.png";
 import user from "../assets/user.png";
+
+// Import all page components
 import HomePage from "./HomePage";
-import { FaServicestack } from "react-icons/fa";
-import { MdContactMail } from "react-icons/md";
-import { BiMessageDetail } from "react-icons/bi";
-import { GiMeal } from "react-icons/gi";
-import ContactForm from "./ContactForm";
-import Footer from "./Footer";
 import About from "../About";
-import eventCategories from './eventCategories.json';
+import ContactForm from "./ContactForm";
 import FeedbackForm from "../Feedback";
 import EventCatMenu from "./EventCatMenu";
 import MealBox from "./BoxGenie";
 import DeliveryMenu from "./Delivery";
+import ServiceDetailsPage from "./CateringServices";
+import EventsPage from "./EventsPage";
+import eventCategories from './eventCategories.json';
+import Footer from "./Footer";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
-  const [selectedComponent, setSelectedComponent] = useState("home");
+  const [selectedComponent, setSelectedComponent] = useState(null);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  // Define routes
+  const routing = useRoutes([
+    { path: "/", element: <HomePage /> },
+    { path: "/about", element: <About /> },
+    { path: "/contact", element: <ContactForm /> },
+    { path: "/feedback", element: <FeedbackForm /> },
+    { path: "/catmenu", element: <EventCatMenu /> },
+    { path: "/delivery", element: <DeliveryMenu /> },
+    { path: "/box", element: <MealBox /> },
+    { path: "/catering-services", element: <ServiceDetailsPage /> },
+    { path: "/events/:eventType", element: <EventsPage /> },
+  ]);
 
   const toggleNavbar = () => {
     setIsNavExpanded(!isNavExpanded);
@@ -44,12 +58,13 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { icon: <Home />, label: "Home", key: "home" },
-    { icon: <Users />, label: "About", key: "about" },
-    { icon: <FaServicestack />, label: "Services", key: "services" },
-    { icon: <MdContactMail />, label: "Contact", key: "contact" },
-    { icon: <BiMessageDetail />, label: "Feedback", key: "feedback" },
-    { icon: <GiMeal />, label: "Custom Order", key: "customorder" },
+    { icon: <Home />, label: "Home", key: "home", path: "/" },
+    { icon: <Users />, label: "About", key: "about", path: "/about" },
+    // { icon: <FaServicestack />, label: "Services", key: "services", path: "/catering-services" },
+    { icon: <Users />, label: "Services", key: "services", path: "/catering-services" },
+    { icon: <Users />, label: "Contact", key: "contact", path: "/contact" },
+    { icon: <Users />, label: "Feedback", key: "feedback", path: "/feedback" },
+    { icon: <Users />, label: "Custom Order", key: "customorder", path: "/box" },
   ];
 
   const toggleDropdown = (category) => {
@@ -58,8 +73,8 @@ const Navbar = () => {
 
   const renderDropdownItems = (category) => {
     return eventCategories[category].map((item, index) => (
-      <li 
-        key={index} 
+      <li
+        key={index}
         className="px-4 py-2 hover:bg-green-100 cursor-pointer"
         onClick={() => {
           setSelectedComponent(category);
@@ -94,29 +109,8 @@ const Navbar = () => {
     },
   ];
 
-  const renderComponent = () => {
-    const components = {
-      home: <HomePage />,
-      about: <About />,
-      services: <div className="p-4">Settings Content</div>,
-      contact: <ContactForm />,
-      feedback: <FeedbackForm />,
-      customorder: <div className="p-4">Custom Order Content</div>,
-      
-      "wedding-events": <EventCatMenu />,
-      "corporate-events": <div className="p-4">corporate-events</div>,
-      "event-catering": <div className="p-4">event-catering</div>,
-      "design-menu": <div className="p-4">design-menu</div>,
-      "Box Genie": <MealBox />,
-      "Home Delivery":<DeliveryMenu />,
-      "Catering": <div className="p-4">Catering Content</div>,
-    };
-
-    return components[selectedComponent] || components.home;
-  };
-
   return (
-    <div className="flex h-screen bg-white text-black">
+    <div className="flex h-screen bg-white text-black ">
       {/* Left Sidebar */}
       <div
         className={`${
@@ -142,7 +136,7 @@ const Navbar = () => {
             {navItems.map((item) => (
               <a
                 key={item.key}
-                onClick={() => setSelectedComponent(item.key)}
+                href={item.path}
                 className={`flex ${
                   !isNavExpanded && "justify-center"
                 } ml-4 items-center p-3 cursor-pointer ${
@@ -172,14 +166,14 @@ const Navbar = () => {
       <div className="flex-1 flex flex-col">
         <header className="flex items-center justify-between p-4 bg-white text-black shadow-md">
           {/* Left Section: Search Bar */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 ">
             <button onClick={toggleNavbar} className="p-2 text-green-500">
               <AiOutlineMenu className="w-6 h-6" />
             </button>
             <div className="flex items-center relative">
-              <AiOutlineSearch 
-                className="text-green-500 w-6 h-6 cursor-pointer" 
-                onClick={toggleSearch} 
+              <AiOutlineSearch
+                className="text-green-500 w-6 h-6 cursor-pointer"
+                onClick={toggleSearch}
               />
               {isSearchVisible && (
                 <input
@@ -196,41 +190,40 @@ const Navbar = () => {
             <nav className="flex items-center space-x-4 relative">
               {/* Always visible links */}
               <div className="flex items-center justify-center space-x-4 text-[12px]">
-                <a 
-                  onClick={() => setSelectedComponent("Box Genie")}
+                <a
+                  href="/box"
                   className={`cursor-pointer ${
-                    selectedComponent === "Box Genie" 
-                      ? "text-green-600 font-bold" 
+                    selectedComponent === "Box Genie"
+                      ? "text-green-600 font-bold"
                       : "text-black hover:text-green-500"
                   }`}
                 >
                   Box Genie
                 </a>
-                <a 
-                  onClick={() => setSelectedComponent("Home Delivery")}
+                <a
+                  href="/delivery"
                   className={`cursor-pointer ${
-                    selectedComponent === "Home Delivery" 
-                      ? "text-green-600 font-bold" 
+                    selectedComponent === "Home Delivery"
+                      ? "text-green-600 font-bold"
                       : "text-black hover:text-green-500"
                   }`}
                 >
                   Home Delivery
                 </a>
-                <a 
-                  onClick={() => setSelectedComponent("Catering")}
+                <a
+                  href="/catering-services"
                   className={`cursor-pointer ${
-                    selectedComponent === "Catering" 
-                      ? "text-green-600 font-bold" 
+                    selectedComponent === "Catering"
+                      ? "text-green-600 font-bold"
                       : "text-black hover:text-green-500"
                   }`}
                 >
                   Bulk Catering
                 </a>
               </div>
-            
               {dropdownConfig.map((item) => (
-                <div 
-                  key={item.key} 
+                <div
+                  key={item.key}
                   className="relative bottom-1"
                   onMouseEnter={() => toggleDropdown(item.key)}
                   onMouseLeave={() => setOpenDropdown(null)}
@@ -286,12 +279,13 @@ const Navbar = () => {
           </div>
         </header>
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-white">
-          {renderComponent()}
+        <div className="flex-1 overflow-y-auto bg-white ">
+          {routing}
         </div>
       </div>
     </div>
   );
+  
 };
 
 export default Navbar;

@@ -1,0 +1,53 @@
+{
+    "slides": [
+        {
+            "id": 1,
+            "title": "Elevate Your Dining Experience",
+            "subtitle": "Seamless Catering • Personalized Menus • Instant Bookings",
+            "type": "app-download",
+            "image": "dl1.png",
+            "buttons": [
+                {
+                    "platform": "Google Play",
+                    "link": "https://play.google.com/store"
+                },
+                {
+                    "platform": "App Store",
+                    "link": "https://www.apple.com/app-store/"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "title": "Box Genie: Meal Perfection",
+            "description": "Customized meal boxes tailored to your exact specifications.",
+            "image": "dl2.png",
+            "features": [
+                "Corporate Lunches",
+                "Event Catering",
+                "Individual Dietary Needs",
+                "Portion-Controlled Meals"
+            ],
+            "buttonText": "Design Your Box"
+        },
+        {
+            "id": 3,
+            "title": "Home Delivery Delights",
+            "description": "Gourmet meals delivered straight to your doorstep.",
+            "image": "dl3.png",
+            "buttons": [
+                {
+                    "platform": "Google Play",
+                    "link": "https://play.google.com/store"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "title": "Bulk Catering Solutions",
+            "description": "Streamlined catering for large-scale events and conferences.",
+            "image": "dl4.png",
+            "buttonText": "Request Bulk Quote"
+        }
+    ]
+}

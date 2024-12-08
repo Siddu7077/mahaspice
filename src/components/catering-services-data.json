@@ -1,5 +1,5 @@
 {
-  "Wedding Catering": {
+  "wedding-catering": {
     "mainTitle": "Wedding Catering Services",
     "mainDescription": "Comprehensive wedding celebration catering solutions",
     "services": [
@@ -7,7 +7,7 @@
         "title": "Engagement Ceremony",
         "description": "Elegant catering for your engagement celebration",
         "startingPrice": 50000,
-        "image": "https://example.com/engagement-catering.jpg",
+        "image": "https://5.imimg.com/data5/MA/UR/NT/SELLER-43404185/engagement-party-event-service-500x500.png",
         "highlights": [
           "Customized menu",
           "Traditional and modern cuisine",
@@ -18,7 +18,7 @@
         "title": "Haldi Ceremony",
         "description": "Special catering for the auspicious Haldi event",
         "startingPrice": 35000,
-        "image": "https://example.com/haldi-catering.jpg",
+        "image": "https://rajdhaniband.com/wp-content/uploads/2024/03/277627887_526823912142995_7574174636421709885_n-1024x683.jpg",
         "highlights": [
           "Traditional snacks",
           "Color-themed catering",
@@ -29,7 +29,7 @@
         "title": "Pelli Koduku & Pelli Kuthuru",
         "description": "Comprehensive catering for groom and bride's special events",
         "startingPrice": 75000,
-        "image": "https://example.com/pelli-catering.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSU0U-QAu206IAjqvUMHuC0kPxBUUE3NIWmBQ&s",
         "highlights": [
           "Multi-course meals",
           "Cultural specialties",
@@ -40,7 +40,7 @@
         "title": "Wedding Reception",
         "description": "Grand catering for wedding reception celebrations",
         "startingPrice": 100000,
-        "image": "https://example.com/reception-catering.jpg",
+        "image": "https://cdn0.weddingwire.in/article/1934/original/1280/jpg/14391-wedding-party-mahima-bhatia-photography-sparkle-up-the-world.jpeg",
         "highlights": [
           "Lavish buffet",
           "Multiple cuisine stations",
@@ -51,7 +51,7 @@
         "title": "Vratham Ceremony",
         "description": "Traditional catering for sacred wedding rituals",
         "startingPrice": 25000,
-        "image": "https://example.com/vratham-catering.jpg",
+        "image": "https://i.pinimg.com/564x/69/c3/c6/69c3c6222c363beefd8aa0831199d1b4.jpg",
         "highlights": [
           "Ritual-specific menu",
           "Vegetarian options",
@@ -68,7 +68,7 @@
         "title": "Corporate Meetings",
         "description": "Sophisticated catering for business meetings",
         "startingPrice": 20000,
-        "image": "https://example.com/corporate-meetings.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTqzTVe3_h3TfwRZWs474Xw7WN2FyTf6ZI8Zw&s",
         "highlights": [
           "Professional plating",
           "Healthy options",
@@ -79,7 +79,7 @@
         "title": "Get Together",
         "description": "Casual and elegant catering for team gatherings",
         "startingPrice": 15000,
-        "image": "https://example.com/get-together.jpg",
+        "image": "https://images.squarespace-cdn.com/content/v1/5c53611a0cf57d7ce300be61/26442c0c-1c7a-4814-9fc1-03931963eb95/TRIBUTE%2B01.00_12_36_14.Still041.jpg",
         "highlights": [
           "Variety of cuisines",
           "Interactive food stations",
@@ -90,7 +90,7 @@
         "title": "Corporate Celebrations",
         "description": "Festive catering for company milestones",
         "startingPrice": 30000,
-        "image": "https://example.com/corporate-celebrations.jpg",
+        "image": "https://www.shutterstock.com/image-photo/banner-celebrate-victory-business-success-260nw-2206674191.jpg",
         "highlights": [
           "Custom branding",
           "Theme-based menus",
@@ -101,7 +101,7 @@
         "title": "Annual Day Parties",
         "description": "Comprehensive catering for corporate annual events",
         "startingPrice": 50000,
-        "image": "https://example.com/annual-day.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrKewpNNUFbdE7ASHZzAdqZzjglr3czBlWgQ&s",
         "highlights": [
           "Elaborate buffets",
           "Entertainment-friendly setup",
@@ -118,7 +118,7 @@
         "title": "Birthday Parties",
         "description": "Fun and delightful catering for birthday celebrations",
         "startingPrice": 25000,
-        "image": "https://example.com/birthday-catering.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQbhCbEAXbzREBA3z6uOU8wICrMiNwjFWO-ww&s",
         "highlights": [
           "Theme-based menus",
           "Kid-friendly options",
@@ -129,7 +129,7 @@
         "title": "House Warming",
         "description": "Welcoming catering for new home celebrations",
         "startingPrice": 20000,
-        "image": "https://example.com/housewarming.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOZoQN4vxXQu8NDljMQBr_wyVp1czAFSguFg&s",
         "highlights": [
           "Traditional welcome spreads",
           "Vegetarian and non-vegetarian options",
@@ -140,7 +140,7 @@
         "title": "Festival Catering",
         "description": "Authentic catering for traditional festivals",
         "startingPrice": 30000,
-        "image": "https://example.com/festival-catering.jpg",
+        "image": "https://www.shutterstock.com/image-photo/variety-gourmet-sliders-finger-foods-260nw-2521920653.jpg",
         "highlights": [
           "Cultural specialties",
           "Regional cuisine focus",
@@ -151,7 +151,7 @@
         "title": "Social Gatherings",
         "description": "Flexible catering for various social events",
         "startingPrice": 15000,
-        "image": "https://example.com/social-gatherings.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1DyGarXMv4S-GdP6vFun4nTxtsAy_L_pKZg&s",
         "highlights": [
           "Customizable menus",
           "Diverse cuisine options",
@@ -160,7 +160,7 @@
       }
     ]
   },
-  "Design your own Menu": {
+  "personalized-menu": {
     "mainTitle": "Personalized Catering Solutions",
     "mainDescription": "Fully customizable catering to match your unique requirements",
     "services": [
@@ -168,7 +168,7 @@
         "title": "Corporate Custom Menus",
         "description": "Tailored menus for corporate event specifics",
         "startingPrice": 25000,
-        "image": "https://example.com/corporate-custom.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxfeJBTz61OTuZiZG5856Z4ZegMJKxVZ3_OQ&s",
         "highlights": [
           "Dietary accommodation",
           "Brand-aligned menus",
@@ -179,7 +179,7 @@
         "title": "Personal Event Customization",
         "description": "Personalized menus for private celebrations",
         "startingPrice": 20000,
-        "image": "https://example.com/personal-custom.jpg",
+        "image": "https://www.menutiger.com/_next/image?url=http%3A%2F%2Fcms.menutiger.com%2Fwp-content%2Fuploads%2F2023%2F12%2F13-Innovative-Catering-Marketing-Ideas-To-Boost-Business.jpg&w=3840&q=75",
         "highlights": [
           "Individual preference mapping",
           "Culinary creativity",
@@ -190,7 +190,7 @@
         "title": "Themed Menu Design",
         "description": "Creative catering concepts for unique events",
         "startingPrice": 35000,
-        "image": "https://example.com/themed-menu.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7ZvLwz3VUrY1RV09ZdfOBdS3_vuMXr3qiLg&s",
         "highlights": [
           "Conceptual dining experiences",
           "Interactive food stations",
@@ -201,7 +201,7 @@
         "title": "Fusion Cuisine Exploration",
         "description": "Innovative culinary experiences",
         "startingPrice": 40000,
-        "image": "https://example.com/fusion-cuisine.jpg",
+        "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaE6mkr88qZEYLarmGMQGKPKjDCdlM6RpFrg&s",
         "highlights": [
           "Cross-cultural recipes",
           "Innovative flavor combinations",
