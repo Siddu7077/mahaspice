@@ -28,7 +28,6 @@ import FeedbackForm from "../Feedback";
 import EventCatMenu from "./EventCatMenu";
 import MealBox from "./BoxGenie";
 import DeliveryMenu from "./Delivery";
-import ServiceDetailsPage from "./CateringServices";
 import EventsPage from "./EventsPage";
 import eventCategories from './eventCategories.json';
 import Footer from "./Footer";
@@ -52,7 +51,7 @@ const Navbar = () => {
     { path: "/catmenu", element: <EventCatMenu /> },
     { path: "/delivery", element: <DeliveryMenu /> },
     { path: "/box", element: <MealBox /> },
-    { path: "/catering-services", element: <ServiceDetailsPage /> },
+    
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     { 
   path: "/events/:eventType", 
