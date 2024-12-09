@@ -20,7 +20,7 @@ import { GiMeal } from "react-icons/gi";
 import logo from "../assets/logo.png";
 import user from "../assets/user.png";
 
-// Import all page components
+
 import HomePage from "./HomePage";
 import About from "../About";
 import ContactForm from "./ContactForm";
@@ -81,7 +81,7 @@ const Navbar = () => {
     { icon: <FaServicestack />, label: "Services", key: "services", path: "/services" },
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
-    { icon:  <GiMeal />, label: "Custom Order", key: "customorder", path: "/box" },
+    { icon:  <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
   ];
 
   const toggleDropdown = (category) => {
@@ -141,7 +141,7 @@ const Navbar = () => {
             className={`${isNavExpanded ? "block" : ""} h-10 w-30`}
           />
         </div>
-        <nav className="mt-4">
+        <nav className="mt-4"> 
           <div className="mb-4">
             <h3
               className={`px-4 mx-auto mb-2 ${
