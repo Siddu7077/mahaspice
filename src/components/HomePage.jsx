@@ -128,22 +128,22 @@ const HomePage = () => {
                   <ul className="list-disc list-inside mt-2 text-sm text-gray-600">
                     {description.map(({ text, link }, index) => (
                       <li key={index}>
-                        <a
-                          href={link}
+                        <Link
+                          to={link}
                           className="text-gray-600 transition hover:text-gray-800"
                         >
                           {text}
-                        </a>
+                        </Link>
                       </li>
                     ))}
                   </ul>
                   <div className="text-right mt-4 pr-4 pb-4">
-                    <a
-                      href={description[0].link}
+                    <Link
+                      to={description[0].link}
                       className="text-sm font-medium text-green-500 hover:text-green-600 transition"
                     >
                       View More
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
