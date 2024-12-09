@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useRoutes } from "react-router-dom";
+import { Link, useRoutes } from "react-router-dom";
 import {
   Home,
   Users,
@@ -19,7 +19,6 @@ import { BiMessageDetail } from "react-icons/bi";
 import { GiMeal } from "react-icons/gi";
 import logo from "../assets/logo.png";
 import user from "../assets/user.png";
-
 
 import HomePage from "./HomePage";
 import About from "../About";
@@ -54,17 +53,17 @@ const Navbar = () => {
     
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     { 
-  path: "/events/:eventType", 
-  element: <EventsPage /> 
-},
-{ 
-  path: "/events/:eventType/:serviceType/Menu", 
-  element: <MenuPage /> 
-},
-{ 
-  path: "/events/:eventType/:serviceType/Menu/:categoryName", 
-  element: <MenuSelection /> 
-}
+      path: "/events/:eventType", 
+      element: <EventsPage /> 
+    },
+    { 
+      path: "/events/:eventType/:serviceType/Menu", 
+      element: <MenuPage /> 
+    },
+    { 
+      path: "/events/:eventType/:serviceType/Menu/:categoryName", 
+      element: <MenuSelection /> 
+    }
   ]);
 
   const toggleNavbar = () => {
@@ -151,9 +150,9 @@ const Navbar = () => {
               Navigation
             </h3>
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.key}
-                href={item.path}
+                to={item.path}
                 className={`flex ${
                   !isNavExpanded && "justify-center"
                 } ml-4 items-center p-3 cursor-pointer ${
@@ -174,7 +173,7 @@ const Navbar = () => {
                     {item.label}
                   </span>
                 )}
-              </a>
+              </Link>
             ))}
           </div>
         </nav>
@@ -207,8 +206,8 @@ const Navbar = () => {
             <nav className="flex items-center space-x-4 relative">
               {/* Always visible links */}
               <div className="flex items-center justify-center space-x-4 text-[12px]">
-                <a
-                  href="/box"
+                <Link
+                  to="/box"
                   className={`cursor-pointer ${
                     selectedComponent === "Box Genie"
                       ? "text-green-600 font-bold"
@@ -216,9 +215,9 @@ const Navbar = () => {
                   }`}
                 >
                   Box Genie
-                </a>
-                <a
-                  href="/delivery"
+                </Link>
+                <Link
+                  to="/delivery"
                   className={`cursor-pointer ${
                     selectedComponent === "Home Delivery"
                       ? "text-green-600 font-bold"
@@ -226,9 +225,9 @@ const Navbar = () => {
                   }`}
                 >
                   Home Delivery
-                </a>
-                <a
-                  href="/catering-services"
+                </Link>
+                <Link
+                  to="/catering-services"
                   className={`cursor-pointer ${
                     selectedComponent === "Catering"
                       ? "text-green-600 font-bold"
@@ -236,7 +235,7 @@ const Navbar = () => {
                   }`}
                 >
                   Bulk Catering
-                </a>
+                </Link>
               </div>
               {dropdownConfig.map((item) => (
                 <div
@@ -245,7 +244,7 @@ const Navbar = () => {
                   onMouseEnter={() => toggleDropdown(item.key)}
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
-                  <a
+                  <span
                     className={`flex text-[12px] items-center justify-center mt-2 space-x-2 ${
                       selectedComponent === item.key
                         ? "text-black"
@@ -259,7 +258,7 @@ const Navbar = () => {
                         : "text-grey-500 hover:text-grey-600"
                     }`}>{item.label}</span>
                     <FaChevronDown className="w-3 h-3" />
-                  </a>
+                  </span>
                   {openDropdown === item.key && (
                     <ul className=" z-10 absolute top-full text-xs left-0 w-48 bg-white shadow-lg rounded-md border">
                       {renderDropdownItems(item.key)}
@@ -278,18 +277,18 @@ const Navbar = () => {
               />
               {isUserDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
-                  <a
-                    href="/profile"
+                  <Link
+                    to="/profile"
                     className="block px-4 py-2 hover:bg-green-50"
                   >
                     Profile
-                  </a>
-                  <a
-                    href="/logout"
+                  </Link>
+                  <Link
+                    to="/logout"
                     className="block px-4 py-2 hover:bg-green-50"
                   >
                     Logout
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>
@@ -302,7 +301,6 @@ const Navbar = () => {
       </div>
     </div>
   );
-  
 };
 
 export default Navbar;
