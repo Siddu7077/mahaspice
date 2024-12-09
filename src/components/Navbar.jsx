@@ -13,6 +13,10 @@ import {
 } from "lucide-react";
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
+import { FaServicestack } from "react-icons/fa";
+import { MdContactMail } from "react-icons/md";
+import { BiMessageDetail } from "react-icons/bi";
+import { GiMeal } from "react-icons/gi";
 import logo from "../assets/logo.png";
 import user from "../assets/user.png";
 
@@ -28,6 +32,9 @@ import ServiceDetailsPage from "./CateringServices";
 import EventsPage from "./EventsPage";
 import eventCategories from './eventCategories.json';
 import Footer from "./Footer";
+import MenuPage from "./Menu";
+import MenuSelection from "./MenuDetails";
+import MenuOrder from "./MenuOrder";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -46,7 +53,19 @@ const Navbar = () => {
     { path: "/delivery", element: <DeliveryMenu /> },
     { path: "/box", element: <MealBox /> },
     { path: "/catering-services", element: <ServiceDetailsPage /> },
-    { path: "/events/:eventType", element: <EventsPage /> },
+    { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
+    { 
+  path: "/events/:eventType", 
+  element: <EventsPage /> 
+},
+{ 
+  path: "/events/:eventType/:serviceType/Menu", 
+  element: <MenuPage /> 
+},
+{ 
+  path: "/events/:eventType/:serviceType/Menu/:categoryName", 
+  element: <MenuSelection /> 
+}
   ]);
 
   const toggleNavbar = () => {
@@ -61,10 +80,10 @@ const Navbar = () => {
     { icon: <Home />, label: "Home", key: "home", path: "/" },
     { icon: <Users />, label: "About", key: "about", path: "/about" },
     // { icon: <FaServicestack />, label: "Services", key: "services", path: "/catering-services" },
-    { icon: <Users />, label: "Services", key: "services", path: "/catering-services" },
-    { icon: <Users />, label: "Contact", key: "contact", path: "/contact" },
-    { icon: <Users />, label: "Feedback", key: "feedback", path: "/feedback" },
-    { icon: <Users />, label: "Custom Order", key: "customorder", path: "/box" },
+    { icon: <FaServicestack />, label: "Services", key: "services", path: "/catering-services" },
+    { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
+    { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
+    { icon:  <GiMeal />, label: "Custom Order", key: "customorder", path: "/box" },
   ];
 
   const toggleDropdown = (category) => {
@@ -185,7 +204,7 @@ const Navbar = () => {
             </div>
           </div>
           {/* Right Section: User Profile, Theme Toggle, and Navigation */}
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-3">
             {/* Navigation Links */}
             <nav className="flex items-center space-x-4 relative">
               {/* Always visible links */}

@@ -1,22 +1,37 @@
-
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import data from "./catering-services-data.json";
 
 const EventsPage = () => {
   const { eventType } = useParams();
+  const navigate = useNavigate();
   const [eventData, setEventData] = useState(null);
 
   useEffect(() => {
     // Directly use the key from the URL
-    const matchedEvent = data[eventType] || 
-      data[eventType.replace('-', ' ')] || 
-      data[eventType.split('-').map(word => 
+    const matchedEvent = data[eventType] ||
+      data[eventType.replace('-', ' ')] ||
+      data[eventType.split('-').map(word =>
         word.charAt(0).toUpperCase() + word.slice(1)
       ).join(' ')];
-    
+
     setEventData(matchedEvent || null);
   }, [eventType]);
+
+  const handleOrderNow = (service) => {
+    // Create a URL-friendly version of the service title
+    const formattedServiceTitle = service.title
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9-]/g, '');
+
+    // Create a URL-friendly version of the event type
+    const formattedEventType = eventType
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9-]/g, '');
+
+    // Navigate to the menu page with the specific parameters
+    navigate(`/events/${formattedEventType}/${formattedServiceTitle}/Menu`);
+  };
 
   if (!eventData) {
     return (
@@ -69,6 +84,14 @@ const EventsPage = () => {
                   <li key={idx}>{highlight}</li>
                 ))}
               </ul>
+            </div>
+            <div className="justify-center text-center mb-4">
+              <button
+                onClick={() => handleOrderNow(service)}
+                className="mt-3 w-1/3 bg-black items-center justify-center text-center text-white py-2 rounded-md hover:bg-black transition"
+              >
+                Order Now
+              </button>
             </div>
           </div>
         ))}
