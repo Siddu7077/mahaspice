@@ -367,7 +367,7 @@ const MealBox = () => {
                         </div>
                     </div>
                 </div>
-                {/* Rest of the previous component remains the same... */}
+                
                 <div className="min-w-[550px] mx-auto  ">
                     <div className="bg-white rounded-xl shadow-lg p-7  m-4">
                         <div className="grid grid-cols-1 gap-6">

@@ -78,8 +78,7 @@ const Navbar = () => {
   const navItems = [
     { icon: <Home />, label: "Home", key: "home", path: "/" },
     { icon: <Users />, label: "About", key: "about", path: "/about" },
-    // { icon: <FaServicestack />, label: "Services", key: "services", path: "/catering-services" },
-    { icon: <FaServicestack />, label: "Services", key: "services", path: "/catering-services" },
+    { icon: <FaServicestack />, label: "Services", key: "services", path: "/services" },
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon:  <GiMeal />, label: "Custom Order", key: "customorder", path: "/box" },

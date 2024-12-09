@@ -20,19 +20,19 @@ const ContactForm = () => {
   };
 
   return (
-   <div className="pt-5 h-full relative  bg-aliceBlue ">
-    
+    <div className="pt-5 h-full relative  bg-aliceBlue ">
+
       <div className="max-w-5xl  mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-5">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-800 inline-block text-transparent bg-clip-text">Contact Us</h1>
-          
+
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Contact Information */}
-           <div className="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-transform duration-300">
+          <div className="bg-white rounded-2xl shadow-xl p-8 transform hover:scale-105 transition-transform duration-300">
             <h2 className="text-2xl font-bold mb-5 text-gray-800">Contact Information</h2>
-            
+
             <div className="space-y-1">
               <div className="flex items-start space-x-4">
                 <div className="bg-green-100 p-3 rounded-full">
@@ -64,9 +64,9 @@ const ContactForm = () => {
                 </div>
               </div>
 
-              
+
             </div>
-             
+
 
             {/* Embedded Map */}
             <div className="mt-8 h-48 bg-gray-200 rounded-lg overflow-hidden">
@@ -85,7 +85,7 @@ const ContactForm = () => {
           {/* Contact Form */}
           <div className="bg-white rounded-lg shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-2">Send us a Message</h2>
-            
+
             <form action="https://formspree.io/f/xyzyjbdw" method="POST" className="space-y-6">
               <div>
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
