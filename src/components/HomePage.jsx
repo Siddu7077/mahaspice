@@ -13,6 +13,7 @@ const HomePage = () => {
       <section className="py-10">
         <div className="max-w-1/2 mx-4 flex justify-evenly items-stretch space-x-4 h-[450px]">
           {[
+            
             {
               title: "Box Genie",
               image:
@@ -32,6 +33,13 @@ const HomePage = () => {
                 "https://5.imimg.com/data5/JU/UP/KR/SELLER-87393189/catering-services-500x500.jpg",
               buttonText: "Order Now",
               link: "/catering-services",
+            },
+            {
+              title: "Superfast Delivery",
+              image:
+                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTivrL8reKCj8qSZ2nxcQBETtngJ4aL2NzuTg&s",
+              buttonText: "Order Now",
+              link: "/Superfast Delivery",
             },
           ].map(({ title, image, buttonText, link }) => (
             <div
