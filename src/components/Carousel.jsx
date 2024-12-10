@@ -25,7 +25,7 @@ const CateringCarousel = () => {
       >
         {slidesData.slides.map((slide) => (
           <SwiperSlide key={slide.id}>
-            <div className="flex flex-col md:flex-row items-center justify-between w-full">
+            <div className="flex flex-col md:flex-row items-center p-6 justify-between w-full">
               {/* Text Section */}
               <section className="w-full md:w-1/2 p-4 md:p-8">
                 <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
