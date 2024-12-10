@@ -207,6 +207,16 @@ const Navbar = () => {
               {/* Always visible links */}
               <div className="flex items-center justify-center space-x-4 text-[12px]">
                 <Link
+                  to="/"
+                  className={`cursor-pointer ${
+                    selectedComponent === "Box Genie"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                  }`}
+                >
+                  Superfast Delivery
+                </Link>
+                <Link
                   to="/box"
                   className={`cursor-pointer ${
                     selectedComponent === "Box Genie"
