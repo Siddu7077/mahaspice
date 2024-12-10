@@ -131,7 +131,7 @@ const Navbar = () => {
       <div
         className={`${
           isNavExpanded ? "w-64" : "w-25"
-        } h-full transition-all duration-300 bg-green-50 border-r border-green-200`}
+        } h-full transition-all duration-300 bg-white border-r border-green-200`}
       >
         <div className="p-4 flex items-center justify-between">
           <img
