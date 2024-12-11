@@ -71,7 +71,7 @@ const HomePage = () => {
         <h2 className="text-3xl font-bold mb-12 text-left text-green-700">
           CATERING FOR ALL OF VARIETIES
         </h2>
-        <div className="max-w-[110%] mx-auto">
+        <div className="max-w-[100%] mx-auto">
           <div className="flex space-x-4 no-scrollbar pb-4 overflow-x-auto">
             {[
               {
@@ -124,7 +124,7 @@ const HomePage = () => {
             ].map(({ title, description, image }) => (
               <div
                 key={title}
-                className="flex-shrink-0 min-w-[22%] h-[90%] bg-white rounded-lg shadow-md transition overflow-hidden"
+                className="flex-shrink-0 max-w-[350px] min-w-[22%] h-[90%] bg-white rounded-lg shadow-md transition overflow-hidden"
               >
                 <img
                   src={image}
