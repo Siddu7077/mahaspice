@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   Folder,
   UserPlus,
+  CopyPlus,
+  Edit
 } from "lucide-react";
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
@@ -33,6 +35,9 @@ import Footer from "./Footer";
 import MenuPage from "./Menu";
 import MenuSelection from "./MenuDetails";
 import MenuOrder from "./MenuOrder";
+import AddMenu from "../Admin/AddMenu";
+import EditMenuPage from "../Admin/EditMenuPage";
+import AdminMenuPage from "../Admin/AdminMenuPage";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -50,6 +55,9 @@ const Navbar = () => {
     { path: "/catmenu", element: <EventCatMenu /> },
     { path: "/delivery", element: <DeliveryMenu /> },
     { path: "/box", element: <MealBox /> },
+    { path: "/addmenu", element: <AddMenu /> },
+    { path: "/editmenu/:id", element: <EditMenuPage /> },
+    { path: "/adminmenu", element: <AdminMenuPage /> },
     
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     { 
@@ -81,6 +89,8 @@ const Navbar = () => {
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon:  <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
+    { icon:  <CopyPlus />, label: "Menu Add", key: "addmenu", path: "/addmenu" },
+    { icon:  <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
   ];
 
   const toggleDropdown = (category) => {
@@ -305,7 +315,7 @@ const Navbar = () => {
           </div>
         </header>
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-white ">
+        <div className="flex-1 overflow-y-auto bg-aliceBlue ">
           {routing}
         </div>
       </div>

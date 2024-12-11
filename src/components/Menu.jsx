@@ -14,7 +14,7 @@ const MenuPage = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('https://bookmycater.freewebhostmost.com/getCategory.php');
+            const response = await fetch('http://localhost/ms3/getgscd.php');
             const data = await response.json();
 
             if (data.status === "success") {
@@ -46,7 +46,7 @@ const MenuPage = () => {
     // Function to get correct image URL
     const getImageUrl = (imageUrl) => {
         if (imageUrl && !imageUrl.startsWith('http')) {
-            return `https://bookmycater.freewebhostmost.com/${imageUrl}`;
+            return `http://localhost/ms3/${imageUrl}`;
         }
         return imageUrl;
     };
@@ -85,14 +85,14 @@ const MenuPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                     {categories.map((category) => (
                         <div
-                            key={category.category_id}
+                            key={category.id}
                             className="group bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                            onClick={() => handleCategoryClick(category.category_name)}
+                            onClick={() => handleCategoryClick(category.menu_type)}
                         >
                             <div className="relative h-65 overflow-hidden">
                                 <img
-                                    src={getImageUrl(category.image_url)}
-                                    alt={category.category_name}
+                                    src={getImageUrl(category.image_address)}
+                                    alt={category.menu_type}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                 />
                                 <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -100,7 +100,7 @@ const MenuPage = () => {
 
                             <div className="p-4">
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                    {category.category_name}
+                                    {category.menu_type}
                                 </h3>
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors duration-300">
