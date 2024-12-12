@@ -1,22 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import GooglePlayIcon from "../assets/google-play.svg";
 import AppStoreIcon from "../assets/app-store.svg";
 import db from "../assets/dl.jpg";
 import CateringCarousel from "./Carousel";
 import "./del.css";
 import SocialIcons from "./SocialIcons";
+import SuperFastDelivery from "./SFD";
 
 const HomePage = () => {
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  const toggleDropdown = (index) => {
+    setOpenDropdown(openDropdown === index ? null : index);
+  };
+
   return (
-    
     <div className="bg-aliceBlue text-black font-sans">
       <SocialIcons />
       <CateringCarousel />
+      
       <section className="py-10">
         <div className="max-w-1/2 mx-4 flex justify-evenly items-stretch space-x-4 h-[450px]">
           {[
-            
             {
               title: "Box Genie",
               image:
@@ -37,13 +44,7 @@ const HomePage = () => {
               buttonText: "Order Now",
               link: "/catering-services",
             },
-            {
-              title: "Superfast Delivery",
-              image:
-                "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTivrL8reKCj8qSZ2nxcQBETtngJ4aL2NzuTg&s",
-              buttonText: "Order Now",
-              link: "/Superfast Delivery",
-            },
+            
           ].map(({ title, image, buttonText, link }) => (
             <div
               key={title}
@@ -124,7 +125,7 @@ const HomePage = () => {
                 image:
                   "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRxa7JfqO3EaPKyw7DOlOFIADBQ8Y-FP7MfLw&s",
               },
-            ].map(({ title, description, image }) => (
+            ].map(({ title, description, image }, index) => (
               <div
                 key={title}
                 className="flex-shrink-0 max-w-[350px] min-w-[22%] h-[90%] bg-white rounded-lg shadow-md transition overflow-hidden"
@@ -135,19 +136,33 @@ const HomePage = () => {
                   className="w-full h-48 object-cover mb-4"
                 />
                 <div className="pl-5 pt-2">
-                  <h3 className="text-lg font-bold text-green-700">{title}</h3>
-                  <ul className="list-disc list-inside mt-2 text-sm text-gray-600">
-                    {description.map(({ text, link }, index) => (
-                      <li key={index}>
-                        <Link
-                          to={link}
-                          className="text-gray-600 transition hover:text-gray-800"
-                        >
-                          {text}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
+                  <div 
+                    className="flex justify-between items-center cursor-pointer"
+                    onClick={() => toggleDropdown(index)}
+                  >
+                    <h3 className="text-lg font-bold text-green-700">{title}</h3>
+                    {openDropdown === index ? (
+                      <ChevronUp className="mr-4 text-green-700" />
+                    ) : (
+                      <ChevronDown className="mr-4 text-green-700" />
+                    )}
+                  </div>
+                  
+                  {openDropdown === index && (
+                    <ul className="list-disc list-inside mt-2 text-sm text-gray-600 transition-all duration-300 ease-in-out">
+                      {description.map(({ text, link }, descIndex) => (
+                        <li key={descIndex}>
+                          <Link
+                            to={link}
+                            className="text-gray-600 transition hover:text-gray-800"
+                          >
+                            {text}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  
                   <div className="text-right mt-4 pr-4 pb-4">
                     <Link
                       to={description[0].link}

@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import CallButton from "./components/Call";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
 
         <Navbar />
       </div>
+      <CallButton />
       <Footer />
     </BrowserRouter>
   );

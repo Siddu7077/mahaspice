@@ -11,6 +11,7 @@ import {
   Folder,
   UserPlus,
   CopyPlus,
+  UserCog,
   Edit
 } from "lucide-react";
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
@@ -44,6 +45,10 @@ import EditCategoryById from "../Admin/EditCategoryById";
 import EventCategoryForm from "../Admin/EventCategoryForm";
 import EventDisplayPage from "../Admin/EventDisplayPage";
 import EventEditPage from "../Admin/EventEditPage";
+import Admin from "../Admin/Admin";
+import AddCarousel from "../Admin/AddCarousel";
+import SuperFastDelivery from "./SuperFastDelivery";
+import AddMealBox from "../Admin/AddMealBox";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -65,24 +70,28 @@ const Navbar = () => {
     { path: "/editmenu/:id", element: <EditMenuPage /> },
     { path: "/adminmenu", element: <AdminMenuPage /> },
     { path: "/addcategory", element: <AddCategory /> },
+    { path: "/addcarousel", element: <AddCarousel /> },
     { path: "/admincategory", element: <AdminEditCategory /> },
     { path: "/editcategory/:id", element: <EditCategoryById /> },
-    { path: "/admineventcategory", element: <EventCategoryForm /> },
+    { path: "/addevent", element: <EventCategoryForm /> },
     { path: "/admineventdisplay", element: <EventDisplayPage /> },
     { path: "/admineventedit/:id", element: <EventEditPage /> },
-    
+    { path: "/admin", element: <Admin /> },
+    { path: "/superfastDelivery", element: <SuperFastDelivery /> },
+    { path: "/addMealBox", element: <AddMealBox /> },
+
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
-    { 
-      path: "/events/:eventType", 
-      element: <EventsPage /> 
+    {
+      path: "/events/:eventType",
+      element: <EventsPage />
     },
-    { 
-      path: "/events/:eventType/:serviceType/Menu", 
-      element: <MenuPage /> 
+    {
+      path: "/events/:eventType/:serviceType/Menu",
+      element: <MenuPage />
     },
-    { 
-      path: "/events/:eventType/:serviceType/Menu/:categoryName", 
-      element: <MenuSelection /> 
+    {
+      path: "/events/:eventType/:serviceType/Menu/:categoryName",
+      element: <MenuSelection />
     }
   ]);
 
@@ -101,13 +110,14 @@ const Navbar = () => {
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
-    { icon: <CopyPlus />, label: "Menu Add", key: "addmenu", path: "/addmenu" },
-    { icon: <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
-    { icon: <CopyPlus />, label: "Add Category", key: "addcategory", path: "/addcategory" },
-    { icon: <Edit />, label: "Admin Category", key: "admincategory", path: "/admincategory" },
-    { icon: <CopyPlus />, label: "Admin Event Category", key: "admineventcategory", path: "/admineventcategory" },
-    { icon: <Edit />, label: "Admin Event display", key: "admineventdisplay", path: "/admineventdisplay" },
-];
+    { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
+    // { icon: <CopyPlus />, label: "Menu Add", key: "addmenu", path: "/addmenu" },
+    // { icon: <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
+    // { icon: <CopyPlus />, label: "Add Category", key: "addcategory", path: "/addcategory" },
+    // { icon: <Edit />, label: "Admin Category", key: "admincategory", path: "/admincategory" },
+    // { icon: <CopyPlus />, label: "Admin Event Category", key: "admineventcategory", path: "/admineventcategory" },
+    // { icon: <Edit />, label: "Admin Event display", key: "admineventdisplay", path: "/admineventdisplay" },
+  ];
 
   const toggleDropdown = (category) => {
     setOpenDropdown(openDropdown === category ? null : category);
@@ -131,33 +141,28 @@ const Navbar = () => {
   const dropdownConfig = [
     {
       key: "wedding-events",
-      icon: <FaRing className="w-3 h-3 text-green-500" />,
+      icon: '',
       label: "Wedding Events"
     },
     {
       key: "corporate-events",
-      icon: <FaBuilding className="w-3 h-3 text-green-500" />,
+      icon: '',
       label: "Corporate Events"
     },
     {
       key: "event-catering",
-      icon: <FaUtensils className="w-3 h-3 text-green-500" />,
+      icon: '',
       label: "Event Catering"
     },
-    {
-      key: "design-menu",
-      icon: <FaBookOpen className="w-3 h-3  text-green-500" />,
-      label: "Design Your Menu"
-    },
+    
   ];
 
   return (
     <div className="flex h-screen bg-white text-black ">
       {/* Left Sidebar */}
       <div
-        className={`${
-          isNavExpanded ? "w-64" : "w-25"
-        } h-full transition-all duration-300 bg-white border-r border-green-200`}
+        className={`${isNavExpanded ? "w-64" : "w-25"
+          } h-full transition-all duration-300 bg-white border-r border-green-200`}
       >
         <div className="p-4 flex items-center justify-between">
           <img
@@ -166,12 +171,11 @@ const Navbar = () => {
             className={`${isNavExpanded ? "block" : ""} h-10 w-30`}
           />
         </div>
-        <nav className="mt-4"> 
+        <nav className="mt-4">
           <div className="mb-4">
             <h3
-              className={`px-4 mx-auto mb-2 ${
-                !isNavExpanded && "text-center"
-              } text-sm font-bold text-green-800`}
+              className={`px-4 mx-auto mb-2 ${!isNavExpanded && "text-center"
+                } text-sm font-bold text-green-800`}
             >
               Navigation
             </h3>
@@ -179,22 +183,19 @@ const Navbar = () => {
               <Link
                 key={item.key}
                 to={item.path}
-                className={`flex ${
-                  !isNavExpanded && "justify-center"
-                } ml-4 items-center p-3 cursor-pointer ${
-                  selectedComponent === item.key
+                className={`flex ${!isNavExpanded && "justify-center"
+                  } ml-4 items-center p-3 cursor-pointer ${selectedComponent === item.key
                     ? "bg-green-500 text-white"
                     : "hover:bg-green-50"
-                }`}
+                  }`}
               >
                 {item.icon}
                 {isNavExpanded && (
                   <span
-                    className={`ml-3 ${
-                      selectedComponent === item.key
+                    className={`ml-3 ${selectedComponent === item.key
                         ? "text-white"
                         : " text-green-800"
-                    }`}
+                      }`}
                   >
                     {item.label}
                   </span>
@@ -231,48 +232,7 @@ const Navbar = () => {
             {/* Navigation Links */}
             <nav className="flex items-center space-x-4 relative">
               {/* Always visible links */}
-              <div className="flex items-center justify-center space-x-4 text-[12px]">
-                <Link
-                  to="/"
-                  className={`cursor-pointer ${
-                    selectedComponent === "Box Genie"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                  }`}
-                >
-                  Superfast Delivery
-                </Link>
-                <Link
-                  to="/box"
-                  className={`cursor-pointer ${
-                    selectedComponent === "Box Genie"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                  }`}
-                >
-                  Box Genie
-                </Link>
-                <Link
-                  to="/delivery"
-                  className={`cursor-pointer ${
-                    selectedComponent === "Home Delivery"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                  }`}
-                >
-                  Home Delivery
-                </Link>
-                <Link
-                  to="/catering-services"
-                  className={`cursor-pointer ${
-                    selectedComponent === "Catering"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                  }`}
-                >
-                  Bulk Catering
-                </Link>
-              </div>
+
               {dropdownConfig.map((item) => (
                 <div
                   key={item.key}
@@ -281,18 +241,20 @@ const Navbar = () => {
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <span
-                    className={`flex text-[12px] items-center justify-center mt-2 space-x-2 ${
-                      selectedComponent === item.key
+                    className={`flex text-[13px] items-center justify-center mt-2 space-x-2 ${selectedComponent === item.key
                         ? "text-black"
                         : "text-grey-500 hover:text-grey-600"
-                    } cursor-pointer`}
+                      } cursor-pointer`}
                   >
                     {item.icon}
-                    <span className={`${
-                      selectedComponent === item.key
-                        ? "text-black"
-                        : "text-grey-500 hover:text-grey-600"
-                    }`}>{item.label}</span>
+                    <span
+                      className={`${selectedComponent === item.key
+                          ? "text-black"
+                          : "text-grey-500 hover:text-grey-600"
+                        }`}
+                    >
+                      {item.label}
+                    </span>
                     <FaChevronDown className="w-3 h-3" />
                   </span>
                   {openDropdown === item.key && (
@@ -302,6 +264,53 @@ const Navbar = () => {
                   )}
                 </div>
               ))}
+              <div className="flex items-center justify-center space-x-4 text-[13px]">
+                <Link
+                  to="/catering-services"
+                  className={`cursor-pointer ${selectedComponent === "Catering"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Design Your Own Menu
+                </Link>
+                <Link
+                  to="/superfastDelivery"
+                  className={`cursor-pointer ${selectedComponent === "Box Genie"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Superfast Delivery
+                </Link>
+                <Link
+                  to="/box"
+                  className={`cursor-pointer ${selectedComponent === "Box Genie"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Box Genie
+                </Link>
+                <Link
+                  to="/delivery"
+                  className={`cursor-pointer ${selectedComponent === "Home Delivery"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Home Delivery
+                </Link>
+                <Link
+                  to="/catering-services"
+                  className={`cursor-pointer ${selectedComponent === "Catering"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Bulk Catering
+                </Link>
+              </div>
             </nav>
             {/* User Profile Dropdown */}
             <div className="relative">
@@ -331,9 +340,7 @@ const Navbar = () => {
           </div>
         </header>
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-aliceBlue ">
-          {routing}
-        </div>
+        <div className="flex-1 overflow-y-auto bg-aliceBlue ">{routing}</div>
       </div>
     </div>
   );
