@@ -14,7 +14,6 @@ const AdminEditCategory = () => {
     const fetchCategories = () => {
         axios.get('http://localhost/ms3/getcategory.php')
             .then(response => {
-                // Group categories by category name
                 const groupedCategories = {};
                 response.data.forEach(category => {
                     if (!groupedCategories[category.category_name]) {
@@ -40,7 +39,7 @@ const AdminEditCategory = () => {
             })
             .then(response => {
                 alert(response.data.message);
-                fetchCategories(); // Refresh the list
+                fetchCategories();
             })
             .catch(error => {
                 console.error('Error deleting category:', error);
@@ -49,53 +48,46 @@ const AdminEditCategory = () => {
         }
     };
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div className="text-red-500">{error}</div>;
+    if (loading) return <div className="flex items-center justify-center h-screen text-lg font-semibold">Loading...</div>;
+    if (error) return <div className="text-red-500 text-center mt-6">{error}</div>;
 
     return (
-        <div className="container mx-auto p-6 bg-gray-100 min-h-screen">
-            <h1 className="text-3xl font-bold mb-6">Edit Categories</h1>
+        <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
+            <h1 className="text-4xl font-bold text-gray-800 mb-8 text-center">Edit Categories</h1>
             
             {categories.length === 0 ? (
-                <p className="text-gray-500">No categories found</p>
+                <p className="text-gray-500 text-center">No categories found</p>
             ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {categories.map((categoryGroup, index) => (
-                        <div key={index} className="bg-white p-4 rounded shadow-md">
-                            <div className="flex justify-between items-center mb-4">
-                                <h2 className="text-2xl hidden font-semibold">
-                                    {categoryGroup[0].category_id}
-                                </h2>
-                                <h2 className="text-2xl  font-semibold">
-                                    {categoryGroup[0].category_name}
-                                </h2>
-                                <div className="flex space-x-2">
+                        <div key={index} className="bg-white border rounded-lg shadow hover:shadow-lg transition-shadow">
+                            <div className="p-4 flex justify-between items-center border-b">
+                                <h2 className="text-lg font-semibold text-gray-700">{categoryGroup[0].category_name}</h2>
+                                <div className="flex space-x-3">
                                     <Link 
                                         to={`/editcategory/${categoryGroup[0].category_name}`} 
-                                        className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                                    >
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-sm">
                                         Edit
                                     </Link>
                                     <button 
                                         onClick={() => handleDeleteCategory(categoryGroup[0].category_name)}
-                                        className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                                    >
+                                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-sm">
                                         Delete
                                     </button>
                                 </div>
                             </div>
-                            <table className="w-full border-collapse">
+                            <table className="w-full text-sm">
                                 <thead>
-                                    <tr className="bg-gray-200">
-                                        <th className="border p-2 text-left">Menu Type</th>
-                                        <th className="border p-2 text-left">Category Limit</th>
+                                    <tr className="bg-gray-100 text-gray-600">
+                                        <th className="p-3 text-center">Menu Type</th>
+                                        <th className="p-3 text-center">Category Limit</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {categoryGroup.map((category, catIndex) => (
-                                        <tr key={catIndex} className="border-b">
-                                            <td className="border p-2">{category.menu_type}</td>
-                                            <td className="border p-2">{category.category_limit}</td>
+                                        <tr key={catIndex} className="odd:bg-white even:bg-gray-50">
+                                            <td className="p-3 border-t text-gray-700 text-center">{category.menu_type}</td>
+                                            <td className="p-3 border-t text-gray-700 text-center">{category.category_limit}</td>
                                         </tr>
                                     ))}
                                 </tbody>

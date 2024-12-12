@@ -41,6 +41,9 @@ import AdminMenuPage from "../Admin/AdminMenuPage";
 import AddCategory from "../Admin/AddCategory";
 import AdminEditCategory from "../Admin/AdminEditCategory";
 import EditCategoryById from "../Admin/EditCategoryById";
+import EventCategoryForm from "../Admin/EventCategoryForm";
+import EventDisplayPage from "../Admin/EventDisplayPage";
+import EventEditPage from "../Admin/EventEditPage";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -64,6 +67,9 @@ const Navbar = () => {
     { path: "/addcategory", element: <AddCategory /> },
     { path: "/admincategory", element: <AdminEditCategory /> },
     { path: "/editcategory/:id", element: <EditCategoryById /> },
+    { path: "/admineventcategory", element: <EventCategoryForm /> },
+    { path: "/admineventdisplay", element: <EventDisplayPage /> },
+    { path: "/admineventedit/:id", element: <EventEditPage /> },
     
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     { 
@@ -99,6 +105,8 @@ const Navbar = () => {
     { icon: <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
     { icon: <CopyPlus />, label: "Add Category", key: "addcategory", path: "/addcategory" },
     { icon: <Edit />, label: "Admin Category", key: "admincategory", path: "/admincategory" },
+    { icon: <CopyPlus />, label: "Admin Event Category", key: "admineventcategory", path: "/admineventcategory" },
+    { icon: <Edit />, label: "Admin Event display", key: "admineventdisplay", path: "/admineventdisplay" },
 ];
 
   const toggleDropdown = (category) => {
