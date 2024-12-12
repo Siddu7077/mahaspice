@@ -5,10 +5,13 @@ import AppStoreIcon from "../assets/app-store.svg";
 import db from "../assets/dl.jpg";
 import CateringCarousel from "./Carousel";
 import "./del.css";
+import SocialIcons from "./SocialIcons";
 
 const HomePage = () => {
   return (
+    
     <div className="bg-aliceBlue text-black font-sans">
+      <SocialIcons />
       <CateringCarousel />
       <section className="py-10">
         <div className="max-w-1/2 mx-4 flex justify-evenly items-stretch space-x-4 h-[450px]">
