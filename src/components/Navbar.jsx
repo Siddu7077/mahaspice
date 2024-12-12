@@ -38,6 +38,9 @@ import MenuOrder from "./MenuOrder";
 import AddMenu from "../Admin/AddMenu";
 import EditMenuPage from "../Admin/EditMenuPage";
 import AdminMenuPage from "../Admin/AdminMenuPage";
+import AddCategory from "../Admin/AddCategory";
+import AdminEditCategory from "../Admin/AdminEditCategory";
+import EditCategoryById from "../Admin/EditCategoryById";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -58,6 +61,9 @@ const Navbar = () => {
     { path: "/addmenu", element: <AddMenu /> },
     { path: "/editmenu/:id", element: <EditMenuPage /> },
     { path: "/adminmenu", element: <AdminMenuPage /> },
+    { path: "/addcategory", element: <AddCategory /> },
+    { path: "/admincategory", element: <AdminEditCategory /> },
+    { path: "/editcategory/:id", element: <EditCategoryById /> },
     
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     { 
@@ -88,10 +94,12 @@ const Navbar = () => {
     { icon: <FaServicestack />, label: "Services", key: "services", path: "/services" },
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
-    { icon:  <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
-    { icon:  <CopyPlus />, label: "Menu Add", key: "addmenu", path: "/addmenu" },
-    { icon:  <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
-  ];
+    { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
+    { icon: <CopyPlus />, label: "Menu Add", key: "addmenu", path: "/addmenu" },
+    { icon: <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
+    { icon: <CopyPlus />, label: "Add Category", key: "addcategory", path: "/addcategory" },
+    { icon: <Edit />, label: "Admin Category", key: "admincategory", path: "/admincategory" },
+];
 
   const toggleDropdown = (category) => {
     setOpenDropdown(openDropdown === category ? null : category);
@@ -130,7 +138,7 @@ const Navbar = () => {
     },
     {
       key: "design-menu",
-      icon: <FaBookOpen className="w-3 h-3 text-green-500" />,
+      icon: <FaBookOpen className="w-3 h-3  text-green-500" />,
       label: "Design Your Menu"
     },
   ];
