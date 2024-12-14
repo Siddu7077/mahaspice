@@ -17,7 +17,7 @@ const SFD = () => {
 
     return (
         <div
-            className="flex fixed right-20 bottom-12 z-50 transition-all duration-300 ease-in-out"
+            className="flex fixed right-20 bottom-20 z-50 transition-all duration-300 ease-in-out"
             style={{ paddingRight: '20px' }}
         >
             <div

@@ -1,18 +1,20 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MahaSpice</title>
-</head>
-
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-  <script id="messenger-widget-b" src="https://cdn.botpenguin.com/website-bot.js" defer>
-    675dd6bf936c5217814b5dcf, 675dd670204a5c90d09a2956
-  </script>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MahaSpice</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Correct path for React entry point -->
+    <script type="module" src="/src/main.jsx"></script>
+    <!-- Ensure BotPenguin script is configured properly -->
+    <script 
+      id="messenger-widget-b" 
+      src="https://cdn.botpenguin.com/website-bot.js" 
+      defer
+      data-bot-id="675dd6bf936c5217814b5dcf,675dd670204a5c90d09a2956"
+    ></script>
+  </body>
 </html>

@@ -20,7 +20,7 @@ const CallButton = () => {
 
     return (
         <div
-            className="fixed bottom-16 right-6 z-50 cursor-pointer"
+            className="fixed bottom-24 right-6 z-50 cursor-pointer"
             onClick={handleCall}
         >
             <div className="bg-green-500 mb-3 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:scale-110">
