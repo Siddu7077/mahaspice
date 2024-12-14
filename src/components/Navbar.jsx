@@ -241,7 +241,7 @@ const Navbar = () => {
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <span
-                    className={`flex text-[13px] items-center justify-center mt-2 space-x-2 ${selectedComponent === item.key
+                    className={`flex text-[16px] items-center justify-center mt-2 space-x-2 ${selectedComponent === item.key
                         ? "text-black"
                         : "text-grey-500 hover:text-grey-600"
                       } cursor-pointer`}
@@ -264,7 +264,7 @@ const Navbar = () => {
                   )}
                 </div>
               ))}
-              <div className="flex items-center justify-center space-x-4 text-[13px]">
+              <div className="flex items-center justify-center space-x-4 text-[16px]">
                 <Link
                   to="/catering-services"
                   className={`cursor-pointer ${selectedComponent === "Catering"
