@@ -19,13 +19,27 @@
         },
         {
             "id": 2,
+            "title": "Breakfast Starting From ₹199",
+            "description": "Start your day with our delicious breakfast options, crafted for every taste.",
+            "image": "../assets/dl.png",
+            "buttonText": "Explore Breakfast"
+        },
+        {
+            "id": 3,
+            "title": "Lunch Starting From ₹299",
+            "description": "Satisfy your midday hunger with a range of tasty and nutritious lunch options.",
+            "image": "dl.png",
+            "buttonText": "Order Lunch"
+        },
+        {
+            "id": 4,
             "title": "Box Genie: Meal Perfection",
             "description": "Customized meal boxes tailored to your exact specifications.",
             "image": "../assets/dl.png",
             "buttonText": "Design Your Box"
         },
         {
-            "id": 3,
+            "id": 5,
             "title": "Home Delivery Delights",
             "description": "Gourmet meals delivered straight to your doorstep.",
             "image": "dl.png",
@@ -37,7 +51,7 @@
             ]
         },
         {
-            "id": 4,
+            "id": 6,
             "title": "Bulk Catering Solutions",
             "description": "Streamlined catering for large-scale events and conferences.",
             "image": "dl.png",

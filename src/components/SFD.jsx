@@ -17,11 +17,11 @@ const SFD = () => {
 
     return (
         <div
-            className="flex fixed right-20 bottom-20 z-50 transition-all duration-300 ease-in-out"
+            className="flex fixed right-0 bottom-44 z-50 transition-all duration-300 ease-in-out"
             style={{ paddingRight: '20px' }}
         >
             <div
-                className={`flex items-center gap-4 p-4 bg-gray-800 text-white rounded-lg shadow-lg cursor-pointer transition-all duration-300 ease-in-out
+                className={`flex items-center gap-4 p-4 bg-gray-200 text-black rounded-lg shadow-lg cursor-pointer transition-all duration-300 ease-in-out
                     `}
                 // onMouseEnter={() => setIsHovered(true)}
                 // onMouseLeave={() => setIsHovered(false)}
