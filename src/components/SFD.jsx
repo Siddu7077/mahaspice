@@ -46,12 +46,9 @@ const SFD = () => {
                     Order Now
                 </button>
                 </div>
-
-                {/* Button */}
                 
             </div>
         </div>
     );
 };
-
 export default SFD;
