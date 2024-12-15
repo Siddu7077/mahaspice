@@ -11,7 +11,7 @@ const Footer = () => {
           <a href="#" className="hover:text-blue-400"><Youtube /></a>
         </div>
         <div className="text-center text-gray-400">
-          Copyright ©2024 All rights reserved | by mahaspice.in
+          Copyright ©2024 All rights reserved | by pashu.in
         </div>
       </div>
     </footer>
