@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 const EditMenuPage = () => {
-  const { id } = useParams(); // Note: changed from categoryId to match your routing
+  const { id } = useParams();
   const [menuItem, setMenuItem] = useState(null);
   const [newName, setNewName] = useState("");
   const [newImage, setNewImage] = useState(null);
@@ -11,7 +11,6 @@ const EditMenuPage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch menu item details when component mounts
   useEffect(() => {
     fetchMenuItemDetails();
   }, [id]);
@@ -19,14 +18,12 @@ const EditMenuPage = () => {
   const fetchMenuItemDetails = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://orchid-grasshopper-305065.hostingersite.com/ms3/getgscdbyid.php?id=${id}`, {
+      const response = await fetch(`https://orchid-grasshopper-305065.hostingersite.com/getgscdbyid.php?id=${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      
-    
 
       const data = await response.json();
 
@@ -55,43 +52,46 @@ const EditMenuPage = () => {
   };
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
+  event.preventDefault();
+  setLoading(true);
+  setError(null);
 
-    const formData = new FormData();
-    formData.append("id", id);
-    formData.append("menu_type", newName);
-    
-    // If a new image is selected, append it. Otherwise, use the existing image path
-    if (newImage) {
-      formData.append("image", newImage);
-    } else if (menuItem.image_address) {
-      // If no new image, but an existing image exists, pass the existing path
-      formData.append("existing_image", menuItem.image_address);
-    }
+  const formData = new FormData();
+  formData.append("id", id);
+  formData.append("menu_type", newName);
 
-    try {
-      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/updategscd.php', {
-        method: 'POST',
-        body: formData,
-      });
+  if (newImage) {
+    formData.append("image", newImage);
+  } else if (menuItem.image_address) {
+    formData.append("existing_image", menuItem.image_address);
+  }
 
+  try {
+    const response = await fetch('https://orchid-grasshopper-305065.hostingersite.com/updategscd.php', {
+      method: 'POST',
+      body: formData,
+    });
+
+    // Check if the response is not empty before parsing
+    if (response.ok) {
       const data = await response.json();
-
+      
       if (data.status === 'success') {
-        // Navigate back or show success message
-        navigate('/adminmenu'); // Adjust this to your actual navigation path
+        navigate('/adminmenu');
       } else {
         setError(data.message || 'Failed to update menu item');
       }
-    } catch (err) {
-      setError('Network error. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    } else {
+      setError('Server error. Please try again.');
     }
-  };
+  } catch (err) {
+    setError('Network error. Please try again.');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   if (loading) {
     return <div className="text-center mt-10">Loading...</div>;
@@ -100,16 +100,14 @@ const EditMenuPage = () => {
   if (error) {
     return <div className="text-red-500 text-center mt-10">{error}</div>;
   }
-  
+
   return (
     <div className="max-w-md m-auto mt-9 p-6 bg-white shadow-md rounded-lg">
       <h1 className="text-2xl font-bold mb-6 text-center">Edit Menu Item</h1>
-      
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Menu Type
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Menu Type</label>
           <input
             type="text"
             value={newName}
@@ -120,9 +118,7 @@ const EditMenuPage = () => {
         </div>
 
         <div>
-          <label className="block text-gray-700 font-medium mb-2">
-            Image
-          </label>
+          <label className="block text-gray-700 font-medium mb-2">Image</label>
           <input
             type="file"
             onChange={handleImageChange}
@@ -133,7 +129,7 @@ const EditMenuPage = () => {
           {imagePreview && (
             <div className="mt-4">
               <img
-                src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePreview}`}
+                src={`https://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePreview}`}
                 alt="Menu Item"
                 className="w-full object-cover rounded-md"
               />

@@ -7,14 +7,6 @@ export default defineConfig({
     // Added MIME type configuration for JavaScript files
     mimeTypes: {
       'application/javascript': ['js', 'jsx']
-    },
-    // Proxy configuration for handling CORS during development
-    proxy: {
-      '/ms3': {
-        target: 'http://orchid-grasshopper-305065.hostingersite.com',
-        changeOrigin: true,  // Crucial for correct proxying
-        secure: false        // Allow insecure host (useful for development)
-      }
     }
   },
   // Resolve extensions for different file types

@@ -17,13 +17,9 @@ const AddCP = () => {
     }
 
     try {
-      const response = await axios.post('http://orchid-grasshopper-305065.hostingersite.com/ms3/cps.php', 
+      const response = await axios.post('http://orchid-grasshopper-305065.hostingersite.com/cps.php', 
         { cp_type: cpType },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        }
+       
       );
 
       // Reset form and show success message

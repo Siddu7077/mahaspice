@@ -10,7 +10,7 @@ const CPDisplay = () => {
     // Fetch CP Types
     const fetchCPTypes = async () => {
         try {
-            const response = await axios.get('/ms3/cps.php');
+            const response = await axios.get('https://orchid-grasshopper-305065.hostingersite.com//cps.php');
             setCpTypes(response.data);
         } catch (error) {
             console.error('Error fetching CP Types:', error);
@@ -54,7 +54,7 @@ const CPDisplay = () => {
         }
 
         try {
-            await axios.put('/ms3/cps.php', editingType);
+            await axios.put('https://orchid-grasshopper-305065.hostingersite.com//cps.php', editingType);
 
             // Reset editing state and refresh list
             setEditingType(null);

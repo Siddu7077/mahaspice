@@ -140,7 +140,7 @@ const EventDisplayPage = () => {
                 <div className="relative h-72 overflow-hidden">
                   {event.event_file_path && (
                     <img 
-                      src={`https://orchid-grasshopper-305065.hostingersite.com/ms3/${event.event_file_path.split(',')[0]}`} 
+                      src={`https://orchid-grasshopper-305065.hostingersite.com/${event.event_file_path.split(',')[0]}`} 
                       alt={event.event_category}
                       className="w-full object-cover"
                     />

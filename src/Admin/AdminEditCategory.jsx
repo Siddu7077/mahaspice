@@ -12,7 +12,7 @@ const AdminEditCategory = () => {
     }, []);
 
     const fetchCategories = () => {
-        axios.get('http://orchid-grasshopper-305065.hostingersite.com/ms3/getcategory.php')
+        axios.get('/getcategory.php')
             .then(response => {
                 const groupedCategories = {};
                 response.data.forEach(category => {

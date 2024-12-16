@@ -5,10 +5,25 @@ function AddMenu() {
   const [image, setImage] = useState(null);
   const [message, setMessage] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+
+      if (!allowedTypes.includes(file.type)) {
+        alert('Invalid file type. Please upload JPEG, PNG, or GIF.');
+        return;
+      }
+
+      if (file.size > maxSize) {
+        alert('File size exceeds 5MB limit.');
+        return;
+      }
+
       setImage(file);
       setImagePreview(URL.createObjectURL(file));
     }
@@ -16,29 +31,35 @@ function AddMenu() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    
     const formData = new FormData();
     formData.append('menu_type', menuType);
     formData.append('image_address', image);
-
+    
+    setIsLoading(true);
+    setMessage('');
+    
     try {
-      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/AddMenu.php', {
+      const response = await fetch('https://orchid-grasshopper-305065.hostingersite.com//AddMenu.php', {
         method: 'POST',
-        body: formData,
+        body: formData
       });
-
+      
       const result = await response.json();
-      setMessage(result.message);
-
-      if (response.ok) {
-        alert('Menu item added successfully!');
-        setMenuType('');  // Optionally, reset form fields
-        setImage(null);  // Optionally, reset image
-        setImagePreview(null);  // Optionally, reset image preview
+      
+      if (result.success) {
+        setMessage('Menu item added successfully!');
+        setMenuType('');
+        setImage(null);
+        setImagePreview(null);
+      } else {
+        setMessage(result.message || 'Failed to add menu item');
       }
     } catch (error) {
       console.error('Error:', error);
-      setMessage('An error occurred.');
+      setMessage('Network error. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,7 +113,7 @@ function AddMenu() {
             Add Menu Item
           </button>
 
-          {/* {message && (
+          {message && (
             <div className="mt-4 text-center">
               <p
                 className={`text-lg font-semibold ${
@@ -102,7 +123,7 @@ function AddMenu() {
                 {message}
               </p>
             </div>
-          )} */}
+          )}
         </form>
       </div>
     </div>

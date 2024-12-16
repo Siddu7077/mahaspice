@@ -16,10 +16,10 @@ const EditCategoryById = () => {
     // Fetch menu types and current category details
     useEffect(() => {
         // Fetch menu types
-        const fetchMenuTypes = axios.get('http://orchid-grasshopper-305065.hostingersite.com/ms3/getMenuTypes.php');
+        const fetchMenuTypes = axios.get('/getMenuTypes.php');
         
         // Fetch current category details
-        const fetchCategoryDetails = axios.get(`http://orchid-grasshopper-305065.hostingersite.com/ms3/getcategorybyid.php?id=${id}`);
+        const fetchCategoryDetails = axios.get(`/getcategorybyid.php?id=${id}`);
 
         Promise.all([fetchMenuTypes, fetchCategoryDetails])
             .then(([menuTypesResponse, categoryResponse]) => {
