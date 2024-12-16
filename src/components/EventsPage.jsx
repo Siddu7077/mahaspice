@@ -63,6 +63,7 @@ const EventsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {eventData.services.map((service, index) => (
           <div
+          onClick={() => handleOrderNow(service)}
             key={index}
             className="border rounded-lg shadow-md overflow-hidden bg-white"
           >

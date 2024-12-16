@@ -120,12 +120,8 @@ const Navbar = () => {
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
     { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
-    // { icon: <CopyPlus />, label: "Menu Add", key: "addmenu", path: "/addmenu" },
-    // { icon: <Edit />, label: "Menu Edit", key: "adminmenu", path: "/adminmenu" },
-    // { icon: <CopyPlus />, label: "Add Category", key: "addcategory", path: "/addcategory" },
-    // { icon: <Edit />, label: "Admin Category", key: "admincategory", path: "/admincategory" },
-    // { icon: <CopyPlus />, label: "Admin Event Category", key: "admineventcategory", path: "/admineventcategory" },
-    // { icon: <Edit />, label: "Admin Event display", key: "admineventdisplay", path: "/admineventdisplay" },
+    { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
+    
   ];
 
   const toggleDropdown = (category) => {
