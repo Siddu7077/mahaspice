@@ -49,6 +49,11 @@ import Admin from "../Admin/Admin";
 import AddCarousel from "../Admin/AddCarousel";
 import SuperFastDelivery from "./SuperFastDelivery";
 import AddMealBox from "../Admin/AddMealBox";
+import CPDisplay from "../Admin/CPDisplay";
+import CPTypesDisplay from "../Admin/CPTypesDisplay";
+import AddCP from "../Admin/Addcp";
+import AddCPS from "../Admin/AddCPS";
+
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -79,6 +84,10 @@ const Navbar = () => {
     { path: "/admin", element: <Admin /> },
     { path: "/superfastDelivery", element: <SuperFastDelivery /> },
     { path: "/addMealBox", element: <AddMealBox /> },
+    { path: "/addcp", element: <AddCP /> },
+    { path: "/addcps", element: <AddCPS /> },
+    { path: "/displaycp", element: <CPDisplay /> },
+    { path: "/displaycps", element: <CPTypesDisplay /> },
 
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     {
