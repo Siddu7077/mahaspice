@@ -15,7 +15,7 @@ const AdminMenuPage = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/getgscd.php');
+            const response = await fetch('/ms3/getgscd.php');
             const data = await response.json();
 
             if (data.status === "success") {
@@ -32,7 +32,7 @@ const AdminMenuPage = () => {
 
     const getImageUrl = (imageUrl) => {
         if (imageUrl && !imageUrl.startsWith('http')) {
-            return `http://orchid-grasshopper-305065.hostingersite.com/ms3/${imageUrl}`;
+            return `/ms3/${imageUrl}`;
         }
         return imageUrl;
     };
@@ -60,7 +60,7 @@ const AdminMenuPage = () => {
 
     const deleteCategory = async (categoryId) => {
         try {
-            const response = await fetch(`http://orchid-grasshopper-305065.hostingersite.com/ms3/deletegscd.php?id=${categoryId}`, {
+            const response = await fetch(`/ms3/deletegscd.php?id=${categoryId}`, {
                 method: "POST",
             });
 
