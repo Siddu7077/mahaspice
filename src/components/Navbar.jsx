@@ -51,7 +51,7 @@ import SuperFastDelivery from "./SuperFastDelivery";
 import AddMealBox from "../Admin/AddMealBox";
 import CPDisplay from "../Admin/CPDisplay";
 import CPTypesDisplay from "../Admin/CPTypesDisplay";
-import AddCP from "../Admin/Addcp";
+import AddCP from '../Admin/AddCP.JSX';
 import AddCPS from "../Admin/AddCPS";
 
 
