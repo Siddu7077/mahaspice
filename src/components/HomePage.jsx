@@ -32,13 +32,13 @@ const HomePage = () => {
               link: "/box",
             },
             {
-              title: "siddesh Delivery",
+              title: "Home Delivery",
               image: db,
               buttonText: "Order Now",
               link: "/delivery",
             },
             {
-              title: "siddesh Catering",
+              title: "Bulk Catering",
               image:
                 "https://5.imimg.com/data5/JU/UP/KR/SELLER-87393189/catering-services-500x500.jpg",
               buttonText: "Order Now",
