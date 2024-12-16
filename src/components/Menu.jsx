@@ -14,7 +14,7 @@ const MenuPage = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://localhost/ms3/getgscd.php');
+            const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/getgscd.php');
             const data = await response.json();
 
             if (data.status === "success") {
@@ -46,7 +46,7 @@ const MenuPage = () => {
     // Function to get correct image URL
     const getImageUrl = (imageUrl) => {
         if (imageUrl && !imageUrl.startsWith('http')) {
-            return `http://localhost/ms3/${imageUrl}`;
+            return `http://orchid-grasshopper-305065.hostingersite.com/ms3/${imageUrl}`;
         }
         return imageUrl;
     };

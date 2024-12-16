@@ -24,7 +24,7 @@ const EventEditPage = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await fetch(`http://localhost/ms3/get_event_details.php?id=${id}`);
+      const response = await fetch(`http://orchid-grasshopper-305065.hostingersite.com/ms3/get_event_details.php?id=${id}`);
       const data = await response.json();
       
       setEvent(data);
@@ -94,7 +94,7 @@ const EventEditPage = () => {
     });
 
     try {
-      const response = await fetch('http://localhost/ms3/update_event.php', {
+      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/update_event.php', {
         method: 'POST',
         body: formData
       });
@@ -212,7 +212,7 @@ const EventEditPage = () => {
                 <img 
                   src={
                     imagePath.startsWith('http') || imagePath.startsWith('uploads')
-                      ? (imagePath.startsWith('http') ? imagePath : `http://localhost/ms3/${imagePath}`)
+                      ? (imagePath.startsWith('http') ? imagePath : `http://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePath}`)
                       : imagePath
                   }
                   alt={`Event Image ${index + 1}`} 

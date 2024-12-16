@@ -49,7 +49,7 @@ const AddMealBox = () => {
         e.preventDefault();
         
         try {
-            axios.post('http://localhost/ms3/addbox.php', data, {
+            axios.post('http://orchid-grasshopper-305065.hostingersite.com/ms3/addbox.php', data, {
     headers: {
         'Content-Type': 'application/json'
     }

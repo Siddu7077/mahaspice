@@ -17,7 +17,7 @@ const CPTypesDisplay = () => {
     const fetchCPTypes = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get('http://localhost/ms3/cptypes.php');
+            const response = await axios.get('http://orchid-grasshopper-305065.hostingersite.com/ms3/cptypes.php');
             setCpTypes(response.data);
             setError(null);
         } catch (err) {
@@ -33,7 +33,7 @@ const CPTypesDisplay = () => {
         if (!deleteId) return;
         try {
             // Use the delete method with the correct endpoint
-            await axios.delete('http://localhost/ms3/cptypes.php', { 
+            await axios.delete('http://orchid-grasshopper-305065.hostingersite.com/ms3/cptypes.php', { 
                 data: { id: deleteId } 
             });
             
@@ -108,7 +108,7 @@ const CPTypesDisplay = () => {
                                 <tr key={cpType.id} className="border-t">
                                     <td className="p-4">
                                         <img
-                                            src={`http://localhost/ms3/uploads/${cpType.image_address}`}
+                                            src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/uploads/${cpType.image_address}`}
                                             alt={cpType.cp_name}
                                             className="w-16 h-16 object-cover rounded-md"
                                         />

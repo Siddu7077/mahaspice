@@ -9,7 +9,7 @@ const AddCategory = () => {
 
     // Fetch menu types directly from gscd table
     useEffect(() => {
-        axios.get('http://localhost/ms3/getMenuTypes.php')
+        axios.get('http://orchid-grasshopper-305065.hostingersite.com/ms3/getMenuTypes.php')
             .then(response => {
                 console.log('Menu Types Response:', response.data);
                 
@@ -64,7 +64,7 @@ const AddCategory = () => {
             category_limits: menuLimits // Send limits as an object
         };
 
-        axios.post('http://localhost/ms3/addcategory.php', formData)
+        axios.post('http://orchid-grasshopper-305065.hostingersite.com/ms3/addcategory.php', formData)
             .then(response => {
                 alert(response.data.message);
                 // Reset form

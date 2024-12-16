@@ -22,7 +22,7 @@ function AddMenu() {
     formData.append('image_address', image);
 
     try {
-      const response = await fetch('http://localhost/ms3/AddMenu.php', {
+      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/AddMenu.php', {
         method: 'POST',
         body: formData,
       });

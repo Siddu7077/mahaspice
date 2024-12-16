@@ -12,7 +12,7 @@ const AdminEditCategory = () => {
     }, []);
 
     const fetchCategories = () => {
-        axios.get('http://localhost/ms3/getcategory.php')
+        axios.get('http://orchid-grasshopper-305065.hostingersite.com/ms3/getcategory.php')
             .then(response => {
                 const groupedCategories = {};
                 response.data.forEach(category => {
@@ -34,7 +34,7 @@ const AdminEditCategory = () => {
 
     const handleDeleteCategory = (categoryName) => {
         if (window.confirm(`Are you sure you want to delete the entire category "${categoryName}"?`)) {
-            axios.delete(`http://localhost/ms3/deletecategory.php`, {
+            axios.delete(`http://orchid-grasshopper-305065.hostingersite.com/ms3/deletecategory.php`, {
                 data: { category_name: categoryName }
             })
             .then(response => {

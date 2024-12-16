@@ -52,7 +52,7 @@ const AddCarousel = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost/ms3/add_carousel.php', slideData);
+            const response = await axios.post('http://orchid-grasshopper-305065.hostingersite.com/ms3/add_carousel.php', slideData);
             alert('Slide added successfully');
             // Reset form or redirect
             setSlideData({

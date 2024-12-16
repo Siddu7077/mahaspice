@@ -15,7 +15,7 @@ const EventDisplayPage = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://localhost/ms3/get_events.php');
+      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/get_events.php');
       const data = await response.json();
       setEvents(data);
     } catch (error) {
@@ -41,7 +41,7 @@ const EventDisplayPage = () => {
   const handleDelete = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        const response = await fetch(`http://localhost/ms3/delete_event.php?id=${eventId}`, {
+        const response = await fetch(`http://orchid-grasshopper-305065.hostingersite.com/ms3/delete_event.php?id=${eventId}`, {
           method: 'DELETE'
         });
         const result = await response.json();
@@ -120,7 +120,7 @@ const EventDisplayPage = () => {
                 <div className="relative h-72 overflow-hidden">
                   {event.event_file_path && (
                     <img 
-                      src={`http://localhost/ms3/${event.event_file_path.split(',')[0]}`} 
+                      src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/${event.event_file_path.split(',')[0]}`} 
                       alt={event.event_category}
                       className="w-full object-cover"
                     />
@@ -205,7 +205,7 @@ const EventDisplayPage = () => {
                 {selectedEvent.event_file_path.split(',').map((imagePath, index) => (
                   <img 
                     key={index}
-                    src={`http://localhost/ms3/${imagePath}`} 
+                    src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePath}`} 
                     alt={`Event Image ${index + 1}`}
                     className="w-full h-32 object-cover rounded-lg"
                   />
