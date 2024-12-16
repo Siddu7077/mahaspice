@@ -7,6 +7,7 @@ const EventEditPage = () => {
   const navigate = useNavigate();
   
   const [event, setEvent] = useState({
+    // event_id: '',
     event_name: '',
     event_category: '',
     event_veg_price: '',
@@ -24,7 +25,7 @@ const EventEditPage = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await fetch(`http://orchid-grasshopper-305065.hostingersite.com/ms3/get_event_details.php?id=${id}`);
+      const response = await fetch(`/ms3/get_event_details.php?id=${id}`);
       const data = await response.json();
       
       setEvent(data);
@@ -74,42 +75,69 @@ const EventEditPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // DEBUGGING: Log all form data before submission
+    console.log('Event Data:', event);
+    
     const formData = new FormData();
-    formData.append('id', id);
-    formData.append('event_name', event.event_name);
-    formData.append('event_category', event.event_category);
-    formData.append('event_veg_price', event.event_veg_price);
-    formData.append('event_nonveg_price', event.event_nonveg_price);
-    formData.append('event_description', event.event_description);
+    
+    // Explicitly add each field
+    Object.keys(event).forEach(key => {
+      if (event[key] !== null && event[key] !== undefined) {
+        formData.append(key, event[key]);
+        console.log(`Appending ${key}: ${event[key]}`);
+      }
+    });
     
     // Add existing images that were not removed
     const remainingOldImages = existingImages.filter(
       img => img.startsWith('http') || img.startsWith('uploads')
     );
-    formData.append('existing_images', remainingOldImages.join(','));
+    
+    if (remainingOldImages.length > 0) {
+      formData.append('existing_images', remainingOldImages.join(','));
+    }
     
     // Add new files
     selectedFiles.forEach((file, index) => {
       formData.append(`new_images[]`, file);
     });
 
+    // DEBUGGING: Log FormData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: `, value);
+    }
+
     try {
-      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/update_event.php', {
+      const response = await fetch('/ms3/update_event.php', {
         method: 'POST',
         body: formData
       });
 
-      const result = await response.json();
+      // DEBUGGING: Log raw response
+      const responseText = await response.text();
+      console.log('Raw Response:', responseText);
+
+      // Try parsing JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        alert('Server returned non-JSON response: ' + responseText);
+        return;
+      }
 
       if (result.success) {
         alert('Event updated successfully!');
-        navigate('/admineventdisplay'); // Redirect to events list
+        navigate('/admineventdisplay');
       } else {
-        alert(result.error || 'Update failed');
+        // More detailed error message
+        alert(result.error || result.missing_fields?.join(', ') || 'Update failed');
+        console.error('Update failed:', result);
       }
     } catch (error) {
-      console.error('Error:', error);
-      alert('An error occurred');
+      console.error('Network Error:', error);
+      alert('A network error occurred. Check console for details.');
     }
   };
 
@@ -119,6 +147,8 @@ const EventEditPage = () => {
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Event Name */}
+
+        <input type="number" name="id"  value={event.event_id} hidden />
         <div>
           <label className="block text-gray-700 font-bold mb-2">Event Name</label>
           <input
@@ -212,7 +242,7 @@ const EventEditPage = () => {
                 <img 
                   src={
                     imagePath.startsWith('http') || imagePath.startsWith('uploads')
-                      ? (imagePath.startsWith('http') ? imagePath : `http://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePath}`)
+                      ? (imagePath.startsWith('http') ? imagePath : `/ms3/${imagePath}`)
                       : imagePath
                   }
                   alt={`Event Image ${index + 1}`} 

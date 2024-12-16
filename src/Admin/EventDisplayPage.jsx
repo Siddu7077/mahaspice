@@ -15,12 +15,32 @@ const EventDisplayPage = () => {
 
   const fetchEvents = async () => {
     try {
-      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/get_events.php');
+      const response = await fetch('/ms3/get_events.php');
+      
+      // Check if response is OK
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      }
+  
+      // Attempt to parse JSON with better error handling
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        throw new Error(`Expected JSON, got: ${text}`);
+      }
+  
       const data = await response.json();
+      
+      // Additional validation
+      if (!Array.isArray(data)) {
+        throw new Error('Received data is not an array');
+      }
+  
       setEvents(data);
     } catch (error) {
-      console.error('Error fetching events:', error);
-      alert('Failed to fetch events');
+      console.error('Detailed Error fetching events:', error);
+      alert(`Failed to fetch events: ${error.message}`);
     }
   };
 
@@ -41,7 +61,7 @@ const EventDisplayPage = () => {
   const handleDelete = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        const response = await fetch(`http://orchid-grasshopper-305065.hostingersite.com/ms3/delete_event.php?id=${eventId}`, {
+        const response = await fetch(`/ms3/delete_event.php?id=${eventId}`, {
           method: 'DELETE'
         });
         const result = await response.json();
@@ -120,7 +140,7 @@ const EventDisplayPage = () => {
                 <div className="relative h-72 overflow-hidden">
                   {event.event_file_path && (
                     <img 
-                      src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/${event.event_file_path.split(',')[0]}`} 
+                      src={`https://orchid-grasshopper-305065.hostingersite.com/ms3/${event.event_file_path.split(',')[0]}`} 
                       alt={event.event_category}
                       className="w-full object-cover"
                     />
@@ -205,7 +225,7 @@ const EventDisplayPage = () => {
                 {selectedEvent.event_file_path.split(',').map((imagePath, index) => (
                   <img 
                     key={index}
-                    src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePath}`} 
+                    src={`https://orchid-grasshopper-305065.hostingersite.com/ms3/${imagePath}`} 
                     alt={`Event Image ${index + 1}`}
                     className="w-full h-32 object-cover rounded-lg"
                   />

@@ -79,7 +79,7 @@ const EventCategoryForm = () => {
     });
 
     try {
-      const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/submit_event.php', {
+      const response = await fetch('/ms3/submit_event.php', {
         method: 'POST',
         body: formData
       });
