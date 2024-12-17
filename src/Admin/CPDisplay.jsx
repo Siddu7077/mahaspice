@@ -54,7 +54,7 @@ const CPDisplay = () => {
         }
 
         try {
-            await axios.put('https://orchid-grasshopper-305065.hostingersite.com//cps.php', editingType);
+            await axios.put('https://orchid-grasshopper-305065.hostingersite.com/cps.php', editingType);
 
             // Reset editing state and refresh list
             setEditingType(null);

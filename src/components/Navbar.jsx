@@ -20,7 +20,7 @@ import { FaServicestack } from "react-icons/fa";
 import { MdContactMail } from "react-icons/md";
 import { BiMessageDetail } from "react-icons/bi";
 import { GiMeal } from "react-icons/gi";
-import logo from "../assets/logo.png";
+import logo from "../assets/logo-main.png";
 import user from "../assets/user.png";
 
 import HomePage from "./HomePage";
@@ -173,7 +173,7 @@ const Navbar = () => {
           <img
             src={logo}
             alt="Logo"
-            className={`${isNavExpanded ? "block" : ""} h-10 w-30`}
+            className={`${isNavExpanded ? "block" : ""} h-30 w-full`}
           />
         </div>
         <nav className="mt-4">
