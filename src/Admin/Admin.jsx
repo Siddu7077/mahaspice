@@ -96,6 +96,25 @@ const Admin = () => {
           key: "displaycps",
           path: "/displaycps",
         },
+
+      ],
+    },
+    {
+      category: "Carousel",
+      items: [
+        {
+          icon: <CopyPlus className="w-5 h-5" />,
+          label: "Add Carousel",
+          key: "addcarousel",
+          path: "/addcarousel",
+        },
+        {
+          icon: <Edit className="w-5 h-5" />,
+          label: "Display Carousel",
+          key: "carousel",
+          path: "/carousel",
+        },
+
       ],
     },
   ];

@@ -53,6 +53,8 @@ import CPDisplay from "../Admin/CPDisplay";
 import CPTypesDisplay from "../Admin/CPTypesDisplay";
 import AddCP from '../Admin/AddCP';
 import AddCPS from "../Admin/AddCPS";
+import CarouselDisplay from "../Admin/CarouselDisplay";
+
 
 
 const Navbar = () => {
@@ -88,6 +90,9 @@ const Navbar = () => {
     { path: "/addcps", element: <AddCPS /> },
     { path: "/displaycp", element: <CPDisplay /> },
     { path: "/displaycps", element: <CPTypesDisplay /> },
+    { path: "/carousel", element: <CarouselDisplay /> },
+   
+    
 
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     {
