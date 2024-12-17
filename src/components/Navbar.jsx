@@ -124,7 +124,7 @@ const Navbar = () => {
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
-    // { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
+    { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
     { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
     
   ];
