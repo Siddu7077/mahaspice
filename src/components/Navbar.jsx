@@ -173,7 +173,7 @@ const Navbar = () => {
           <img
             src={logo}
             alt="Logo"
-            className={`${isNavExpanded ? "block" : ""} h-30 w-full`}
+            className={`${isNavExpanded ? "block" : ""} h-40 w-full`}
           />
         </div>
         <nav className="mt-4">
