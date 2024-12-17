@@ -166,14 +166,19 @@ const Navbar = () => {
     <div className="flex h-screen bg-white text-black ">
       {/* Left Sidebar */}
       <div
-        className={`${isNavExpanded ? "w-64" : "w-25"
+        className={`${isNavExpanded ? "w-64" : "w-44"
           } h-full transition-all duration-300 bg-white border-r border-green-200`}
       >
         <div className="p-4 flex items-center justify-between">
           <img
             src={logo}
             alt="Logo"
-            className={`${isNavExpanded ? "block" : ""} h-40 w-full`}
+            className={`${isNavExpanded ? "block" : "hidden"} h-30 w-64`}
+          />
+          <img
+            src={logo}
+            alt="Logo"
+            className={`${isNavExpanded ? "hidden" : "block"} h-30 w-64`}
           />
         </div>
         <nav className="mt-4">
