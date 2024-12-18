@@ -7,10 +7,12 @@ const CPDisplay = () => {
     const [message, setMessage] = useState('');
     const [isError, setIsError] = useState(false);
 
+    const BASE_URL = 'https://mahaspice.desoftimp.com/ms3';
+
     // Fetch CP Types
     const fetchCPTypes = async () => {
         try {
-            const response = await axios.get('https://mahaspice.desoftimp.com/ms3/cps.php');
+            const response = await axios.get(`${BASE_URL}/cps.php`);
             setCpTypes(response.data);
         } catch (error) {
             console.error('Error fetching CP Types:', error);
@@ -27,7 +29,7 @@ const CPDisplay = () => {
     const handleDelete = async (cpType) => {
         if (window.confirm(`Are you sure you want to delete CP Type: ${cpType}?`)) {
             try {
-                await axios.delete(`/ms3/cps.php`, {
+                await axios.delete(`${BASE_URL}/deletecp.php`, {
                     data: { cp_type: cpType }
                 });
 
@@ -54,7 +56,10 @@ const CPDisplay = () => {
         }
 
         try {
-            await axios.put('https://mahaspice.desoftimp.com/ms3/cps.php', editingType);
+            await axios.put(`${BASE_URL}/editcp.php`, {
+                old_cp_type: editingType.original_cp_type,
+                new_cp_type: editingType.cp_type
+            });
 
             // Reset editing state and refresh list
             setEditingType(null);
@@ -74,10 +79,11 @@ const CPDisplay = () => {
 
             {message && (
                 <div
-                    className={`mb-4 p-3 rounded text-center ${isError
+                    className={`mb-4 p-3 rounded text-center ${
+                        isError
                             ? 'bg-red-100 border border-red-400 text-red-700'
                             : 'bg-green-100 border border-green-400 text-green-700'
-                        }`}
+                    }`}
                 >
                     {message}
                 </div>
@@ -105,23 +111,25 @@ const CPDisplay = () => {
                         ) : (
                             cpTypes.map((type) => (
                                 <tr key={type.cp_type}>
-                                    {editingType && editingType.cp_type === type.cp_type ? (
+                                    {editingType && editingType.original_cp_type === type.cp_type ? (
                                         <td colSpan="2" className="px-6 py-4">
                                             <form onSubmit={handleEdit} className="flex space-x-2">
                                                 <input
                                                     type="text"
                                                     value={editingType.cp_type}
-                                                    onChange={(e) => setEditingType({
-                                                        ...editingType,
-                                                        cp_type: e.target.value
-                                                    })}
+                                                    onChange={(e) =>
+                                                        setEditingType({
+                                                            ...editingType,
+                                                            cp_type: e.target.value
+                                                        })
+                                                    }
                                                     className="flex-grow shadow appearance-none border rounded py-2 px-3 text-gray-700 
-                            leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                    leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                 />
                                                 <button
                                                     type="submit"
                                                     className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 
-                            rounded focus:outline-none focus:shadow-outline"
+                                                    rounded focus:outline-none focus:shadow-outline"
                                                 >
                                                     Save
                                                 </button>
@@ -129,7 +137,7 @@ const CPDisplay = () => {
                                                     type="button"
                                                     onClick={() => setEditingType(null)}
                                                     className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 
-                            rounded focus:outline-none focus:shadow-outline"
+                                                    rounded focus:outline-none focus:shadow-outline"
                                                 >
                                                     Cancel
                                                 </button>
@@ -143,16 +151,21 @@ const CPDisplay = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-center">
                                                 <div className="flex justify-center space-x-2">
                                                     <button
-                                                        onClick={() => setEditingType(type)}
+                                                        onClick={() =>
+                                                            setEditingType({
+                                                                cp_type: type.cp_type,
+                                                                original_cp_type: type.cp_type
+                                                            })
+                                                        }
                                                         className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 
-                              rounded focus:outline-none focus:shadow-outline transition duration-300"
+                                                        rounded focus:outline-none focus:shadow-outline transition duration-300"
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(type.cp_type)}
                                                         className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 
-                              rounded focus:outline-none focus:shadow-outline transition duration-300"
+                                                        rounded focus:outline-none focus:shadow-outline transition duration-300"
                                                     >
                                                         Delete
                                                     </button>

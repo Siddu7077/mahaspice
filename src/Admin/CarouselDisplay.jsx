@@ -30,11 +30,29 @@ const CarouselDisplay = () => {
   };
 
   const handleDelete = async (id) => {
+    if (!confirm('Are you sure you want to delete this carousel slide?')) {
+      return;
+    }
+
     try {
-      await axios.post('https://mahaspice.desoftimp.com/ms3/deletecarousel.php', { id });
-      setCarouselSlides(carouselSlides.filter(slide => slide.id !== id));
+      // Send as JSON instead of FormData
+      const response = await axios.post(
+        'https://mahaspice.desoftimp.com/ms3/deletecarousel.php',
+        { id: id },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.message === "Slide deleted successfully") {
+        setCarouselSlides(carouselSlides.filter(slide => slide.id !== id));
+        alert('Slide deleted successfully');
+      }
     } catch (error) {
-      console.error('Delete failed', error);
+      console.error('Delete error:', error);
+      alert(`Delete failed: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -54,8 +72,8 @@ const CarouselDisplay = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {carouselSlides.map((slide) => (
-          <div 
-            key={slide.id} 
+          <div
+            key={slide.id}
             className="bg-white shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl"
           >
             <img
@@ -72,13 +90,13 @@ const CarouselDisplay = () => {
                 <p className="text-sm text-gray-500 mb-4">{slide.description}</p>
               )}
               <div className="flex justify-end space-x-2">
-                <button 
+                <button
                   className="text-blue-500 hover:text-blue-700 p-2 rounded-full hover:bg-blue-100 transition-colors"
                   onClick={() => handleEdit(slide)}
                 >
                   <FaEdit className="w-5 h-5" />
                 </button>
-                <button 
+                <button
                   className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-100 transition-colors"
                   onClick={() => handleDelete(slide.id)}
                 >
