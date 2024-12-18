@@ -12,8 +12,9 @@ import {
   UserPlus,
   CopyPlus,
   UserCog,
-  Edit
+  Edit,ShoppingCart
 } from "lucide-react";
+
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
 import { FaServicestack } from "react-icons/fa";
@@ -54,7 +55,7 @@ import CPTypesDisplay from "../Admin/CPTypesDisplay";
 import AddCP from '../Admin/AddCP';
 import AddCPS from "../Admin/AddCPS";
 import CarouselDisplay from "../Admin/CarouselDisplay";
-
+import CartPage from "./CartPage";
 
 
 const Navbar = () => {
@@ -67,6 +68,7 @@ const Navbar = () => {
   // Define routes
   const routing = useRoutes([
     { path: "/", element: <HomePage /> },
+    { path: "/superfastDelivery", element: <SuperFastDelivery /> },
     { path: "/about", element: <About /> },
     { path: "/contact", element: <ContactForm /> },
     { path: "/feedback", element: <FeedbackForm /> },
@@ -84,13 +86,14 @@ const Navbar = () => {
     { path: "/admineventdisplay", element: <EventDisplayPage /> },
     { path: "/admineventedit/:id", element: <EventEditPage /> },
     { path: "/admin", element: <Admin /> },
-    { path: "/superfastDelivery", element: <SuperFastDelivery /> },
+    
     { path: "/addMealBox", element: <AddMealBox /> },
     { path: "/addcp", element: <AddCP /> },
     { path: "/addcps", element: <AddCPS /> },
     { path: "/displaycp", element: <CPDisplay /> },
     { path: "/displaycps", element: <CPTypesDisplay /> },
     { path: "/carousel", element: <CarouselDisplay /> },
+    { path: "/cart", element: <CartPage /> },
    
     
 
@@ -245,9 +248,26 @@ const Navbar = () => {
           {/* Right Section: User Profile, Theme Toggle, and Navigation */}
           <div className="flex items-center space-x-3">
             {/* Navigation Links */}
-            <nav className="flex items-center space-x-4 relative">
+            <nav className="flex items-center space-x-4 relative mr-6">
               {/* Always visible links */}
-
+              <Link
+                  to="/superfastDelivery"
+                  className={`cursor-pointer ${selectedComponent === "Box Genie"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Superfast Delivery
+                </Link>
+                <Link
+                  to="/box"
+                  className={`cursor-pointer ${selectedComponent === "Box Genie"
+                      ? "text-green-600 font-bold"
+                      : "text-black hover:text-green-500"
+                    }`}
+                >
+                  Box Genie
+                </Link>
               {dropdownConfig.map((item) => (
                 <div
                   key={item.key}
@@ -289,25 +309,9 @@ const Navbar = () => {
                 >
                   Design Your Own Menu
                 </Link>
-                <Link
-                  to="/superfastDelivery"
-                  className={`cursor-pointer ${selectedComponent === "Box Genie"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Superfast Delivery
-                </Link>
-                <Link
-                  to="/box"
-                  className={`cursor-pointer ${selectedComponent === "Box Genie"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Box Genie
-                </Link>
-                <Link
+                
+                
+                {/* <Link
                   to="/delivery"
                   className={`cursor-pointer ${selectedComponent === "Home Delivery"
                       ? "text-green-600 font-bold"
@@ -324,10 +328,15 @@ const Navbar = () => {
                     }`}
                 >
                   Bulk Catering
-                </Link>
+                </Link> */}
               </div>
             </nav>
             {/* User Profile Dropdown */}
+            <Link
+            to="/cart"
+            >
+            <ShoppingCart className="ml-5"/>
+            </Link>
             <div className="relative">
               <img
                 src={user}

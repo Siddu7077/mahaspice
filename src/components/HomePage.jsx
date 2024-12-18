@@ -140,7 +140,7 @@ const HomePage = () => {
                     className="flex justify-between items-center cursor-pointer"
                     onClick={() => toggleDropdown(index)}
                   >
-                    <h3 className="text-lg font-bold text-green-700">{title}</h3>
+                    <h3 className="text-lg font-bold text-green-700 mb-4">{title}</h3>
                     {openDropdown === index ? (
                       <ChevronUp className="mr-4 text-green-700" />
                     ) : (
@@ -158,12 +158,11 @@ const HomePage = () => {
                           >
                             {text}
                           </Link>
+                          
                         </li>
+                        
                       ))}
-                    </ul>
-                  )}
-                  
-                  <div className="text-right mt-4 pr-4 pb-4">
+                      <div className="text-right mt-4 pr-4 pb-4">
                     <Link
                       to={description[0].link}
                       className="text-sm font-medium text-green-500 hover:text-green-600 transition"
@@ -171,6 +170,11 @@ const HomePage = () => {
                       View More
                     </Link>
                   </div>
+                    </ul>
+                    
+                  )}
+                  
+                  
                 </div>
               </div>
             ))}
