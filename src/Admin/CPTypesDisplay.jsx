@@ -108,7 +108,7 @@ const CPTypesDisplay = () => {
                                 <tr key={cpType.id} className="border-t">
                                     <td className="p-4">
                                         <img
-                                            src={`http://orchid-grasshopper-305065.hostingersite.com/ms3/uploads/${cpType.image_address}`}
+                                            src={`https://mahaspice.desoftimp.com/ms3/uploads/${cpType.image_address}`}
                                             alt={cpType.cp_name}
                                             className="w-16 h-16 object-cover rounded-md"
                                         />
