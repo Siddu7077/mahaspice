@@ -17,7 +17,7 @@ const AddCP = () => {
     }
 
     try {
-      const response = await axios.post('http://orchid-grasshopper-305065.hostingersite.com/cps.php', 
+      const response = await axios.post('https://mahaspice.desoftimp.com/ms3/cps.php', 
         { cp_type: cpType },
        
       );

@@ -24,7 +24,7 @@ const EventEditPage = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await fetch(` /get_event_details.php?id=${id}`);
+      const response = await fetch(` https://mahaspice.desoftimp.com/ms3/get_event_details.php?id=${id}`);
       const data = await response.json();
       
       setEvent(data);
@@ -94,7 +94,7 @@ const EventEditPage = () => {
     });
 
    try {
-  const response = await fetch(' /update_event.php', {
+  const response = await fetch(' https://mahaspice.desoftimp.com/ms3/update_event.php', {
     method: 'POST',
     body: formData,  // No need to set 'Content-Type' here
   });

@@ -17,7 +17,7 @@ const CPTypesDisplay = () => {
     const fetchCPTypes = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get('https://orchid-grasshopper-305065.hostingersite.com//cptypes.php');
+            const response = await axios.get('https://mahaspice.desoftimp.com/ms3/cptypes.php');
             setCpTypes(response.data);
             setError(null);
         } catch (err) {
@@ -33,7 +33,7 @@ const CPTypesDisplay = () => {
         if (!deleteId) return;
         try {
             // Use the delete method with the correct endpoint
-            await axios.delete('https://orchid-grasshopper-305065.hostingersite.com//cptypes.php', { 
+            await axios.delete('https://mahaspice.desoftimp.com/ms3/cptypes.php', { 
                 data: { id: deleteId } 
             });
             

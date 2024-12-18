@@ -79,7 +79,7 @@ const EventCategoryForm = () => {
     });
 
     try {
-      const response = await fetch('/ms3/submit_event.php', {
+      const response = await fetch('https://mahaspice.desoftimp.com/ms3/submit_event.php', {
         method: 'POST',
         body: formData
       });

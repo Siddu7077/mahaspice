@@ -12,7 +12,7 @@ const CarouselDisplay = () => {
   useEffect(() => {
     const fetchCarouselSlides = async () => {
       try {
-        const response = await axios.get('http://localhost/ms3/getCarousel.php');
+        const response = await axios.get('https://mahaspice.desoftimp.com/ms3/getCarousel.php');
         setCarouselSlides(response.data);
         setLoading(false);
       } catch (err) {
@@ -31,7 +31,7 @@ const CarouselDisplay = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.post('http://localhost/ms3/deletecarousel.php', { id });
+      await axios.post('https://mahaspice.desoftimp.com/ms3/deletecarousel.php', { id });
       setCarouselSlides(carouselSlides.filter(slide => slide.id !== id));
     } catch (error) {
       console.error('Delete failed', error);
@@ -59,7 +59,7 @@ const CarouselDisplay = () => {
             className="bg-white shadow-lg rounded-xl overflow-hidden transition-all duration-300 hover:shadow-2xl"
           >
             <img
-              src={`http://localhost/ms3/${slide.image_address}`}
+              src={`https://mahaspice.desoftimp.com/ms3/${slide.image_address}`}
               alt={slide.title}
               className="w-full h-48 object-cover"
             />

@@ -157,7 +157,7 @@ const AddCarousel = () => {
 
   try {
     // Use your actual backend URL
-    const response = await fetch('http://localhost/ms3/addCarousel.php', {
+    const response = await fetch('https://mahaspice.desoftimp.com/ms3/addCarousel.php', {
       method: 'POST',
       body: formData
     });

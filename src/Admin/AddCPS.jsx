@@ -18,7 +18,7 @@ const AddCPS = () => {
     useEffect(() => {
         const fetchCPTypes = async () => {
             try {
-                const response = await axios.get('http://orchid-grasshopper-305065.hostingersite.com /cps.php');
+                const response = await axios.get('https://mahaspice.desoftimp.com/ms3/cps.php');
                 setCpTypes(response.data);
             } catch (error) {
                 console.error('Error fetching CP Types:', error);
@@ -69,7 +69,7 @@ const AddCPS = () => {
         formSubmitData.append('image', formData.image);
 
         try {
-            const response = await axios.post('http://orchid-grasshopper-305065.hostingersite.com /cptypes.php',
+            const response = await axios.post('https://mahaspice.desoftimp.com/ms3/cptypes.php',
                 formSubmitData,
                 {
                     headers: {

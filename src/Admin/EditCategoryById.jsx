@@ -16,10 +16,10 @@ const EditCategoryById = () => {
     // Fetch menu types and current category details
     useEffect(() => {
         // Fetch menu types
-        const fetchMenuTypes = axios.get('/getMenuTypes.php');
+        const fetchMenuTypes = axios.get('https://mahaspice.desoftimp.com/ms3/getMenuTypes.php');
         
         // Fetch current category details
-        const fetchCategoryDetails = axios.get(`/getcategorybyid.php?id=${id}`);
+        const fetchCategoryDetails = axios.get(`https://mahaspice.desoftimp.com/ms3/getcategorybyid.php?id=${id}`);
 
         Promise.all([fetchMenuTypes, fetchCategoryDetails])
             .then(([menuTypesResponse, categoryResponse]) => {
@@ -89,7 +89,7 @@ const EditCategoryById = () => {
             category_limits: menuLimits
         };
 
-        axios.post('http://orchid-grasshopper-305065.hostingersite.com/ms3/updatecategory.php', formData)
+        axios.post('https://mahaspice.desoftimp.com/ms3/updatecategory.php', formData)
             .then(response => {
                 alert(response.data.message);
                 navigate('/admincategory'); // Updated navigation path
@@ -101,7 +101,7 @@ const EditCategoryById = () => {
     };
 
     const handleGoBack = () => {
-        navigate('/admincategory');
+        navigate('admincategory');
     };
 
     if (!currentCategory) {

@@ -14,7 +14,7 @@ const MenuPage = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await fetch('http://orchid-grasshopper-305065.hostingersite.com/ms3/getgscd.php');
+            const response = await fetch('https://mahaspice.desoftimp.com/ms3/getgscd.php');
             const data = await response.json();
 
             if (data.status === "success") {

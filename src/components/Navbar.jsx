@@ -252,7 +252,7 @@ const Navbar = () => {
               {/* Always visible links */}
               <Link
                   to="/superfastDelivery"
-                  className={`cursor-pointer ${selectedComponent === "Box Genie"
+                  className={` font-extrabold cursor-pointer ${selectedComponent === "Box Genie"
                       ? "text-green-600 font-bold"
                       : "text-black hover:text-green-500"
                     }`}

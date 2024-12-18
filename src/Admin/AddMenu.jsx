@@ -40,7 +40,7 @@ function AddMenu() {
     setMessage('');
     
     try {
-      const response = await fetch('https://orchid-grasshopper-305065.hostingersite.com//AddMenu.php', {
+      const response = await fetch('https://mahaspice.desoftimp.com/ms3/AddMenu.php', {
         method: 'POST',
         body: formData
       });
