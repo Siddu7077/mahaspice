@@ -56,7 +56,7 @@ import AddCP from '../Admin/AddCP';
 import AddCPS from "../Admin/AddCPS";
 import CarouselDisplay from "../Admin/CarouselDisplay";
 import CartPage from "./CartPage";
-
+import MealOrderForm from "./MealOrderForm";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -107,6 +107,10 @@ const Navbar = () => {
       element: <MenuPage />
     },
     {
+      path: "/superfast",
+      element: <MealOrderForm />
+    },
+    {
       path: "/events/:eventType/:serviceType/Menu/:categoryName",
       element: <MenuSelection />
     }
@@ -128,7 +132,7 @@ const Navbar = () => {
     { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
     // { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
-    { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
+    // { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
     
   ];
 
@@ -251,7 +255,7 @@ const Navbar = () => {
             <nav className="flex items-center space-x-4 relative mr-6">
               {/* Always visible links */}
               <Link
-                  to="/superfastDelivery"
+                  to="/superfast"
                   className={` font-extrabold cursor-pointer ${selectedComponent === "Box Genie"
                       ? "text-green-600 font-bold"
                       : "text-black hover:text-green-500"
