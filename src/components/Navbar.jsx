@@ -37,26 +37,17 @@ import Footer from "./Footer";
 import MenuPage from "./Menu";
 import MenuSelection from "./MenuDetails";
 import MenuOrder from "./MenuOrder";
-import AddMenu from "../Admin/AddMenu";
-import EditMenuPage from "../Admin/EditMenuPage";
-import AdminMenuPage from "../Admin/AdminMenuPage";
-import AddCategory from "../Admin/AddCategory";
-import AdminEditCategory from "../Admin/AdminEditCategory";
-import EditCategoryById from "../Admin/EditCategoryById";
-import EventCategoryForm from "../Admin/EventCategoryForm";
-import EventDisplayPage from "../Admin/EventDisplayPage";
-import EventEditPage from "../Admin/EventEditPage";
-import Admin from "../Admin/Admin";
-import AddCarousel from "../Admin/AddCarousel";
+
 import SuperFastDelivery from "./SuperFastDelivery";
-import AddMealBox from "../Admin/AddMealBox";
-import CPDisplay from "../Admin/CPDisplay";
-import CPTypesDisplay from "../Admin/CPTypesDisplay";
-import AddCP from '../Admin/AddCP';
-import AddCPS from "../Admin/AddCPS";
-import CarouselDisplay from "../Admin/CarouselDisplay";
+
 import CartPage from "./CartPage";
 import MealOrderForm from "./MealOrderForm";
+import RefundCancellation from "./RefundCancellation";
+import PrivacyPolicy from "./PrivacyPolicy";
+// import Shipping from "./Shipping";
+import TermsConditions from "./TermsConditions";
+import ReturnPolicy from "./ReturnPolicy";
+import CheckOutform from "./CheckOutform";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -75,27 +66,33 @@ const Navbar = () => {
     { path: "/catmenu", element: <EventCatMenu /> },
     { path: "/delivery", element: <DeliveryMenu /> },
     { path: "/box", element: <MealBox /> },
-    { path: "/addmenu", element: <AddMenu /> },
-    { path: "/editmenu/:id", element: <EditMenuPage /> },
-    { path: "/adminmenu", element: <AdminMenuPage /> },
-    { path: "/addcategory", element: <AddCategory /> },
-    { path: "/addcarousel", element: <AddCarousel /> },
-    { path: "/admincategory", element: <AdminEditCategory /> },
-    { path: "/editcategory/:id", element: <EditCategoryById /> },
-    { path: "/addevent", element: <EventCategoryForm /> },
-    { path: "/admineventdisplay", element: <EventDisplayPage /> },
-    { path: "/admineventedit/:id", element: <EventEditPage /> },
-    { path: "/admin", element: <Admin /> },
+    // { path: "/addmenu", element: <AddMenu /> },
+    // { path: "/editmenu/:id", element: <EditMenuPage /> },
+    // { path: "/adminmenu", element: <AdminMenuPage /> },
+    // { path: "/addcategory", element: <AddCategory /> },
+    // { path: "/addcarousel", element: <AddCarousel /> },
+    // { path: "/admincategory", element: <AdminEditCategory /> },
+    // { path: "/editcategory/:id", element: <EditCategoryById /> },
+    // { path: "/addevent", element: <EventCategoryForm /> },
+    // { path: "/admineventdisplay", element: <EventDisplayPage /> },
+    // { path: "/admineventedit/:id", element: <EventEditPage /> },
+    // { path: "/admin", element: <Admin /> },
     
-    { path: "/addMealBox", element: <AddMealBox /> },
-    { path: "/addcp", element: <AddCP /> },
-    { path: "/addcps", element: <AddCPS /> },
-    { path: "/displaycp", element: <CPDisplay /> },
-    { path: "/displaycps", element: <CPTypesDisplay /> },
-    { path: "/carousel", element: <CarouselDisplay /> },
+    // { path: "/addMealBox", element: <AddMealBox /> },
+    // { path: "/addcp", element: <AddCP /> },
+    // { path: "/addcps", element: <AddCPS /> },
+    // { path: "/displaycp", element: <CPDisplay /> },
+    // { path: "/displaycps", element: <CPTypesDisplay /> },
+    // { path: "/carousel", element: <CarouselDisplay /> },
     { path: "/cart", element: <CartPage /> },
+    { path: "/refund-cancellation", element: <RefundCancellation /> },
+    { path: "/privacy-policy", element: <PrivacyPolicy /> },
+    // { path: "/shipping", element: <Shipping /> },
+    { path: "/terms-conditions", element: <TermsConditions /> },
+    { path: "/return-policy", element: <ReturnPolicy /> },
+    { path: "/checkoutform", element: <CheckOutform /> },
+
    
-    
 
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     {

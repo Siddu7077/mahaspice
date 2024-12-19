@@ -1,17 +1,25 @@
 import React from 'react';
-import { Facebook, Instagram, Youtube } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="min-w-screen bg-gray-800 text-white py-4">
-      <div className="container mx-auto  flex items-center justify-around ">
-        <div className="flex space-x-4 ">
-          <a href="#" className="hover:text-blue-400"><Facebook /></a>
-          <a href="#" className="hover:text-green-400"><Instagram /></a>
-          <a href="#" className="hover:text-blue-400"><Youtube /></a>
-        </div>
-        <div className="text-center text-gray-400">
-          Copyright ©2024 All rights reserved | by pashu.in
+    <footer className="bg-gray-800 text-white py-4">
+      <div className="container mx-auto text-center">
+        <p className="text-sm">©️ 2007 GSR HOSPITALITY SERVICES | All rights Reserved</p>
+        <div className="flex justify-center space-x-4 mt-2 text-sm">
+          <Link to="/refund-cancellation" className="hover:underline">
+            Refund & Cancellation |
+          </Link>
+          <Link to="/privacy-policy" className="hover:underline">
+            Privacy Policy |
+          </Link>
+          
+          <Link to="/terms-conditions" className="hover:underline">
+            Terms & Conditions |
+          </Link>
+          <Link to="/return-policy" className="hover:underline">
+            Return Policy
+          </Link>
         </div>
       </div>
     </footer>

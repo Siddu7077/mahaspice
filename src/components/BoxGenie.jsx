@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Utensils, ChevronRight, Plus, Minus, Leaf, Beef } from "lucide-react";
-
+import CheckOutform from "./CheckOutform";
 const packageData = {
     "3CP": {
         veg: [
@@ -174,9 +174,11 @@ const packageImages = {
 };
 
 const MealBox = () => {
+    const navigate = useNavigate();
     const [selectedPackage, setSelectedPackage] = useState("3CP");
     const [isVeg, setIsVeg] = useState(true);
     const [cart, setCart] = useState({});
+    const [showCheckout, setShowCheckout] = useState(false); // Add this state
     
 
     const addToCart = (item) => {
@@ -221,25 +223,25 @@ const MealBox = () => {
         return Math.round(calculateCartTotal() * 0.18);
     };
 
-    const handleCheckout = () => {
-        if (Object.keys(cart).length === 0) {
-            alert("Your cart is empty!");
-            return;
-        }
+    // const handleCheckout = () => {
+    //     if (Object.keys(cart).length === 0) {
+    //         alert("Your cart is empty!");
+    //         return;
+    //     }
 
-        // Prepare cart details for checkout
-        const cartDetails = Object.entries(cart).map(([itemId, itemData]) => ({
-            id: itemId,
-            name: itemData.details.name,
-            quantity: itemData.quantity,
-            price: itemData.details.price,
-            package: itemData.package,
-        }));
+    //     // Prepare cart details for checkout
+    //     const cartDetails = Object.entries(cart).map(([itemId, itemData]) => ({
+    //         id: itemId,
+    //         name: itemData.details.name,
+    //         quantity: itemData.quantity,
+    //         price: itemData.details.price,
+    //         package: itemData.package,
+    //     }));
 
-        console.log("Proceeding to checkout with:", cartDetails);
-    };
+    //     console.log("Proceeding to checkout with:", cartDetails);
+    // };
 
-    // Group cart items by package
+    // // Group cart items by package
     const groupedCartItems = Object.entries(cart).reduce(
         (groups, [itemId, itemData]) => {
             const pkg = itemData.package;
@@ -250,7 +252,27 @@ const MealBox = () => {
             return groups;
         },
         {}
+        
     );
+
+    const handleCheckout = () => {
+        if (Object.keys(cart).length === 0) {
+            alert("Your cart is empty!");
+            return;
+        }
+        setShowCheckout(true); // Instead of console.log, set showCheckout to true
+    };
+
+    // If showing checkout form, render it instead of the main content
+    if (showCheckout) {
+        return (
+            <CheckOutform
+                cart={cart}
+                calculateCartTotal={calculateCartTotal}
+                calculateGST={calculateGST}
+            />
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -443,7 +465,7 @@ const MealBox = () => {
                                                 className={`px-4 py-2 ${isVeg ? "bg-green-500" : "bg-red-500"
                                                     } text-white rounded-lg`}
                                             >
-                                                Add to Cart
+                                                Add
                                             </button>
                                         )}
                                     </div>
