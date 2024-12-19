@@ -42,7 +42,7 @@ const HomePage = () => {
               image:
                 "https://5.imimg.com/data5/JU/UP/KR/SELLER-87393189/catering-services-500x500.jpg",
               buttonText: "Order Now",
-              link: "/catering-services",
+              link: "/catering",
             },
             
           ].map(({ title, image, buttonText, link }) => (
@@ -73,7 +73,7 @@ const HomePage = () => {
 
       <section className="p-10 max-h-[900px]">
         <h2 className="text-3xl font-bold mb-12 text-left text-green-700">
-          CATERING FOR ALL OF VARIETIES
+          CATERING FOR ALL OF OCCASIONS
         </h2>
         <div className="max-w-[100%] mx-auto">
           <div className="flex space-x-4 no-scrollbar pb-4 overflow-x-auto">

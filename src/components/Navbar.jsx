@@ -12,7 +12,7 @@ import {
   UserPlus,
   CopyPlus,
   UserCog,
-  Edit,ShoppingCart
+  Edit, ShoppingCart
 } from "lucide-react";
 
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
@@ -37,7 +37,7 @@ import Footer from "./Footer";
 import MenuPage from "./Menu";
 import MenuSelection from "./MenuDetails";
 import MenuOrder from "./MenuOrder";
-
+import BulkCatering from "./BulkCatering";
 import SuperFastDelivery from "./SuperFastDelivery";
 
 import CartPage from "./CartPage";
@@ -48,6 +48,7 @@ import PrivacyPolicy from "./PrivacyPolicy";
 import TermsConditions from "./TermsConditions";
 import ReturnPolicy from "./ReturnPolicy";
 import CheckOutform from "./CheckOutform";
+import ScrollToTop from "./ScrollToTop";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -65,6 +66,7 @@ const Navbar = () => {
     { path: "/feedback", element: <FeedbackForm /> },
     { path: "/catmenu", element: <EventCatMenu /> },
     { path: "/delivery", element: <DeliveryMenu /> },
+    { path: "/catering", element: <BulkCatering /> },
     { path: "/box", element: <MealBox /> },
     // { path: "/addmenu", element: <AddMenu /> },
     // { path: "/editmenu/:id", element: <EditMenuPage /> },
@@ -77,7 +79,7 @@ const Navbar = () => {
     // { path: "/admineventdisplay", element: <EventDisplayPage /> },
     // { path: "/admineventedit/:id", element: <EventEditPage /> },
     // { path: "/admin", element: <Admin /> },
-    
+
     // { path: "/addMealBox", element: <AddMealBox /> },
     // { path: "/addcp", element: <AddCP /> },
     // { path: "/addcps", element: <AddCPS /> },
@@ -92,7 +94,7 @@ const Navbar = () => {
     { path: "/return-policy", element: <ReturnPolicy /> },
     { path: "/checkoutform", element: <CheckOutform /> },
 
-   
+
 
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
     {
@@ -130,7 +132,7 @@ const Navbar = () => {
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
     // { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
     // { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
-    
+
   ];
 
   const toggleDropdown = (category) => {
@@ -168,27 +170,32 @@ const Navbar = () => {
       icon: '',
       label: "Event Catering"
     },
-    
+
   ];
 
   return (
     <div className="flex h-screen bg-white text-black ">
+    <ScrollToTop />
       {/* Left Sidebar */}
       <div
         className={`${isNavExpanded ? "w-64" : "w-44"
           } h-full transition-all duration-300 bg-white border-r border-green-200`}
       >
-        <div className="p-4 flex items-center justify-between">
-          <img
-            src={logo}
-            alt="Logo"
-            className={`${isNavExpanded ? "block" : "hidden"} h-30 w-64`}
-          />
-          <img
-            src={logo}
-            alt="Logo"
-            className={`${isNavExpanded ? "hidden" : "block"} h-30 w-64`}
-          />
+        <div className="p-4 flex items-center justify-between"
+        >
+          <Link
+            to="/" >
+            <img
+              src={logo}
+              alt="Logo"
+              className={`${isNavExpanded ? "block" : "hidden"} h-30 w-64`}
+            />
+            <img
+              src={logo}
+              alt="Logo"
+              className={`${isNavExpanded ? "hidden" : "block"} h-30 w-55`}
+            />
+          </Link>
         </div>
         <nav className="mt-4">
           <div className="mb-4">
@@ -212,8 +219,8 @@ const Navbar = () => {
                 {isNavExpanded && (
                   <span
                     className={`ml-3 ${selectedComponent === item.key
-                        ? "text-white"
-                        : " text-green-800"
+                      ? "text-white"
+                      : " text-green-800"
                       }`}
                   >
                     {item.label}
@@ -226,148 +233,131 @@ const Navbar = () => {
       </div>
       {/* Top Navigation and Content Area */}
       <div className="flex-1 flex flex-col">
-        <header className="flex items-center justify-between p-4 bg-white text-black shadow-md">
-          {/* Left Section: Search Bar */}
-          <div className="flex items-center space-x-4 ">
-            <button onClick={toggleNavbar} className="p-2 text-green-500">
-              <AiOutlineMenu className="w-6 h-6" />
+        {/* Header Section */}
+        <header className="flex items-center justify-between p-3 bg-white text-black shadow-md">
+          {/* Left Section: Menu Button */}
+          <div className="flex items-center space-x-2">
+            <button onClick={toggleNavbar} className="p-1 text-green-500">
+              <AiOutlineMenu className="w-4 h-4" />
             </button>
-            <div className="flex items-center relative">
-              <AiOutlineSearch
-                className="text-green-500 w-6 h-6 cursor-pointer"
-                onClick={toggleSearch}
-              />
-              {isSearchVisible && (
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="absolute left-8 w-32 top-1/2 transform -translate-y-1/2 border border-green-500 p-2 rounded-lg w-54 text-gray-800 placeholder-gray-500 z-10"
-                />
-              )}
-            </div>
           </div>
-          {/* Right Section: User Profile, Theme Toggle, and Navigation */}
-          <div className="flex items-center space-x-3">
+
+          {/* Right Section: Navigation, Search, Cart, and User Profile */}
+          <div className="flex items-center justify-between w-full">
             {/* Navigation Links */}
-            <nav className="flex items-center space-x-4 relative mr-6">
-              {/* Always visible links */}
+            <nav className="flex items-center pl-3 space-x-1">
               <Link
-                  to="/superfast"
-                  className={` font-extrabold cursor-pointer ${selectedComponent === "Box Genie"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Superfast Delivery
-                </Link>
-                <Link
-                  to="/box"
-                  className={`cursor-pointer ${selectedComponent === "Box Genie"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Box Genie
-                </Link>
+                to="/superfast"
+                className={`text-xs pr-2 font-extrabold cursor-pointer ${selectedComponent === "Superfast"
+                  ? "text-green-600 font-bold"
+                  : "text-black hover:text-green-500"
+                  }`}
+              >
+                Superfast Delivery
+              </Link>
+              <Link
+                to="/box"
+                className={`text-xs pr-2 cursor-pointer ${selectedComponent === "Box Genie"
+                  ? "text-green-600 font-bold"
+                  : "text-black hover:text-green-500"
+                  }`}
+              >
+                Box Genie
+              </Link>
+              <Link
+                to="/delivery"
+                className={`text-xs pr-2 cursor-pointer ${selectedComponent === "Home Delivery"
+                  ? "text-green-600 font-bold"
+                  : "text-black hover:text-green-500"
+                  }`}
+              >
+                Home Delivery
+              </Link>
+
               {dropdownConfig.map((item) => (
                 <div
                   key={item.key}
-                  className="relative bottom-1"
+                  className="relative pr-2"
                   onMouseEnter={() => toggleDropdown(item.key)}
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <span
-                    className={`flex text-[16px] items-center justify-center mt-2 space-x-2 ${selectedComponent === item.key
-                        ? "text-black"
-                        : "text-grey-500 hover:text-grey-600"
+                    className={`flex items-center text-xs space-x-1 ${selectedComponent === item.key
+                      ? "text-black"
+                      : "text-black hover:text-gray-600"
                       } cursor-pointer`}
                   >
                     {item.icon}
-                    <span
-                      className={`${selectedComponent === item.key
-                          ? "text-black"
-                          : "text-grey-500 hover:text-grey-600"
-                        }`}
-                    >
-                      {item.label}
-                    </span>
-                    <FaChevronDown className="w-3 h-3" />
+                    <span>{item.label}</span>
+                    <FaChevronDown className="w-2 h-2" />
                   </span>
                   {openDropdown === item.key && (
-                    <ul className=" z-10 absolute top-full text-xs left-0 w-48 bg-white shadow-lg rounded-md border">
+                    <ul className="z-10 absolute top-full left-0 w-32 bg-white shadow-lg rounded-md border">
                       {renderDropdownItems(item.key)}
                     </ul>
                   )}
                 </div>
               ))}
-              <div className="flex items-center justify-center space-x-4 text-[16px]">
-                <Link
-                  to="/catering-services"
-                  className={`cursor-pointer ${selectedComponent === "Catering"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Design Your Own Menu
-                </Link>
-                
-                
-                {/* <Link
-                  to="/delivery"
-                  className={`cursor-pointer ${selectedComponent === "Home Delivery"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Home Delivery
-                </Link>
-                <Link
-                  to="/catering-services"
-                  className={`cursor-pointer ${selectedComponent === "Catering"
-                      ? "text-green-600 font-bold"
-                      : "text-black hover:text-green-500"
-                    }`}
-                >
-                  Bulk Catering
-                </Link> */}
-              </div>
+              <Link
+                to="/catering-services"
+                className={`text-xs cursor-pointer ${selectedComponent === "Catering"
+                  ? "text-green-600 font-bold"
+                  : "text-black hover:text-green-500"
+                  }`}
+              >
+                Design Your Own Menu
+              </Link>
             </nav>
-            {/* User Profile Dropdown */}
-            <Link
-            to="/cart"
-            >
-            <ShoppingCart className="ml-5"/>
-            </Link>
-            <div className="relative">
-              <img
-                src={user}
-                alt="User Profile"
-                className="rounded-full w-10 h-10 cursor-pointer"
-                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+
+            {/* Search Bar */}
+            <div className="relative flex items-center mx-">
+              <AiOutlineSearch className="text-green-500 w-5 h-5 cursor-pointer" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="absolute left-8 w-24 top-1/2 transform -translate-y-1/2 border border-green-500 p-1 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
               />
-              {isUserDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
-                  <Link
-                    to="/profile"
-                    className="block px-4 py-2 hover:bg-green-50"
-                  >
-                    Profile
-                  </Link>
-                  <Link
-                    to="/logout"
-                    className="block px-4 py-2 hover:bg-green-50"
-                  >
-                    Logout
-                  </Link>
-                </div>
-              )}
+            </div>
+
+
+            {/* Cart and User Profile */}
+            <div className="flex items-center space-x-4">
+              <Link to="/cart">
+                <ShoppingCart className="text-black w-6 h-6" />
+              </Link>
+              <div className="relative">
+                <img
+                  src={user}
+                  alt="User Profile"
+                  className="rounded-full w-10 h-10 cursor-pointer"
+                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+                />
+                {isUserDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 hover:bg-green-50"
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      to="/logout"
+                      className="block px-4 py-2 hover:bg-green-50"
+                    >
+                      Logout
+                    </Link>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </header>
+
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-aliceBlue ">{routing}</div>
-      </div>
-    </div>
+        <div className="flex-1 overflow-y-auto bg-aliceBlue">{routing}</div>
+      </div >
+
+    </div >
   );
 };
 

@@ -447,9 +447,15 @@ const MenuOrder = () => {
           {/* Submit Order Button */}
           <button
             onClick={submitOrder}
-            className="w-full mt-6 bg-green-700 text-white py-3 rounded-lg hover:bg-green-800 transition duration-300"
+            className="w-full mt-6 bg-green-700 hidden text-white py-3 rounded-lg hover:bg-green-800 transition duration-300"
           >
             Submit Order via WhatsApp
+          </button>
+          <button
+            
+            className="w-full mt-6 bg-green-700  text-white py-3 rounded-lg hover:bg-green-800 transition duration-300"
+          >
+            Proceed to Pay
           </button>
         </div>
       </div>

@@ -46,7 +46,7 @@ const MenuPage = () => {
     // Function to get correct image URL
     const getImageUrl = (imageUrl) => {
         if (imageUrl && !imageUrl.startsWith('http')) {
-            return `http://orchid-grasshopper-305065.hostingersite.com/ms3/${imageUrl}`;
+            return `https://mahaspice.desoftimp.com/ms3/${imageUrl}`;
         }
         return imageUrl;
     };
