@@ -13,7 +13,7 @@ const App = () => {
 
         <Navbar />
       </div>
-      <CallButton />
+      {/* <CallButton /> */}
       <Footer />
     </BrowserRouter>
   );

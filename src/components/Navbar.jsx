@@ -14,6 +14,7 @@ import {
   UserCog,
   Edit, ShoppingCart
 } from "lucide-react";
+import { Phone } from 'lucide-react';
 
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
@@ -114,6 +115,23 @@ const Navbar = () => {
       element: <MenuSelection />
     }
   ]);
+
+  const handleCall = () => {
+    // Multiple approaches to handle call initiation
+    try {
+        
+        window.location.href = 'tel:+919697798888';
+
+        
+        const a = document.createElement('a');
+        a.href = 'tel:+919697798888';
+        a.click();
+    } catch (error) {
+        
+        alert('Call +91 969779 8888');
+    }
+};
+
 
   const toggleNavbar = () => {
     setIsNavExpanded(!isNavExpanded);
@@ -310,13 +328,20 @@ const Navbar = () => {
             </nav>
 
             {/* Search Bar */}
-            <div className="relative flex items-center mx-">
+            <div className="relative flex items-center flex-col">
               {/* <AiOutlineSearch className="text-green-500 w-8 h-16 cursor-pointer" /> */}
               <input
                 type="text"
                 placeholder="Search..."
                 className="left-8 w-36 border border-green-500 p-3 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
               />
+              <div className="flex"  onClick={handleCall}>
+              <Phone
+                    size={16}
+                    strokeWidth={2}
+                    className="relative top-2 right-1 text-green-600 cursor-pointer"
+                /><h2 className="text-xl text-green-600 cursor-pointer">969779 8888</h2>
+              </div>
             </div>
 
 

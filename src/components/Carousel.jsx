@@ -41,6 +41,11 @@ const Carousel = () => {
             index === currentIndex ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         >
+          <Link
+              to={slide.link_url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
           {slide.media_type === 'video' ? (
             <video
               className="absolute top-0 left-0 w-full h-full object-cover"
@@ -61,20 +66,15 @@ const Carousel = () => {
           )}
 
           {/* Dark overlay */}
-          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 " />
 
           {/* Button */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Link
-              to={slide.link_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-white hover:bg-gray-100 text-black rounded-lg 
-                       transform transition-transform hover:scale-105"
-            >
-              {slide.button_text}
-            </Link>
+          <div className=" h-full inset-4 flex items-end justify-center">
+            
+              <button className="px-8 py-3 mb-5 bg-white hover:bg-gray-100 text-black rounded-lg 
+                       transform transition-transform hover:scale-105">{slide.button_text}</button>
           </div>
+            </Link>
         </div>
       ))}
 
