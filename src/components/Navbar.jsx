@@ -40,7 +40,7 @@ import MenuSelection from "./MenuDetails";
 import MenuOrder from "./MenuOrder";
 import BulkCatering from "./BulkCatering";
 import SuperFastDelivery from "./SuperFastDelivery";
-
+import SectionTwo from "./SectionTwo";
 import CartPage from "./CartPage";
 import MealOrderForm from "./MealOrderForm";
 import RefundCancellation from "./RefundCancellation";
@@ -69,6 +69,7 @@ const Navbar = () => {
     { path: "/delivery", element: <DeliveryMenu /> },
     { path: "/catering", element: <BulkCatering /> },
     { path: "/box", element: <MealBox /> },
+    // { path: "/sc", element: <SectionTwo /> },
     // { path: "/addmenu", element: <AddMenu /> },
     // { path: "/editmenu/:id", element: <EditMenuPage /> },
     // { path: "/adminmenu", element: <AdminMenuPage /> },
@@ -193,7 +194,7 @@ const Navbar = () => {
 
   return (
     <div className="flex h-screen bg-white text-black ">
-    <ScrollToTop />
+    
       {/* Left Sidebar */}
       <div
         className={`${isNavExpanded ? "w-64" : "w-44"
@@ -385,8 +386,9 @@ const Navbar = () => {
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto bg-aliceBlue">{routing}</div>
       </div >
+      <ScrollToTop />
 
-    </div >
+    </div>
   );
 };
 
