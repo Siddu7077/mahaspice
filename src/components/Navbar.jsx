@@ -330,11 +330,15 @@ const Navbar = () => {
             {/* Search Bar */}
             <div className="relative flex items-center flex-col">
               {/* <AiOutlineSearch className="text-green-500 w-8 h-16 cursor-pointer" /> */}
-              <input
-                type="text"
-                placeholder="Search..."
-                className="left-8 w-36 border border-green-500 p-3 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
-              />
+              <div className="relative">
+  <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 w-5 h-5" />
+  <input
+    type="text"
+    placeholder="Search..."
+    className="pl-10 w-36 border border-green-500 p-3  rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
+  />
+</div>
+
               <div className="flex"  onClick={handleCall}>
               <Phone
                     size={16}
