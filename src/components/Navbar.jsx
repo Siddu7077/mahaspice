@@ -245,7 +245,7 @@ const Navbar = () => {
           {/* Right Section: Navigation, Search, Cart, and User Profile */}
           <div className="flex items-center justify-between w-full">
             {/* Navigation Links */}
-            <nav className="flex items-center pl-3 space-x-1">
+            <nav className="flex items-center justify-between pl-3 space-x-1">
               <Link
                 to="/superfast"
                 className={`text-xs pr-2 font-extrabold cursor-pointer ${selectedComponent === "Superfast"
@@ -292,7 +292,7 @@ const Navbar = () => {
                     <FaChevronDown className="w-2 h-2" />
                   </span>
                   {openDropdown === item.key && (
-                    <ul className="z-10 absolute top-full left-0 w-32 bg-white shadow-lg rounded-md border">
+                    <ul className="z-10 absolute top-full w-60 bg-white shadow-lg rounded-md border">
                       {renderDropdownItems(item.key)}
                     </ul>
                   )}
@@ -311,11 +311,11 @@ const Navbar = () => {
 
             {/* Search Bar */}
             <div className="relative flex items-center mx-">
-              <AiOutlineSearch className="text-green-500 w-5 h-5 cursor-pointer" />
+              {/* <AiOutlineSearch className="text-green-500 w-8 h-16 cursor-pointer" /> */}
               <input
                 type="text"
                 placeholder="Search..."
-                className="absolute left-8 w-24 top-1/2 transform -translate-y-1/2 border border-green-500 p-1 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
+                className="absolute left-8 w-44 top-1/2 transform -translate-y-1/2 border border-green-500 p-3 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
               />
             </div>
 
