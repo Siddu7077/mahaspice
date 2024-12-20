@@ -93,7 +93,7 @@ const HomePage = () => {
       <CateringCarousel />
       
       <section className="py-2 mt-6">
-        <div className="max-w-7xl mx-auto flex justify-evenly items-stretch space-x-4 mb-5">
+        <div className=" flex justify-evenly items-stretch space-x-4 mb-5 max-w-5xl mx-auto">
           {[
             {
               title: "Box Genie",
@@ -142,12 +142,12 @@ const HomePage = () => {
         </div>
       </section>
 
-      <section className="p-5 mx-auto max-w-7xl relative">
-      <h2 className="text-3xl font-bold mb-0 text-left text-green-700">
+      <section className="p-5 mx-auto max-w-6xl relative">
+      <h2 className="text-3xl font-bold mb-0 text-left text-green-700 ml-10">
         CATERING FOR ALL OCCASIONS
       </h2>
       
-      <div className="relative p-3 m-2">
+      <div className="relative p-3 m-2 bottom-5">
         <button
           onClick={handlePrevious}
           className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"

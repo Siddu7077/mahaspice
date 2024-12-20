@@ -238,7 +238,7 @@ const Navbar = () => {
           {/* Left Section: Menu Button */}
           <div className="flex items-center space-x-2">
             <button onClick={toggleNavbar} className="p-1 text-green-500">
-              <AiOutlineMenu className="w-4 h-4" />
+              <AiOutlineMenu className="w-6 h-8" />
             </button>
           </div>
 
@@ -315,7 +315,7 @@ const Navbar = () => {
               <input
                 type="text"
                 placeholder="Search..."
-                className="absolute left-8 w-44 top-1/2 transform -translate-y-1/2 border border-green-500 p-3 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
+                className="left-8 w-36 border border-green-500 p-3 rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
               />
             </div>
 
