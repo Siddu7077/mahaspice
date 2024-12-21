@@ -28,7 +28,7 @@ const SectionTwo = () => {
     useEffect(() => {
         const fetchImages = async () => {
             try {
-                const response = await fetch('http://localhost/ms3/getSectionTwo.php');
+                const response = await fetch('https://mahaspice.desoftimp.com/ms3/getSectionTwo.php');
 
                 // Log the raw response for debugging
                 const textResponse = await response.text();
@@ -55,7 +55,7 @@ const SectionTwo = () => {
                             return {
                                 ...service,
                                 image: dbImage
-                                    ? `http://localhost/ms3/${dbImage.image_path}`
+                                    ? `https://mahaspice.desoftimp.com/ms3/${dbImage.image_path}`
                                     : '/api/placeholder/400/320'
                             };
                         })

@@ -363,7 +363,7 @@ const Navbar = () => {
                   onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
                 />
                 {isUserDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
+                  <div className="absolute right-0 z-30 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
                     <Link
                       to="/profile"
                       className="block px-4 py-2 hover:bg-green-50"
