@@ -9,6 +9,8 @@ import "./del.css";
 import SocialIcons from "./SocialIcons";
 import SuperFastDelivery from "./SFD";
 import SectionTwo from "./SectionTwo";
+import SectionThree from "./SectionThree";
+import ScrollToTop from "./ScrollToTop";
 
 const items = [
   {
@@ -90,92 +92,14 @@ const HomePage = () => {
 
   return (
     <div className="bg-aliceBlue text-black font-sans">
+      <ScrollToTop />
       <SocialIcons />
       <CateringCarousel />
       <SectionTwo/>
+      <SectionThree/>
       
 
-      <section className="p-5 mx-auto max-w-6xl relative">
-      <h2 className="text-3xl font-bold mb-0 text-left text-green-700 ml-10">
-        CATERING FOR ALL OCCASIONS
-      </h2>
       
-      <div className="relative p-3 m-2 bottom-5">
-        <button
-          onClick={handlePrevious}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
-        >
-          <ChevronLeft className="w-6 h-6 text-green-700" />
-        </button>
-
-        <div className="overflow-hidden">
-          <div 
-            className="flex transition-transform duration-500 ease-in-out"
-            style={{
-              transform: `translateX(-${currentIndex * (100 / 3)}%)`,
-            }}
-          >
-            {items.map(({ title, description, image }, index) => (
-              <div
-                key={title}
-                className="flex-shrink-0 w-1/3 px-4 p-5"
-              >
-                <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                  <img
-                    src={image}
-                    alt={title}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="p-5">
-                    <div 
-                      className="flex justify-between items-center cursor-pointer"
-                      onClick={() => toggleDropdown(index)}
-                    >
-                      <h3 className="text-lg font-bold text-green-700">{title}</h3>
-                      {openDropdown === index ? (
-                        <ChevronUp className="text-green-700" />
-                      ) : (
-                        <ChevronDown className="text-green-700" />
-                      )}
-                    </div>
-                    
-                    {openDropdown === index && (
-                      <ul className="list-disc list-inside mt-4 text-sm text-gray-600">
-                        {description.map(({ text, link }, descIndex) => (
-                          <li key={descIndex}>
-                            <Link
-                              to={link}
-                              className="text-gray-600 hover:text-gray-800"
-                            >
-                              {text}
-                            </Link>
-                          </li>
-                        ))}
-                        <div className="text-right mt-4">
-                          <Link
-                            to={description[0].link}
-                            className="text-sm font-medium text-green-500 hover:text-green-600"
-                          >
-                            View More
-                          </Link>
-                        </div>
-                      </ul>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <button
-          onClick={handleNext}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100"
-        >
-          <ChevronRight className="w-6 h-6 text-green-700" />
-        </button>
-      </div>
-    </section>
     </div>
   );
 };

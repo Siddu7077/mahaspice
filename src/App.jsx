@@ -12,6 +12,7 @@ const App = () => {
       <div className="flex flex-col min-h-screen">
 
         <Navbar />
+        <ScrollToTop />
       </div>
       {/* <CallButton /> */}
       <Footer />

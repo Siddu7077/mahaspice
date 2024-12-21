@@ -194,7 +194,7 @@ const Navbar = () => {
 
   return (
     <div className="flex h-screen bg-white text-black ">
-    
+      <ScrollToTop />
       {/* Left Sidebar */}
       <div
         className={`${isNavExpanded ? "w-64" : "w-44"
