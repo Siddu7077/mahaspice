@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Utensils, ChevronRight, Plus, Minus, Leaf, Beef } from "lucide-react";
 import CheckOutform from "./CheckOutform";
+import ScrollToTop from "./ScrollToTop";
 const packageData = {
     "3CP": {
         veg: [
@@ -276,6 +277,7 @@ const MealBox = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
+        <ScrollToTop />
             {/* Cart Summary */}
             {Object.keys(cart).length > 0 && (
                 <div className="fixed top-75 right-10 mt-7 z-10 bg-white shadow-lg rounded-lg p-5 w-84">
