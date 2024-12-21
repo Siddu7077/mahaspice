@@ -2,26 +2,70 @@ import React from 'react';
 
 const ReturnPolicy = () => {
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <h1 className="text-3xl font-semibold text-center text-gray-800 mb-8">Return Policy</h1>
-      <p className="text-lg text-gray-700 leading-relaxed mb-6">
-        To provide the best customer satisfaction, we provide the following solutions. If you have any questions regarding the Return Policy, please call 040-2222 8888. Preparation of your order can begin immediately after your order has been confirmed. We cannot accept returns once your order has been confirmed with the restaurant.
-      </p>
+    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
+     <Helmet>
+        <title>Webhost Devs | Return Policy</title>
+        <meta name="description" content="Discover the return policy for Webhost Devs, ensuring the best customer satisfaction with flexible refund and return options." />
+        <meta name="keywords" content="Webhost Devs, Return Policy, Customer Satisfaction, Food Order Refunds, Food Returns" />
+        <meta name="author" content="Webhost Devs" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href="https://www.webhostdevs.com/return-policy" />
+        <meta property="og:title" content="Webhost Devs | Return Policy" />
+        <meta property="og:description" content="Learn about our return policy, including food order errors, incomplete orders, and dissatisfaction resolutions." />
+        <meta property="og:url" content="https://www.webhostdevs.com/return-policy" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Webhost Devs" />
+      </Helmet>
+      <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-lg p-8">
+        <h1 className="text-4xl font-bold text-center text-gray-800 mb-10 border-b-4 border-gray-200 pb-4">
+          Return Policy
+        </h1>
+        
+        <p className="text-lg text-gray-700 leading-relaxed mb-8">
+          To provide the best customer satisfaction, we offer the following solutions. If you have any questions regarding the Return Policy, 
+          please call <span className="text-blue-600 font-medium">040-2222 8888</span>. Preparation of your order begins immediately after 
+          confirmation. Returns are not accepted once your order is confirmed with the restaurant.
+        </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-6 mb-4">Food Order Errors</h2>
-      <p className="text-lg text-gray-700 leading-relaxed mb-6">
-        If you receive food that is different from your receipt, we sincerely apologize. Please call us as soon as you notice that there was an error in your order. You may come to pick up the correct food item. For credit card payments, you will be refunded the sales price amount associated with the error and recharged for the new item's price. For cash payments, you will be asked to pay the difference of the balance if the new food has a greater value than the food received in error. Similarly, you will receive the difference of the balance back as credit for the new item if it is less than the food received in error. In some cases, we may offer you store credit. Your order will be prioritized if you come to pick it up. In all cases, please return the food order in the original container(s) to our host.
-      </p>
+        {/* Food Order Errors */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Food Order Errors</h2>
+          <p className="text-lg text-gray-700 leading-relaxed mb-6">
+            If you receive food that is different from your receipt, we sincerely apologize. Please call us as soon as you notice the error. 
+            You may come to pick up the correct food item. For credit card payments, the incorrect item will be refunded, and the new item charged. 
+            For cash payments, the balance will be adjusted accordingly. In some cases, we may offer store credit. 
+            Please return the incorrect food in its original container(s).
+          </p>
+        </section>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-6 mb-4">Food Order Incomplete</h2>
-      <p className="text-lg text-gray-700 leading-relaxed mb-6">
-        In the rare occasion that you do not receive food that is on your receipt, we will make it up to you. Please call us as soon as you notice that any food items were not received in your order. You may cancel the missed food before we prepare it without any question, and we will refund the amount to a credit card, cash refund, or we will refund you with store credit.
-      </p>
+        {/* Food Order Incomplete */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Food Order Incomplete</h2>
+          <p className="text-lg text-gray-700 leading-relaxed mb-6">
+            If any food item listed on your receipt is missing, we will make it right. Please call us immediately to report the issue. 
+            You may cancel the unprepared item and receive a refund, store credit, or a replacement, based on your preference.
+          </p>
+        </section>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-6 mb-4">Food Dissatisfaction</h2>
-      <p className="text-lg text-gray-700 leading-relaxed mb-6">
-        We cook our food fresh to order with only the finest and freshest ingredients. We take great care and pride in all of the dishes we make. Please call us immediately if you receive unsatisfactory food caused by a dislike or objects in the food. We will need the food returned in the original container(s) so we may investigate and deal with the issue. We will prepare you a new food order. If you do not wish to receive a new dish, we may refund the amount to a credit card, cash refund, or we will refund you with store credit only after we receive the food in the original container(s) and have confirmed the error to the discretion of the manager on duty.
-      </p>
+        {/* Food Dissatisfaction */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Food Dissatisfaction</h2>
+          <p className="text-lg text-gray-700 leading-relaxed mb-6">
+            We take pride in preparing fresh food with the finest ingredients. If you are dissatisfied due to a dislike or objects in the food, 
+            please call us immediately. Return the food in its original container(s) for investigation. We can prepare a replacement or issue a refund 
+            (cash, credit card, or store credit) upon confirmation of the issue by the manager on duty.
+          </p>
+        </section>
+        
+        {/* Additional Notes */}
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Additional Notes</h2>
+          <p className="text-lg text-gray-700 leading-relaxed">
+            Refunds and returns are handled at the manager's discretion, based on the specific circumstances of each case. 
+            Your satisfaction is our priority, and we are committed to resolving any issues promptly.
+          </p>
+        </section>
+      </div>
     </div>
   );
 };
