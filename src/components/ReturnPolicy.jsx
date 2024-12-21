@@ -3,19 +3,7 @@ import React from 'react';
 const ReturnPolicy = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8">
-     <Helmet>
-        <title>Webhost Devs | Return Policy</title>
-        <meta name="description" content="Discover the return policy for Webhost Devs, ensuring the best customer satisfaction with flexible refund and return options." />
-        <meta name="keywords" content="Webhost Devs, Return Policy, Customer Satisfaction, Food Order Refunds, Food Returns" />
-        <meta name="author" content="Webhost Devs" />
-        <meta name="robots" content="index, follow" />
-        <link rel="canonical" href="https://www.webhostdevs.com/return-policy" />
-        <meta property="og:title" content="Webhost Devs | Return Policy" />
-        <meta property="og:description" content="Learn about our return policy, including food order errors, incomplete orders, and dissatisfaction resolutions." />
-        <meta property="og:url" content="https://www.webhostdevs.com/return-policy" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Webhost Devs" />
-      </Helmet>
+    
       <div className="max-w-4xl mx-auto bg-white shadow-xl rounded-lg p-8">
         <h1 className="text-4xl font-bold text-center text-gray-800 mb-10 border-b-4 border-gray-200 pb-4">
           Return Policy
