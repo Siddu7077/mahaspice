@@ -151,7 +151,7 @@ const BulkCatering = () => {
                         className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-lg"
                     >
                     <Link
-                                        to={description[0].link} >
+                                        >
                         <div className="h-48 relative">
                             <img
                                 src={image}
@@ -200,10 +200,10 @@ const BulkCatering = () => {
                                 </div>
                             </div>
                         </div>
-                     </Link>
+                    </Link>
                     </div>
                 ))}
-               
+            
             </div>
         </section>
     );

@@ -101,7 +101,7 @@ const SectionTwo = () => {
                             <img
                                 src={image}
                                 alt={title}
-                                className="rounded-md object-contain h-48 w-full"
+                                className="rounded-md object-contain  w-full"
                                 onError={(e) => {
                                     console.log(`Image load error for ${title}`);
                                     e.target.src = '/api/placeholder/400/320';
