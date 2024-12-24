@@ -178,6 +178,7 @@ const BulkCatering = () => {
                                     openDropdown === index ? 'mt-4 opacity-100' : 'h-0 opacity-0'
                                 } overflow-hidden`}
                             >
+                            <Link to={description[0].link}>
                                 <ul className="space-y-2 text-sm text-gray-600">
                                     {description.map(({ text, link }, descIndex) => (
                                         <li key={descIndex} className="hover:text-gray-800">
@@ -198,6 +199,7 @@ const BulkCatering = () => {
                                         View More
                                     </Link>
                                 </div>
+                            </Link>
                             </div>
                         </div>
                     </Link>
