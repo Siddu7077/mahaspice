@@ -149,27 +149,27 @@ export const menuItems = {
 
 export const menuCategories = {
     veg: [
-        { id: 'beverages', name: 'Beverages', limit: 1000 },
-        { id: 'starters', name: 'Starters', limit: 1000 },
-        { id: 'salads', name: 'Salads', limit: 1000 },
-        { id: 'sweets', name: 'Sweets', limit: 1000 },
-        { id: 'breads', name: 'Breads', limit: 1000 },
-        { id: 'special-rice', name: 'Special Rice', limit: 1000 },
-        { id: 'rice', name: 'Rice', limit: 1000 },
-        { id: 'main-course', name: 'Main Course', limit: 1000 },
-        { id: 'fries', name: 'Fries', limit: 1000 },
-        { id: 'curries', name: 'Curries', limit: 1000 }
+        {  name: 'Beverages' },
+        {  name: 'Starters'},
+        {  name: 'Salads' },
+        { name: 'Sweets'},
+        {  name: 'Breads'},
+        {  name: 'Special Rice'},
+        { id: 'rice', name: 'Rice' },
+        { id: 'main-course', name: 'Main Course' },
+        { id: 'fries', name: 'Fries' },
+        { id: 'curries', name: 'Curries' }
     ],
     nonveg: [
-        { id: 'beverages', name: 'Beverages', limit: 1000 },
-        { id: 'starters', name: 'Starters', limit: 1000 },
-        { id: 'salads', name: 'Salads', limit: 1000 },
-        { id: 'sweets', name: 'Sweets', limit: 1000 },
-        { id: 'breads', name: 'Breads', limit: 1000 },
-        { id: 'special-rice', name: 'Special Rice', limit: 1000 },
-        { id: 'rice', name: 'Rice', limit: 1000 },
-        { id: 'main-course', name: 'Main Course', limit: 1000 },
-        { id: 'fries', name: 'Fries', limit: 1000 },
-        { id: 'curries', name: 'Curries', limit: 1000 }
+        { id: 'beverages', name: 'Beverages'},
+        { id: 'starters', name: 'Starters' },
+        { id: 'salads', name: 'Salads' },
+        { id: 'sweets', name: 'Sweets' },
+        { id: 'breads', name: 'Breads' },
+        { id: 'special-rice', name: 'Special Rice' },
+        { id: 'rice', name: 'Rice' },
+        { id: 'main-course', name: 'Main Course' },
+        { id: 'fries', name: 'Fries' },
+        { id: 'curries', name: 'Curries' }
     ]
 };

@@ -147,7 +147,7 @@ const Navbar = () => {
     { icon: <Users />, label: "About", key: "about", path: "/about" },
     { icon: <FaServicestack />, label: "Services", key: "services", path: "/services" },
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
-    { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
+    // { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
     // { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
     // { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
@@ -253,7 +253,7 @@ const Navbar = () => {
       {/* Top Navigation and Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Header Section */}
-        <header className="flex items-center justify-between p-3 bg-white text-black shadow-md">
+        <header className="flex items-center justify-between p-2 bg-white text-black shadow-md">
           {/* Left Section: Menu Button */}
           <div className="flex items-center space-x-2">
             <button onClick={toggleNavbar} className="p-1 text-green-500">
@@ -264,10 +264,10 @@ const Navbar = () => {
           {/* Right Section: Navigation, Search, Cart, and User Profile */}
           <div className="flex items-center justify-between w-full">
             {/* Navigation Links */}
-            <nav className="flex items-center justify-between pl-3 space-x-1">
+            <nav className="flex items-center justify-between pl-2 space-x-2">
               <Link
                 to="/superfast"
-                className={`text-xs pr-2 font-extrabold cursor-pointer ${selectedComponent === "Superfast"
+                className={`text-md pr-2 font-extrabold cursor-pointer ${selectedComponent === "Superfast"
                   ? "text-green-600 font-bold"
                   : "text-black hover:text-green-500"
                   }`}
@@ -329,9 +329,9 @@ const Navbar = () => {
             </nav>
 
             {/* Search Bar */}
-            <div className="relative flex items-center flex-col">
+            <div className="relative hi flex items-center flex-col">
               {/* <AiOutlineSearch className="text-green-500 w-8 h-16 cursor-pointer" /> */}
-              <div className="relative">
+              <div className=" hidden relative">
   <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 w-5 h-5" />
   <input
     type="text"
@@ -385,7 +385,7 @@ const Navbar = () => {
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto bg-aliceBlue">{routing}</div>
-      </div >
+      </div>
       <ScrollToTop />
 
     </div>
