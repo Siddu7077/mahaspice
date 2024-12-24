@@ -88,7 +88,7 @@ const SectionTwo = () => {
                     Error loading images: {error}
                 </div>
             )}
-            <div className="flex flex-col md:flex-row justify-between gap-4 max-w-5xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row justify-between gap-4 max-w-7xl mx-auto px-4">
                 {services.map(({ title, image, buttonText, link }) => (
                     <div
                         key={title}
