@@ -342,9 +342,9 @@ const Navbar = () => {
 
               <div className="flex"  onClick={handleCall}>
               <Phone
-                    size={16}
+                    size={20}
                     strokeWidth={2}
-                    className="relative top-2 right-1 text-green-600 cursor-pointer"
+                    className="relative top-1 right-1 text-green-600 cursor-pointer"
                 /><h2 className="text-xl text-green-600 cursor-pointer">969779 8888</h2>
               </div>
             </div>
