@@ -36,7 +36,8 @@ import EventsPage from "./EventsPage";
 import eventCategories from './eventCategories.json';
 import Footer from "./Footer";
 import MenuPage from "./Menu";
-import MenuSelection from "./MenuDetails";
+// import MenuSelection from "./MenuDetails";
+import MenuSelection from "./MenuSelection";
 import MenuOrder from "./MenuOrder";
 import BulkCatering from "./BulkCatering";
 import SuperFastDelivery from "./SuperFastDelivery";
@@ -111,8 +112,12 @@ const Navbar = () => {
       path: "/superfast",
       element: <MealOrderForm />
     },
+    // {
+    //   path: "/events/:eventType/:serviceType/Menu/:categoryName",
+    //   element: <MenuSelection />
+    // },
     {
-      path: "/events/:eventType/:serviceType/Menu/:categoryName",
+      path: "/events/:eventType/:serviceType/Menu/:menuType",
       element: <MenuSelection />
     }
   ]);
