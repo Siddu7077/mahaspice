@@ -14,32 +14,30 @@ const EventsPage = () => {
         const response = await fetch('https://mahaspice.desoftimp.com/ms3/get_events.php');
         const data = await response.json();
         
-        // Find the matching event based on event_name
-        const matchedEvent = data.find(event => 
+        // Find all events that match the category
+        const matchedEvents = data.filter(event => 
           event.event_name.toLowerCase() === eventType.toLowerCase() ||
           event.event_name.toLowerCase().replace(/\s+/g, '-') === eventType.toLowerCase()
         );
 
-        if (matchedEvent) {
+        if (matchedEvents.length > 0) {
           // Transform database data to match component structure
           const transformedData = {
-            mainTitle: matchedEvent.event_name,
-            mainDescription: matchedEvent.event_description,
-            services: [
-              {
-                title: matchedEvent.event_category,
-                description: matchedEvent.event_description,
-                image: `/${matchedEvent.event_file_path}`,
-                startingPrice: parseFloat(matchedEvent.event_veg_price),
-                nonVegPrice: parseFloat(matchedEvent.event_nonveg_price),
-                highlights: [
-                  `Veg Price: ₹${matchedEvent.event_veg_price}`,
-                  `Non-Veg Price: ₹${matchedEvent.event_nonveg_price}`,
-                  "Customizable menu options",
-                  "Professional service"
-                ]
-              }
-            ]
+            mainTitle: matchedEvents[0].event_name, // Use the first event's name as main title
+            mainDescription: "Choose from our variety of services below", // Generic description
+            services: matchedEvents.map(event => ({
+              title: event.event_category,
+              description: event.event_description,
+              image: `https://mahaspice.desoftimp.com/ms3/${event.event_file_path}`,
+              startingPrice: parseFloat(event.event_veg_price),
+              nonVegPrice: parseFloat(event.event_nonveg_price),
+              highlights: [
+                `Veg Price: ₹${event.event_veg_price}`,
+                `Non-Veg Price: ₹${event.event_nonveg_price}`,
+                "Customizable menu options",
+                "Professional service"
+              ]
+            }))
           };
           setEventData(transformedData);
         }
@@ -95,14 +93,17 @@ const EventsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {eventData.services.map((service, index) => (
           <div
-            onClick={() => handleOrderNow(service)}
             key={index}
             className="border rounded-lg shadow-md overflow-hidden bg-white cursor-pointer"
           >
             <img
               src={service.image}
               alt={service.title}
-              className="w-full h-48 object-cover"
+              className="w-full h-60 object-cover"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "/placeholder-image.jpg"; // Add a placeholder image if the main image fails to load
+              }}
             />
             <div className="p-4">
               <h3 className="text-lg font-bold text-green-700 mb-2">
@@ -119,10 +120,7 @@ const EventsPage = () => {
               </ul>
               <div className="text-center">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOrderNow(service);
-                  }}
+                  onClick={() => handleOrderNow(service)}
                   className="mt-3 w-1/3 bg-black text-white py-2 rounded-md hover:bg-black transition"
                 >
                   Order Now
