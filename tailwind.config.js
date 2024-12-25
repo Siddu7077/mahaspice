@@ -6,7 +6,7 @@ export default {
   ],
   theme: {
     extend: {colors: {
-      aliceBlue: '#F5F9FD', // Custom color
+      aliceBlue: '#f8f8f8', // Custom color
     },
   },
   },

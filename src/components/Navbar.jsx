@@ -203,7 +203,7 @@ const Navbar = () => {
       {/* Left Sidebar */}
       <div
         className={`${isNavExpanded ? "w-64" : "w-44"
-          } h-full transition-all duration-300 bg-white border-r border-green-200`}
+          } h-full transition-all duration-300 bg-white border-r border-gray-100`}
       >
         <div className="p-4 flex items-center justify-between"
         >
@@ -223,12 +223,12 @@ const Navbar = () => {
         </div>
         <nav className="mt-4">
           <div className="mb-4">
-            <h3
+            {/* <h3
               className={`px-4 mx-auto mb-2 ${!isNavExpanded && "text-center"
                 } text-sm font-bold text-green-800`}
             >
               Navigation
-            </h3>
+            </h3> */}
             {navItems.map((item) => (
               <Link
                 key={item.key}

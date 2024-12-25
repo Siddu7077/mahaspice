@@ -82,7 +82,7 @@ const SectionTwo = () => {
     }, []);
 
     return (
-        <section className="py-8 mt-6 ">
+        <section className="py-8 mt-6 mr-20">
             {error && (
                 <div className="text-red-500 text-center mb-4">
                     Error loading images: {error}
@@ -90,9 +90,11 @@ const SectionTwo = () => {
             )}
             <div className="flex flex-col md:flex-row justify-between gap-4 w-full mx-auto px-4">
                 {services.map(({ title, image, buttonText, link }) => (
+                    <Link
+                            to={link} >
                     <div
                         key={title}
-                        className="flex-1 bg-blue-50 text-black p-4 rounded-lg transition-transform hover:-translate-y-1 flex flex-col"
+                        className="flex-1 bg-white border text-black p-4 rounded-lg transition-transform hover:-translate-y-1 flex flex-col"
                     >
                         <h3 className="text-2xl font-extrabold text-gray-800 border-b-2 border-green-500 pb-2">
                             {title}
@@ -108,15 +110,18 @@ const SectionTwo = () => {
                                 }}
                             />
                         </div>
-                        <Link
+                        {/* <Link
                             to={link}
                             className="bg-black text-white px-6 py-2 rounded-full font-medium shadow-md hover:shadow-lg transition-transform self-center"
                         >
                             {buttonText}
-                        </Link>
+                        </Link> */}
                     </div>
+                    </Link>
                 ))}
+                
             </div>
+            
         </section>
     );
 };

@@ -1,37 +1,77 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import data from "./catering-services-data.json";
 
 const EventsPage = () => {
   const { eventType } = useParams();
   const navigate = useNavigate();
   const [eventData, setEventData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Directly use the key from the URL
-    const matchedEvent = data[eventType] ||
-      data[eventType.replace('-', ' ')] ||
-      data[eventType.split('-').map(word =>
-        word.charAt(0).toUpperCase() + word.slice(1)
-      ).join(' ')];
+    const fetchEventData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('https://mahaspice.desoftimp.com/ms3/get_events.php');
+        const data = await response.json();
+        
+        // Find the matching event based on event_name
+        const matchedEvent = data.find(event => 
+          event.event_name.toLowerCase() === eventType.toLowerCase() ||
+          event.event_name.toLowerCase().replace(/\s+/g, '-') === eventType.toLowerCase()
+        );
 
-    setEventData(matchedEvent || null);
+        if (matchedEvent) {
+          // Transform database data to match component structure
+          const transformedData = {
+            mainTitle: matchedEvent.event_name,
+            mainDescription: matchedEvent.event_description,
+            services: [
+              {
+                title: matchedEvent.event_category,
+                description: matchedEvent.event_description,
+                image: `/${matchedEvent.event_file_path}`,
+                startingPrice: parseFloat(matchedEvent.event_veg_price),
+                nonVegPrice: parseFloat(matchedEvent.event_nonveg_price),
+                highlights: [
+                  `Veg Price: ₹${matchedEvent.event_veg_price}`,
+                  `Non-Veg Price: ₹${matchedEvent.event_nonveg_price}`,
+                  "Customizable menu options",
+                  "Professional service"
+                ]
+              }
+            ]
+          };
+          setEventData(transformedData);
+        }
+      } catch (error) {
+        console.error('Error fetching event data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEventData();
   }, [eventType]);
 
   const handleOrderNow = (service) => {
-    // Create a URL-friendly version of the service title
     const formattedServiceTitle = service.title
       .replace(/\s+/g, '-')
       .replace(/[^a-zA-Z0-9-]/g, '');
 
-    // Create a URL-friendly version of the event type
     const formattedEventType = eventType
       .replace(/\s+/g, '-')
       .replace(/[^a-zA-Z0-9-]/g, '');
 
-    // Navigate to the menu page with the specific parameters
     navigate(`/events/${formattedEventType}/${formattedServiceTitle}/Menu`);
   };
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
   if (!eventData) {
     return (
@@ -42,14 +82,6 @@ const EventsPage = () => {
         <p className="text-gray-600 mt-2">
           Please check the URL or select a valid event.
         </p>
-        <div className="mt-4">
-          <p className="text-gray-500">Available event types:</p>
-          <ul className="text-gray-700">
-            {Object.keys(data).map((key) => (
-              <li key={key}>{key}</li>
-            ))}
-          </ul>
-        </div>
       </div>
     );
   }
@@ -63,9 +95,9 @@ const EventsPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {eventData.services.map((service, index) => (
           <div
-          onClick={() => handleOrderNow(service)}
+            onClick={() => handleOrderNow(service)}
             key={index}
-            className="border rounded-lg shadow-md overflow-hidden bg-white"
+            className="border rounded-lg shadow-md overflow-hidden bg-white cursor-pointer"
           >
             <img
               src={service.image}
@@ -85,14 +117,17 @@ const EventsPage = () => {
                   <li key={idx}>{highlight}</li>
                 ))}
               </ul>
-            </div>
-            <div className="justify-center text-center mb-4">
-              <button
-                onClick={() => handleOrderNow(service)}
-                className="mt-3 w-1/3 bg-black items-center justify-center text-center text-white py-2 rounded-md hover:bg-black transition"
-              >
-                Order Now
-              </button>
+              <div className="text-center">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOrderNow(service);
+                  }}
+                  className="mt-3 w-1/3 bg-black text-white py-2 rounded-md hover:bg-black transition"
+                >
+                  Order Now
+                </button>
+              </div>
             </div>
           </div>
         ))}
