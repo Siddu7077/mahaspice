@@ -94,7 +94,7 @@ const SectionTwo = () => {
                             to={link} >
                     <div
                         key={title}
-                        className="flex-1 bg-white border text-black p-4 rounded-lg transition-transform hover:-translate-y-1 flex flex-col"
+                        className="flex-1 bg-white border shadow-md text-black p-4 rounded-lg transition-transform hover:-translate-y-1 flex flex-col"
                     >
                         <h3 className="text-2xl font-extrabold text-gray-800 border-b-2 border-green-500 pb-2">
                             {title}
