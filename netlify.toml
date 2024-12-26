@@ -25,23 +25,23 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"
 
 # Specific redirects first
-# [[redirects]]
-#   from = "/old-page"
-#   to = "/new-page"
-#   status = 301
-#   force = true
+[[redirects]]
+  from = "/old-page"
+  to = "/new-page"
+  status = 301
+  force = true
 
-# [[redirects]]
-#   from = "/old-blog/*"
-#   to = "/new-blog/:splat"
-#   status = 301
-#   force = true
+[[redirects]]
+  from = "/old-blog/*"
+  to = "/new-blog/:splat"
+  status = 301
+  force = true
 
-# [[redirects]]
-#   from = "/maintenance"
-#   to = "/maintenance.html"
-#   status = 302
-#   force = true
+[[redirects]]
+  from = "/maintenance"
+  to = "/maintenance.html"
+  status = 302
+  force = true
 
 # SPA fallback - This must be the last redirect rule
 [[redirects]]
