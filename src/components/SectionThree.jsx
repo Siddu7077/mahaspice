@@ -28,7 +28,7 @@ const SectionThree = () => {
 
     return (
         <div>
-            <section className="p-5 max-w-7xl mr-20 mb-28">
+            <section className="p-5 max-w-full mr-20 mb-28">
                 <h2 className="text-3xl font-bold mb-8 text-green-700">
                     CATERING FOR ALL OCCASIONS
                 </h2>
@@ -83,3 +83,7 @@ const SectionThree = () => {
 };
 
 export default SectionThree;
+// http://localhost:5173/events/birthdays/Events/Menu/Gold-Menu
+// http://localhost:5173/events/event-caterers/birthdays/Menu/Gold-Menu
+// http://localhost:5173/events/corporate-events/Celebrations/Menu/Cocktail-Menu
+// http://localhost:5173/events/event-caterers/Birthday/Menu/Diamond-Menu
