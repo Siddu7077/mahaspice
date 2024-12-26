@@ -229,7 +229,7 @@ const Navbar = () => {
                 <Link
                   to="/superfast"
                   className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Superfast" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                    selectedComponent === "Superfast" ? "bg-green-600 text-white" : " text-black"
                   }`}
                 >
                   Superfast Delivery
@@ -238,7 +238,7 @@ const Navbar = () => {
                 <Link
                   to="/box"
                   className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Box Genie" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                    selectedComponent === "Box Genie" ? "bg-green-600 text-white" : " text-black"
                   }`}
                 >
                   Box Genie
@@ -247,7 +247,7 @@ const Navbar = () => {
                 <Link
                   to="/delivery"
                   className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                    selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : " text-black "
                   }`}
                 >
                   Home Delivery
@@ -264,7 +264,7 @@ const Navbar = () => {
                   className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer ${
                     selectedComponent === category.key 
                       ? "bg-green-600 text-white" 
-                      : "bg-gray-100 text-black hover:bg-gray-200"
+                      : "text-black"
                   }`}
                 >
                   {category.icon}
@@ -300,7 +300,7 @@ const Navbar = () => {
                 <Link
                   to="/catering-services"
                   className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Catering" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                    selectedComponent === "Catering" ? "bg-green-600 text-white" : " text-black"
                   }`}
                 >
                   Design Your Own Menu
