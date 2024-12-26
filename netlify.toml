@@ -24,24 +24,35 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"
 
-# Specific redirects
-[[redirects]]
-  from = "/old-page"
-  to = "/new-page"
-  status = 301
+# Specific redirects first
+# [[redirects]]
+#   from = "/old-page"
+#   to = "/new-page"
+#   status = 301
+#   force = true
 
-[[redirects]]
-  from = "/old-blog/*"
-  to = "/new-blog/:splat"
-  status = 301
+# [[redirects]]
+#   from = "/old-blog/*"
+#   to = "/new-blog/:splat"
+#   status = 301
+#   force = true
 
-[[redirects]]
-  from = "/maintenance"
-  to = "/maintenance.html"
-  status = 302
+# [[redirects]]
+#   from = "/maintenance"
+#   to = "/maintenance.html"
+#   status = 302
+#   force = true
 
-# This redirect rule should be the last rule
+# SPA fallback - This must be the last redirect rule
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
+
+# Handle 404 errors
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404
+  force = true
