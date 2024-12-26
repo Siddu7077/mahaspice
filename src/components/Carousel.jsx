@@ -41,7 +41,7 @@ const Carousel = () => {
   if (!slides.length) return <div>No slides available</div>;
 
   return (
-    <div className="relative w-full h-[400px] overflow-hidden">
+    <div className="relative z-20 w-full h-[400px] overflow-hidden">
       {slides.map((slide, index) => (
         <div
           key={slide.id}

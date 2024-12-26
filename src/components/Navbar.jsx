@@ -208,7 +208,7 @@ const Navbar = () => {
                 onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
               />
               {isUserDropdownOpen && (
-                <div className="absolute right-0 z-30 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
+                <div className="absolute right-0 z-50 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
                   <Link to="/profile" className="block px-4 py-2 hover:bg-green-50">
                     Profile
                   </Link>
@@ -222,93 +222,89 @@ const Navbar = () => {
         </header>
 
         {/* Categories Navigation */}
-        <div className="w-full bg-white border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex justify-center items-center overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-3 py-2 whitespace-nowrap">
-                <Link
-                  to="/superfast"
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Superfast" ? "bg-green-600 text-white" : " text-black"
-                  }`}
-                >
-                  Superfast Delivery
-                </Link>
-                
-                <Link
-                  to="/box"
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Box Genie" ? "bg-green-600 text-white" : " text-black"
-                  }`}
-                >
-                  Box Genie
-                </Link>
-                
-                <Link
-                  to="/delivery"
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : " text-black "
-                  }`}
-                >
-                  Home Delivery
-                </Link>
+        <div className="relative w-full bg-white border-t border-gray-100">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between">
+          <Link
+            to="/superfast"
+            className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+              selectedComponent === "Superfast" ? "bg-green-600 text-white" : "text-black"
+            }`}
+          >
+            Superfast Delivery
+          </Link>
 
-                {dropdownConfig.map((category) => (
+          <Link
+            to="/box"
+            className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+              selectedComponent === "Box Genie" ? "bg-green-600 text-white" : "text-black"
+            }`}
+          >
+            Box Genie
+          </Link>
+
+          <Link
+            to="/delivery"
+            className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+              selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : "text-black"
+            }`}
+          >
+            Home Delivery
+          </Link>
+
+          {dropdownConfig.map((category) => (
+            <div
+              key={category.key}
+              className="relative"
+              onMouseEnter={() => setOpenDropdown(category.key)}
+              onMouseLeave={() => setOpenDropdown(null)}
+            >
               <div
-                key={category.key}
-                className="relative group"
-                onMouseEnter={() => setOpenDropdown(category.key)}
-                onMouseLeave={() => setOpenDropdown(null)}
+                className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer ${
+                  selectedComponent === category.key ? "bg-green-600 text-white" : "text-black"
+                }`}
               >
-                <div
-                  className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === category.key 
-                      ? "bg-green-600 text-white" 
-                      : "text-black"
-                  }`}
-                >
-                  {category.icon}
-                  <span>{category.label}</span>
-                  <FaChevronDown className="ml-1 w-3 h-3" />
-                </div>
-                
-                <div 
-                  className={`absolute left-0 top-full mt-1 w-60 bg-white shadow-lg rounded-md border z-50 transition-opacity duration-150 ${
-                    openDropdown === category.key 
-                      ? "opacity-100 visible" 
-                      : "opacity-0 invisible"
-                  }`}
-                >
-                  {category.items.map((item, index) => (
-                    <Link
-                      key={index}
-                      to={`/events/${category.key}/${item.toLowerCase().replace(/\s+/g, '-')}`}
-                      className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
-                      onClick={() => {
-                        setSelectedComponent(item);
-                        setOpenDropdown(null);
-                      }}
-                    >
-                      {item}
-                    </Link>
-                  ))}
-                </div>
+                {category.icon}
+                <span>{category.label}</span>
+                <FaChevronDown className="ml-1 w-3 h-3" />
               </div>
-            ))}
-
-
-                <Link
-                  to="/catering-services"
-                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
-                    selectedComponent === "Catering" ? "bg-green-600 text-white" : " text-black"
-                  }`}
-                >
-                  Design Your Own Menu
-                </Link>
+              
+              {/* Dropdown positioned absolutely */}
+              <div
+                className={`absolute left-0 top-full w-60 bg-white shadow-lg rounded-md border z-50 transition-all duration-150 ${
+                  openDropdown === category.key
+                    ? "opacity-100 visible translate-y-0"
+                    : "opacity-0 invisible -translate-y-2"
+                }`}
+              >
+                {category.items.map((item, index) => (
+                  <Link
+                    key={index}
+                    to={`/events/${category.key}/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                    className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
+                    onClick={() => {
+                      setSelectedComponent(item);
+                      setOpenDropdown(null);
+                    }}
+                  >
+                    {item}
+                  </Link>
+                ))}
               </div>
             </div>
-          </div>
+          ))}
+
+          <Link
+            to="/catering-services"
+            className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+              selectedComponent === "Catering" ? "bg-green-600 text-white" : "text-black"
+            }`}
+          >
+            Design Your Own Menu
+          </Link>
         </div>
+      </div>
+    </div>
 
         {/* Content Area */}
         <div className="flex-1 overflow-y-auto bg-aliceBlue">
