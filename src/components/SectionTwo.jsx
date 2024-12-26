@@ -19,7 +19,7 @@ const SectionTwo = () => {
             title: "Bulk Catering",
             image: "",
             buttonText: "Order Now",
-            link: "/catering",
+            link: "/events",
         },
     ]);
 

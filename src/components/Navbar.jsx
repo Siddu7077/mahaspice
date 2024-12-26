@@ -68,7 +68,7 @@ const Navbar = () => {
     { path: "/feedback", element: <FeedbackForm /> },
     { path: "/catmenu", element: <EventCatMenu /> },
     { path: "/delivery", element: <DeliveryMenu /> },
-    { path: "/catering", element: <BulkCatering /> },
+    { path: "/events", element: <BulkCatering /> },
     { path: "/box", element: <MealBox /> },
     { path: "/cart", element: <CartPage /> },
     { path: "/refund-cancellation", element: <RefundCancellation /> },
