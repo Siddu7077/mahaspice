@@ -12,9 +12,10 @@ import {
   UserPlus,
   CopyPlus,
   UserCog,
-  Edit, ShoppingCart
+  Edit,
+  ShoppingCart,
+  Phone
 } from "lucide-react";
-import { Phone } from 'lucide-react';
 
 import { FaRing, FaBuilding, FaUtensils, FaBookOpen, FaChevronDown } from "react-icons/fa";
 import { AiOutlineMenu, AiOutlineSearch } from "react-icons/ai";
@@ -25,6 +26,7 @@ import { GiMeal } from "react-icons/gi";
 import logo from "../assets/logo-main.png";
 import user from "../assets/user.png";
 
+// Import all your components
 import HomePage from "./HomePage";
 import About from "../About";
 import ContactForm from "./ContactForm";
@@ -36,7 +38,6 @@ import EventsPage from "./EventsPage";
 import eventCategories from './eventCategories.json';
 import Footer from "./Footer";
 import MenuPage from "./Menu";
-// import MenuSelection from "./MenuDetails";
 import MenuSelection from "./MenuSelection";
 import MenuOrder from "./MenuOrder";
 import BulkCatering from "./BulkCatering";
@@ -46,7 +47,6 @@ import CartPage from "./CartPage";
 import MealOrderForm from "./MealOrderForm";
 import RefundCancellation from "./RefundCancellation";
 import PrivacyPolicy from "./PrivacyPolicy";
-// import Shipping from "./Shipping";
 import TermsConditions from "./TermsConditions";
 import ReturnPolicy from "./ReturnPolicy";
 import CheckOutform from "./CheckOutform";
@@ -54,8 +54,8 @@ import ScrollToTop from "./ScrollToTop";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
-  const [selectedComponent, setSelectedComponent] = useState(null);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
@@ -70,81 +70,29 @@ const Navbar = () => {
     { path: "/delivery", element: <DeliveryMenu /> },
     { path: "/catering", element: <BulkCatering /> },
     { path: "/box", element: <MealBox /> },
-    // { path: "/sc", element: <SectionTwo /> },
-    // { path: "/addmenu", element: <AddMenu /> },
-    // { path: "/editmenu/:id", element: <EditMenuPage /> },
-    // { path: "/adminmenu", element: <AdminMenuPage /> },
-    // { path: "/addcategory", element: <AddCategory /> },
-    // { path: "/addcarousel", element: <AddCarousel /> },
-    // { path: "/admincategory", element: <AdminEditCategory /> },
-    // { path: "/editcategory/:id", element: <EditCategoryById /> },
-    // { path: "/addevent", element: <EventCategoryForm /> },
-    // { path: "/admineventdisplay", element: <EventDisplayPage /> },
-    // { path: "/admineventedit/:id", element: <EventEditPage /> },
-    // { path: "/admin", element: <Admin /> },
-
-    // { path: "/addMealBox", element: <AddMealBox /> },
-    // { path: "/addcp", element: <AddCP /> },
-    // { path: "/addcps", element: <AddCPS /> },
-    // { path: "/displaycp", element: <CPDisplay /> },
-    // { path: "/displaycps", element: <CPTypesDisplay /> },
-    // { path: "/carousel", element: <CarouselDisplay /> },
     { path: "/cart", element: <CartPage /> },
     { path: "/refund-cancellation", element: <RefundCancellation /> },
     { path: "/privacy-policy", element: <PrivacyPolicy /> },
-    // { path: "/shipping", element: <Shipping /> },
     { path: "/terms-conditions", element: <TermsConditions /> },
     { path: "/return-policy", element: <ReturnPolicy /> },
     { path: "/checkoutform", element: <CheckOutform /> },
-
-
-
     { path: "/events/:eventType/:serviceType/Menu/:categoryName/order", element: <MenuOrder /> },
-    {
-      path: "/events/:eventType",
-      element: <EventsPage />
-    },
-    {
-      path: "/events/:eventType/:serviceType/Menu",
-      element: <MenuPage />
-    },
-    {
-      path: "/superfast",
-      element: <MealOrderForm />
-    },
-    // {
-    //   path: "/events/:eventType/:serviceType/Menu/:categoryName",
-    //   element: <MenuSelection />
-    // },
-    {
-      path: "/events/:eventType/:serviceType/Menu/:menuType",
-      element: <MenuSelection />
-    }
+    { path: "/events/:eventType", element: <EventsPage /> },
+    { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },
+    { path: "/superfast", element: <MealOrderForm /> },
+    { path: "/events/:eventType/:serviceType/Menu/:menuType", element: <MenuSelection /> }
   ]);
 
   const handleCall = () => {
-    // Multiple approaches to handle call initiation
     try {
-        
-        window.location.href = 'tel:+919697798888';
-
-        
-        const a = document.createElement('a');
-        a.href = 'tel:+919697798888';
-        a.click();
+      window.location.href = 'tel:+919697798888';
     } catch (error) {
-        
-        alert('Call +91 969779 8888');
+      alert('Call +91 969779 8888');
     }
-};
-
+  };
 
   const toggleNavbar = () => {
     setIsNavExpanded(!isNavExpanded);
-  };
-
-  const toggleSearch = () => {
-    setIsSearchVisible(!isSearchVisible);
   };
 
   const navItems = [
@@ -152,63 +100,41 @@ const Navbar = () => {
     { icon: <Users />, label: "About", key: "about", path: "/about" },
     { icon: <FaServicestack />, label: "Services", key: "services", path: "/services" },
     { icon: <MdContactMail />, label: "Contact", key: "contact", path: "/contact" },
-    // { icon: <BiMessageDetail />, label: "Feedback", key: "feedback", path: "/feedback" },
     { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
-    // { icon: <UserCog />, label: "Admin Dashboard", key: "admin", path: "/admin" },
-    // { icon: <UserCog />, label: "Superfast Delivery", key: "Superfast Delivery", path: "/superfast-delivery" },
-
   ];
-
-  const toggleDropdown = (category) => {
-    setOpenDropdown(openDropdown === category ? null : category);
-  };
-
-  const renderDropdownItems = (category) => {
-    return eventCategories[category].map((item, index) => (
-      <li
-        key={index}
-        className="px-4 py-2 hover:bg-green-100 cursor-pointer"
-        onClick={() => {
-          setSelectedComponent(category);
-          setOpenDropdown(null);
-        }}
-      >
-        {item}
-      </li>
-    ));
-  };
 
   const dropdownConfig = [
     {
       key: "wedding-events",
-      icon: '',
-      label: "Wedding Events"
+      icon: <FaRing size={16} className="mr-2" />,
+      label: "Wedding Events",
+      items: eventCategories["wedding-events"]
     },
     {
       key: "corporate-events",
-      icon: '',
-      label: "Corporate Events"
+      icon: <FaBuilding size={16} className="mr-2" />,
+      label: "Corporate Events",
+      items: eventCategories["corporate-events"]
     },
     {
       key: "event-catering",
-      icon: '',
-      label: "Event Catering"
-    },
-
+      icon: <FaUtensils size={16} className="mr-2" />,
+      label: "Event Catering",
+      items: eventCategories["event-catering"]
+    }
   ];
+  const handleDropdownClick = (item) => {
+    setSelectedComponent(item);
+    setOpenDropdown(null);
+  };
 
   return (
-    <div className="flex h-screen bg-white text-black ">
+    <div className="flex h-screen bg-white text-black">
       <ScrollToTop />
       {/* Left Sidebar */}
-      <div
-        className={`${isNavExpanded ? "w-64" : "w-44"
-          } h-full transition-all duration-300 bg-white border-r border-gray-100`}
-      >
-        <div className="p-4 flex items-center justify-between"
-        >
-          <Link
-            to="/" >
+      <div className={`${isNavExpanded ? "w-64" : "w-44"} h-full transition-all duration-300 bg-white border-r border-gray-100`}>
+        <div className="p-4 flex items-center justify-between">
+          <Link to="/">
             <img
               src={logo}
               alt="Logo"
@@ -223,30 +149,17 @@ const Navbar = () => {
         </div>
         <nav className="mt-4">
           <div className="mb-4">
-            {/* <h3
-              className={`px-4 mx-auto mb-2 ${!isNavExpanded && "text-center"
-                } text-sm font-bold text-green-800`}
-            >
-              Navigation
-            </h3> */}
             {navItems.map((item) => (
               <Link
                 key={item.key}
                 to={item.path}
-                className={`flex ${!isNavExpanded && "justify-center"
-                  } ml-4 items-center p-3 cursor-pointer ${selectedComponent === item.key
-                    ? "bg-green-500 text-white"
-                    : "hover:bg-green-50"
-                  }`}
+                className={`flex ${!isNavExpanded && "justify-center"} ml-4 items-center p-3 cursor-pointer ${
+                  selectedComponent === item.key ? "bg-green-500 text-white" : "hover:bg-green-50"
+                }`}
               >
                 {item.icon}
                 {isNavExpanded && (
-                  <span
-                    className={`ml-3 ${selectedComponent === item.key
-                      ? "text-white"
-                      : " text-green-800"
-                      }`}
-                  >
+                  <span className={`ml-3 ${selectedComponent === item.key ? "text-white" : "text-green-800"}`}>
                     {item.label}
                   </span>
                 )}
@@ -255,144 +168,154 @@ const Navbar = () => {
           </div>
         </nav>
       </div>
-      {/* Top Navigation and Content Area */}
-      <div className="flex-1 flex flex-col">
-        {/* Header Section */}
+
+      {/* Main Content Area */}
+      <div className="flex-1 w-full flex flex-col">
+        {/* Top Navigation Bar */}
         <header className="flex items-center justify-between p-2 bg-white text-black shadow-md">
-          {/* Left Section: Menu Button */}
-          <div className="flex items-center space-x-2">
-            <button onClick={toggleNavbar} className="p-1 text-green-500">
-              <AiOutlineMenu className="w-6 h-8" />
+          <div className="flex items-center space-x-4">
+            <button onClick={toggleNavbar} className="p-2 hover:bg-gray-100 rounded-full">
+              <AiOutlineMenu className="w-6 h-6 text-green-500" />
             </button>
           </div>
 
-          {/* Right Section: Navigation, Search, Cart, and User Profile */}
-          <div className="flex items-center justify-between w-full">
-            {/* Navigation Links */}
-            <nav className="flex items-center justify-between pl-2 space-x-2">
-              <Link
-                to="/superfast"
-                className={`text-md pr-2 font-extrabold cursor-pointer ${selectedComponent === "Superfast"
-                  ? "text-green-600 font-bold"
-                  : "text-black hover:text-green-500"
-                  }`}
-              >
-                Superfast Delivery
-              </Link>
-              <Link
-                to="/box"
-                className={`text-xs pr-2 cursor-pointer ${selectedComponent === "Box Genie"
-                  ? "text-green-600 font-bold"
-                  : "text-black hover:text-green-500"
-                  }`}
-              >
-                Box Genie
-              </Link>
-              <Link
-                to="/delivery"
-                className={`text-xs pr-2 cursor-pointer ${selectedComponent === "Home Delivery"
-                  ? "text-green-600 font-bold"
-                  : "text-black hover:text-green-500"
-                  }`}
-              >
-                Home Delivery
-              </Link>
-
-              {dropdownConfig.map((item) => (
-                <div
-                  key={item.key}
-                  className="relative pr-2"
-                  onMouseEnter={() => toggleDropdown(item.key)}
-                  onMouseLeave={() => setOpenDropdown(null)}
-                >
-                  <span
-                    className={`flex items-center text-xs space-x-1 ${selectedComponent === item.key
-                      ? "text-black"
-                      : "text-black hover:text-gray-600"
-                      } cursor-pointer`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                    <FaChevronDown className="w-2 h-2" />
-                  </span>
-                  {openDropdown === item.key && (
-                    <ul className="z-10 absolute top-full w-60 bg-white shadow-lg rounded-md border">
-                      {renderDropdownItems(item.key)}
-                    </ul>
-                  )}
-                </div>
-              ))}
-              <Link
-                to="/catering-services"
-                className={`text-xs cursor-pointer ${selectedComponent === "Catering"
-                  ? "text-green-600 font-bold"
-                  : "text-black hover:text-green-500"
-                  }`}
-              >
-                Design Your Own Menu
-              </Link>
-            </nav>
-
-            {/* Search Bar */}
-            <div className="relative hi flex items-center flex-col">
-              {/* <AiOutlineSearch className="text-green-500 w-8 h-16 cursor-pointer" /> */}
-              <div className=" hidden relative">
-  <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 w-5 h-5" />
-  <input
-    type="text"
-    placeholder="Search..."
-    className="pl-10 w-36 border border-green-500 p-3  rounded-lg text-xs text-gray-800 placeholder-gray-500 z-10"
-  />
-</div>
-
-              <div className="flex"  onClick={handleCall}>
-              <Phone
-                    size={20}
-                    strokeWidth={2}
-                    className="relative top-1 right-1 text-green-600 cursor-pointer"
-                /><h2 className="text-xl text-green-600 cursor-pointer">969779 8888</h2>
-              </div>
+          <div className="flex flex-1 mx-4 max-w-[650px]">
+            <div className="flex w-full">
+              <input
+                type="text"
+                placeholder="Search"
+                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-l-full outline-none text-gray-800"
+              />
+              <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
+                <AiOutlineSearch className="h-5 w-5 text-gray-600" />
+              </button>
             </div>
+          </div>
 
-
-            {/* Cart and User Profile */}
-            <div className="flex items-center space-x-4">
-              <Link to="/cart">
-                <ShoppingCart className="text-black w-6 h-6" />
-              </Link>
-              <div className="relative">
-                <img
-                  src={user}
-                  alt="User Profile"
-                  className="rounded-full w-10 h-10 cursor-pointer"
-                  onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                />
-                {isUserDropdownOpen && (
-                  <div className="absolute right-0 z-30 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 hover:bg-green-50"
-                    >
-                      Profile
-                    </Link>
-                    <Link
-                      to="/logout"
-                      className="block px-4 py-2 hover:bg-green-50"
-                    >
-                      Logout
-                    </Link>
-                  </div>
-                )}
-              </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center" onClick={handleCall}>
+              <Phone size={20} strokeWidth={2} className="relative top-1 right-1 text-green-600 cursor-pointer" />
+              <h2 className="text-xl text-green-600 cursor-pointer">969779 8888</h2>
+            </div>
+            <Link to="/cart">
+              <ShoppingCart className="text-black w-6 h-6 hover:text-green-500" />
+            </Link>
+            <div className="relative">
+              <img
+                src={user}
+                alt="User Profile"
+                className="rounded-full w-10 h-10 cursor-pointer"
+                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+              />
+              {isUserDropdownOpen && (
+                <div className="absolute right-0 z-30 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
+                  <Link to="/profile" className="block px-4 py-2 hover:bg-green-50">
+                    Profile
+                  </Link>
+                  <Link to="/logout" className="block px-4 py-2 hover:bg-green-50">
+                    Logout
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </header>
 
+        {/* Categories Navigation */}
+        <div className="w-full bg-white border-t border-gray-100">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex justify-center items-center overflow-x-auto scrollbar-hide">
+              <div className="flex space-x-3 py-2 whitespace-nowrap">
+                <Link
+                  to="/superfast"
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+                    selectedComponent === "Superfast" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                  }`}
+                >
+                  Superfast Delivery
+                </Link>
+                
+                <Link
+                  to="/box"
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+                    selectedComponent === "Box Genie" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                  }`}
+                >
+                  Box Genie
+                </Link>
+                
+                <Link
+                  to="/delivery"
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+                    selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                  }`}
+                >
+                  Home Delivery
+                </Link>
+
+                {dropdownConfig.map((category) => (
+              <div
+                key={category.key}
+                className="relative group"
+                onMouseEnter={() => setOpenDropdown(category.key)}
+                onMouseLeave={() => setOpenDropdown(null)}
+              >
+                <div
+                  className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer ${
+                    selectedComponent === category.key 
+                      ? "bg-green-600 text-white" 
+                      : "bg-gray-100 text-black hover:bg-gray-200"
+                  }`}
+                >
+                  {category.icon}
+                  <span>{category.label}</span>
+                  <FaChevronDown className="ml-1 w-3 h-3" />
+                </div>
+                
+                <div 
+                  className={`absolute left-0 top-full mt-1 w-60 bg-white shadow-lg rounded-md border z-50 transition-opacity duration-150 ${
+                    openDropdown === category.key 
+                      ? "opacity-100 visible" 
+                      : "opacity-0 invisible"
+                  }`}
+                >
+                  {category.items.map((item, index) => (
+                    <Link
+                      key={index}
+                      to={`/events/${category.key}/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
+                      onClick={() => {
+                        setSelectedComponent(item);
+                        setOpenDropdown(null);
+                      }}
+                    >
+                      {item}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+
+                <Link
+                  to="/catering-services"
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+                    selectedComponent === "Catering" ? "bg-green-600 text-white" : "bg-gray-100 text-black hover:bg-gray-200"
+                  }`}
+                >
+                  Design Your Own Menu
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto bg-aliceBlue">{routing}</div>
+        <div className="flex-1 overflow-y-auto bg-aliceBlue">
+          {routing}
+        </div>
       </div>
       <ScrollToTop />
-
     </div>
   );
 };
