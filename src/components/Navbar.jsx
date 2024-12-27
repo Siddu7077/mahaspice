@@ -106,19 +106,19 @@ const Navbar = () => {
   const dropdownConfig = [
     {
       key: "wedding-events",
-      icon: <FaRing size={16} className="mr-2" />,
+      // icon: <FaRing size={16} className="mr-2" />,
       label: "Wedding Events",
       items: eventCategories["wedding-events"]
     },
     {
       key: "corporate-events",
-      icon: <FaBuilding size={16} className="mr-2" />,
+      // icon: <FaBuilding size={16} className="mr-2" />,
       label: "Corporate Events",
       items: eventCategories["corporate-events"]
     },
     {
       key: "event-catering",
-      icon: <FaUtensils size={16} className="mr-2" />,
+      // icon: <FaUtensils size={16} className="mr-2" />,
       label: "Event Catering",
       items: eventCategories["event-catering"]
     }
