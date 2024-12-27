@@ -4,33 +4,55 @@ import { useNavigate, useParams } from "react-router-dom";
 const MenuPage = () => {
     const { eventType, serviceType } = useParams();
     const [categories, setCategories] = useState([]);
+    const [pricingData, setPricingData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchCategories();
-    }, []);
+        fetchData();
+    }, [serviceType]);  // Changed dependency to serviceType
 
-    const fetchCategories = async () => {
+    const fetchData = async () => {
         try {
-            const response = await fetch('https://mahaspice.desoftimp.com/ms3/getgscd.php');
-            const data = await response.json();
+            const [categoriesResponse, pricingResponse] = await Promise.all([
+                fetch('https://mahaspice.desoftimp.com/ms3/getgscd.php'),
+                fetch('https://mahaspice.desoftimp.com/ms3/get_pricing.php')
+            ]);
 
-            if (data.status === "success") {
-                setCategories(data.data);
+            const categoriesData = await categoriesResponse.json();
+            const pricingData = await pricingResponse.json();
+
+            if (categoriesData.status === "success" && pricingData.success) {
+                // Format serviceType to match the data format (removing 'event-' prefix if exists)
+                const formattedServiceType = serviceType.replace('event-', '').toLowerCase();
+
+                // Get available GSCDs for the current service type
+                const availableGscds = pricingData.data
+                    .filter(price => price.event_category.toLowerCase() === formattedServiceType)
+                    .map(price => price.gscd);
+
+                // Filter categories to only show those that match available GSCDs
+                const filteredCategories = categoriesData.data.filter(category => 
+                    availableGscds.some(gscd => 
+                        gscd.toLowerCase() === category.menu_type.toLowerCase()
+                    )
+                );
+
+                setCategories(filteredCategories);
+                setPricingData(pricingData.data);
             } else {
-                setError(data.message);
+                setError(categoriesData.message || "Failed to fetch data");
             }
         } catch (err) {
-            setError("Failed to fetch categories");
+            setError("Failed to fetch data");
+            console.error("Error fetching data:", err);
         } finally {
             setLoading(false);
         }
     };
 
     const handleCategoryClick = (categoryName) => {
-        // Convert category name to URL-friendly format with proper capitalization
         const urlFriendlyName = categoryName
             .split(' ')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -38,17 +60,23 @@ const MenuPage = () => {
             .replace(/\s+/g, '-')
             .replace(/[^a-zA-Z0-9-]/g, '');
 
-        // Navigate to the menu page with the full context
-        // Preserve the original event type and service type
         navigate(`/events/${eventType}/${serviceType}/Menu/${urlFriendlyName}`);
     };
 
-    // Function to get correct image URL
     const getImageUrl = (imageUrl) => {
         if (imageUrl && !imageUrl.startsWith('http')) {
             return `https://mahaspice.desoftimp.com/ms3/${imageUrl}`;
         }
         return imageUrl;
+    };
+
+    // Format display name for service type
+    const getDisplayServiceType = () => {
+        return serviceType
+            .replace('event-', '')
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
     };
 
     if (loading) {
@@ -65,7 +93,7 @@ const MenuPage = () => {
                 <div className="text-red-500 text-center">
                     <p className="text-xl">{error}</p>
                     <button
-                        onClick={fetchCategories}
+                        onClick={fetchData}
                         className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
                         Try Again
@@ -79,7 +107,7 @@ const MenuPage = () => {
         <div className="bg-white py-10 h-screen px-5">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                    Menu Categories for {serviceType}
+                    Available Menu Categories for {getDisplayServiceType()}
                 </h1>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -140,7 +168,7 @@ const MenuPage = () => {
                                 d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01"
                             />
                         </svg>
-                        <p className="text-xl">No categories available</p>
+                        <p className="text-xl">No menu categories available for {getDisplayServiceType()}</p>
                         <p className="text-sm mt-2">Please check back later</p>
                     </div>
                 )}
