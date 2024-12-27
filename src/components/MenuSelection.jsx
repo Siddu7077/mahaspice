@@ -26,14 +26,11 @@ const MenuSelection = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Update to include pricing API
-        const [menuResponse, categoryResponse, pricingResponse] =
-          await Promise.all([
-            fetch("https://mahaspice.desoftimp.com/ms3/menu_display.php"),
-            fetch("https://mahaspice.desoftimp.com/ms3/getcategory.php"),
-            fetch("https://mahaspice.desoftimp.com/ms3/get_pricing.php"),
-          ]);
+        const [menuResponse, categoryResponse, pricingResponse] = await Promise.all([
+          fetch("https://mahaspice.desoftimp.com/ms3/menu_display.php"),
+          fetch("https://mahaspice.desoftimp.com/ms3/getcategory.php"),
+          fetch("https://mahaspice.desoftimp.com/ms3/get_pricing.php"),
+        ]);
 
         const menuJson = await menuResponse.json();
         const categoryJson = await categoryResponse.json();
@@ -42,16 +39,12 @@ const MenuSelection = () => {
         if (menuJson.success && Array.isArray(menuJson.data)) {
           setMenuData(menuJson.data);
         }
-
         if (Array.isArray(categoryJson)) {
           setCategoryData(categoryJson);
         }
-
-        // Store pricing data
         if (pricingJson.success && Array.isArray(pricingJson.data)) {
           setPricingData(pricingJson.data);
         }
-
         setError(null);
       } catch (err) {
         setError("Failed to load menu data. Please try again later.");
@@ -60,7 +53,6 @@ const MenuSelection = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [eventType]);
 
@@ -72,7 +64,6 @@ const MenuSelection = () => {
       const itemEventNames = item.event_names
         .split(",")
         .map((name) => name.trim().toLowerCase());
-
       const currentEventType = eventType.toLowerCase();
       const currentServiceType = serviceType.toLowerCase();
       const currentMenuType = menuType.replace(/-/g, " ");
@@ -86,7 +77,6 @@ const MenuSelection = () => {
             name.toLowerCase() === currentEventType ||
             name.toLowerCase() === currentServiceType
         );
-
       const matchesMenu = item.menu_type === currentMenuType;
       const matchesVegFilter = !showVegOnly || item.is_veg === "1";
 
@@ -107,50 +97,61 @@ const MenuSelection = () => {
     return selectedItems.filter((item) => item.category_name === categoryName);
   };
 
+  
+
   const handleItemSelect = (item) => {
     const categoryItems = getItemsInCategory(item.category_name);
     const limit = getCategoryLimit(item.category_name);
 
-    // If item is already selected, remove it
+    // If item is already selected, remove it and reorder remaining items
     if (selectedItems.some((selected) => selected.id === item.id)) {
-      setSelectedItems(
-        selectedItems.filter((selected) => selected.id !== item.id)
+      const newSelectedItems = selectedItems.filter(
+        (selected) => selected.id !== item.id
       );
+      
+      // Reorder remaining items in the category
+      const remainingCategoryItems = newSelectedItems.filter(
+        (selected) => selected.category_name === item.category_name
+      );
+      
+      // Update isExtra flag based on new order
+      const reorderedItems = newSelectedItems.map((selected) => {
+        if (selected.category_name === item.category_name) {
+          const itemIndex = remainingCategoryItems.findIndex(
+            (i) => i.id === selected.id
+          );
+          return {
+            ...selected,
+            isExtra: itemIndex >= limit,
+          };
+        }
+        return selected;
+      });
+
+      setSelectedItems(reorderedItems);
       return;
     }
 
-    // If within limit, add item with no extra price
-    if (categoryItems.length < limit) {
-      setSelectedItems([...selectedItems, { ...item, isExtra: false }]);
-    }
-    // If exceeding limit, add item with its full price as extra
-    else {
-      const extraItem = {
-        ...item,
-        isExtra: true,
-      };
-      setSelectedItems([...selectedItems, extraItem]);
-    }
+    // Add new item
+    const newItem = {
+      ...item,
+      isExtra: categoryItems.length >= limit,
+    };
+    setSelectedItems([...selectedItems, newItem]);
   };
 
   const calculatePlatePrice = () => {
     if (!pricingData || !serviceType || !menuType) {
-      console.log("Missing required pricing data");
       return 0;
     }
 
-    // Convert menuType from URL format (e.g., "Cocktail-Menu") to pricing format
     const formattedMenuType = menuType.replace(/-/g, " ");
-
-    // Find matching pricing record
-    const matchingPrice = pricingData.find((price) => {
-      const matchesServiceType =
-        price.gscd?.toLowerCase() === formattedMenuType.toLowerCase();
-      return matchesServiceType;
-    });
+    const matchingPrice = pricingData.find(
+      (price) =>
+        price.gscd?.toLowerCase() === formattedMenuType.toLowerCase()
+    );
 
     if (!matchingPrice) {
-      console.log("No matching price found for:", { serviceType, menuType });
       return 0;
     }
 
@@ -159,42 +160,25 @@ const MenuSelection = () => {
       ? parseFloat(matchingPrice.veg_price)
       : parseFloat(matchingPrice.nonveg_price);
 
+    // Add extra item prices to the plate price
+    const extraItemsPrice = selectedItems
+      .filter((item) => item.isExtra)
+      .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+
+    const totalPlatePrice = basePrice + (extraItemsPrice / guestCount);
+
     // Calculate discount based on guest count
     const discountTiers = Math.floor(guestCount / 10);
     const discountAmount = discountTiers * 1; // ₹1 discount per tier
 
-    // Calculate final price
-    const discountedPrice = Math.max(basePrice - discountAmount, 0);
-
-    return discountedPrice;
+    return Math.max(totalPlatePrice - discountAmount, 0);
   };
 
   const calculateTotal = () => {
-    // Get the plate price
     const platePrice = calculatePlatePrice();
-    console.log("Plate price:", platePrice);
-
-    // Calculate base cost for all guests
     const baseCost = platePrice * guestCount;
-    console.log("Base cost:", baseCost);
-
-    // Calculate extra items total
-    const extraItemsTotal = selectedItems
-      .filter((item) => item.isExtra)
-      .reduce((sum, item) => {
-        const itemPrice = parseFloat(item.price) || 0;
-        return sum + itemPrice;
-      }, 0);
-    console.log("Extra items total:", extraItemsTotal);
-
-    // Fixed delivery charge
     const deliveryCharge = 500;
-
-    // Calculate final total
-    const total = baseCost + extraItemsTotal + deliveryCharge;
-    console.log("Final total:", total);
-
-    return total;
+    return baseCost + deliveryCharge;
   };
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
