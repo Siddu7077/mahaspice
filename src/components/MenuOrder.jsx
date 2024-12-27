@@ -385,7 +385,7 @@ const MenuOrder = () => {
                 <span>GST (18%)</span>
                 <span>₹{totals.gst.toFixed(2)}</span>
               </div>
-              
+            
               <div className="flex justify-between">
                 <span>Delivery Fee</span>
                 <span>₹{DELIVERY_FEE.toFixed(2)}</span>
