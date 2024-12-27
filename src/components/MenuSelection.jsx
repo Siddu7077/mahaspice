@@ -41,7 +41,13 @@ const MenuSelection = () => {
           setMenuData(menuJson.data);
         }
         if (Array.isArray(categoryJson)) {
-          setCategoryData(categoryJson);
+          // Sort categories by position before setting state
+          const sortedCategories = categoryJson.sort((a, b) => {
+            const posA = parseInt(a.position) || 0;
+            const posB = parseInt(b.position) || 0;
+            return posA - posB;
+          });
+          setCategoryData(sortedCategories);
         }
         if (pricingJson.success && Array.isArray(pricingJson.data)) {
           setPricingData(pricingJson.data);
@@ -82,6 +88,20 @@ const MenuSelection = () => {
       const matchesVegFilter = !showVegOnly || item.is_veg === "1";
 
       return matchesEvent && matchesMenu && matchesVegFilter;
+    });
+  };
+
+  // Modified to return sorted categories
+  const getSortedCategories = () => {
+    const filteredItems = getFilteredItems();
+    const uniqueCategories = [...new Set(filteredItems.map((item) => item.category_name))];
+    
+    return uniqueCategories.sort((a, b) => {
+      const categoryA = categoryData.find(cat => cat.category_name === a);
+      const categoryB = categoryData.find(cat => cat.category_name === b);
+      const posA = categoryA ? parseInt(categoryA.position) || 0 : 0;
+      const posB = categoryB ? parseInt(categoryB.position) || 0 : 0;
+      return posA - posB;
     });
   };
 
@@ -227,6 +247,8 @@ const MenuSelection = () => {
       handleItemSelect(item);
     }
   };
+  
+  const sortedCategories = getSortedCategories();
 
   return (
     <div className="min-h-screen bg-aliceBlue">
@@ -277,10 +299,9 @@ const MenuSelection = () => {
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Menu Categories */}
           <div className="lg:col-span-2 space-y-6">
-            {categories.map((category) => {
-              const limit = getCategoryLimit(category);
-              const selectedCount = getItemsInCategory(category).length;
-
+          {sortedCategories.map((category) => {
+            const limit = getCategoryLimit(category);
+            const selectedCount = getItemsInCategory(category).length;
               return (
                 <div
                   key={category}
