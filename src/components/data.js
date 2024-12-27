@@ -149,12 +149,12 @@ export const menuItems = {
 
 export const menuCategories = {
     veg: [
-        {  name: 'Beverages' },
-        {  name: 'Starters'},
-        {  name: 'Salads' },
-        { name: 'Sweets'},
-        {  name: 'Breads'},
-        {  name: 'Special Rice'},
+        { id: 'Beverages', name: 'Beverages' },
+        { id: 'Starters', name: 'Starters'},
+        { id: 'Salads', name: 'Salads' },
+        { id: 'Sweets', name: 'Sweets'},
+        { id: 'Breads', name: 'Breads'},
+        { id: 'Special-rice ', name: 'Special Rice'},
         { id: 'rice', name: 'Rice' },
         { id: 'main-course', name: 'Main Course' },
         { id: 'fries', name: 'Fries' },
