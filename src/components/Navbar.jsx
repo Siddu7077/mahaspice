@@ -224,7 +224,7 @@ const Navbar = () => {
         {/* Categories Navigation */}
         <div className="relative w-full bg-white border-t border-gray-100">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center lg:text-lg  justify-between">
           <Link
             to="/superfast"
             className={`px-3 py-1.5 rounded-lg cursor-pointer ${

@@ -9,7 +9,7 @@ export default {
       aliceBlue: '#f8f8f8', 
     },
     fontFamily: {
-      sans: ['Roboto', 'sans-serif'], // Add Roboto as the default sans font
+      roboto: ['Roboto', 'sans-serif'],
     },
   },
   },
