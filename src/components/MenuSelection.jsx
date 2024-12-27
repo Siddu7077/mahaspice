@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, Minus, ShoppingCart, CreditCard, AlertTriangle, X } from 'lucide-react';
 
-
 const MenuSelection = () => {
   const { eventType, serviceType, menuType } = useParams();
   const [menuData, setMenuData] = useState([]);
@@ -14,6 +13,7 @@ const MenuSelection = () => {
   const [showVegOnly, setShowVegOnly] = useState(false);
   const [eventPricing, setEventPricing] = useState(null);
   const [showConfirmation, setShowConfirmation] = useState(null);
+  const [pricingData, setPricingData] = useState(null);
  
 
   useEffect(() => {
@@ -21,15 +21,16 @@ const MenuSelection = () => {
       try {
         setLoading(true);
         
-        const [menuResponse, categoryResponse, eventsResponse] = await Promise.all([
+        // Update to include pricing API
+        const [menuResponse, categoryResponse, pricingResponse] = await Promise.all([
           fetch('https://mahaspice.desoftimp.com/ms3/menu_display.php'),
           fetch('https://mahaspice.desoftimp.com/ms3/getcategory.php'),
-          fetch('https://mahaspice.desoftimp.com/ms3/get_events.php')
+          fetch('https://mahaspice.desoftimp.com/ms3/get_pricing.php')
         ]);
 
         const menuJson = await menuResponse.json();
         const categoryJson = await categoryResponse.json();
-        const eventsJson = await eventsResponse.json();
+        const pricingJson = await pricingResponse.json();
 
         if (menuJson.success && Array.isArray(menuJson.data)) {
           setMenuData(menuJson.data);
@@ -39,12 +40,9 @@ const MenuSelection = () => {
           setCategoryData(categoryJson);
         }
 
-        if (Array.isArray(eventsJson)) {
-          const currentEvent = eventsJson.find(event => 
-            event.event_category.toLowerCase() === eventType.toLowerCase() ||
-            event.event_name.toLowerCase() === eventType.toLowerCase()
-          );
-          setEventPricing(currentEvent);
+        // Store pricing data
+        if (pricingJson.success && Array.isArray(pricingJson.data)) {
+          setPricingData(pricingJson.data);
         }
 
         setError(null);
@@ -55,8 +53,6 @@ const MenuSelection = () => {
         setLoading(false);
       }
     };
-
-    
 
     fetchData();
   }, [eventType]);
@@ -128,44 +124,37 @@ const MenuSelection = () => {
   };
 
   const calculatePlatePrice = () => {
-    // Early return with logging if eventPricing is not available
-    if (!eventPricing) {
-      console.log('Event pricing data not available:', eventPricing);
+    if (!pricingData || !serviceType || !menuType) {
+      console.log('Missing required pricing data');
       return 0;
     }
-  
-    // Log the raw event pricing data for debugging
-    console.log('Event pricing data:', {
-      veg: eventPricing.event_veg_price,
-      nonveg: eventPricing.event_nonveg_price,
-      isVegOnly: showVegOnly
+
+    // Convert menuType from URL format (e.g., "Cocktail-Menu") to pricing format
+    const formattedMenuType = menuType.replace(/-/g, ' ');
+
+    // Find matching pricing record
+    const matchingPrice = pricingData.find(price => {
+      const matchesServiceType = price.gscd?.toLowerCase() === formattedMenuType.toLowerCase();
+      return matchesServiceType;
     });
-  
-    // Ensure we're working with valid numbers
-    const vegPrice = parseFloat(eventPricing.event_veg_price) || 0;
-    const nonVegPrice = parseFloat(eventPricing.event_nonveg_price) || 0;
-    
-    // Select base price based on veg/non-veg selection
-    const basePrice = showVegOnly ? vegPrice : nonVegPrice;
-    
-    // Log the selected base price
-    console.log('Selected base price:', basePrice);
-  
+
+    if (!matchingPrice) {
+      console.log('No matching price found for:', { serviceType, menuType });
+      return 0;
+    }
+
+    // Get base price based on veg/non-veg selection
+    const basePrice = showVegOnly 
+      ? parseFloat(matchingPrice.veg_price) 
+      : parseFloat(matchingPrice.nonveg_price);
+
     // Calculate discount based on guest count
     const discountTiers = Math.floor(guestCount / 10);
-    const discountAmount = discountTiers * 10; // ₹10 discount per tier
+    const discountAmount = discountTiers * 1; // ₹1 discount per tier
     
     // Calculate final price
     const discountedPrice = Math.max(basePrice - discountAmount, 0);
     
-    // Log the final calculation
-    console.log('Price calculation:', {
-      basePrice,
-      discountTiers,
-      discountAmount,
-      finalPrice: discountedPrice
-    });
-  
     return discountedPrice;
   };
   
@@ -467,3 +456,5 @@ const MenuSelection = () => {
 };
 
 export default MenuSelection;
+
+// http://localhost:5173/events/event-caterers/birthdays/Menu

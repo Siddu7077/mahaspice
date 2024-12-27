@@ -77,7 +77,7 @@ const Carousel = () => {
             <div className="absolute inset-0 " />
 
             {/* Button (only if button_text is not null or empty) */}
-            {slide.button_text && slide.button_text.trim() && (
+            {/*{slide.button_text && slide.button_text.trim() && (
               <div className="h-full inset-4 flex items-end justify-center">
                 <button 
                   className="px-8 py-3 mb-5 bg-white hover:bg-gray-100 text-black rounded-lg 
@@ -86,7 +86,7 @@ const Carousel = () => {
                   {slide.button_text}
                 </button>
               </div>
-            )}
+            )}*/}
           </Link>
         </div>
       ))}
