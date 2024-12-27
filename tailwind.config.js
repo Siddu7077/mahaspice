@@ -6,7 +6,10 @@ export default {
   ],
   theme: {
     extend: {colors: {
-      aliceBlue: '#f8f8f8', // Custom color
+      aliceBlue: '#f8f8f8', 
+    },
+    fontFamily: {
+      sans: ['Roboto', 'sans-serif'], // Add Roboto as the default sans font
     },
   },
   },
