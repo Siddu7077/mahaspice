@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate  } from "react-router-dom";
 import {
   Plus,
   Minus,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 const MenuSelection = () => {
+  const navigate = useNavigate();
   const { eventType, serviceType, menuType } = useParams();
   const [menuData, setMenuData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
@@ -97,7 +98,20 @@ const MenuSelection = () => {
     return selectedItems.filter((item) => item.category_name === categoryName);
   };
 
-  
+  const handleProceedToPay = () => {
+    const extraItems = selectedItems.filter(item => item.isExtra);
+    const platePrice = calculatePlatePrice();
+    
+    navigate(`/events/${eventType}/${serviceType}/Menu/${menuType}/order`, {
+      state: {
+        selectedItems,
+        extraItems,
+        platePrice,
+        guestCount,
+        totalAmount: calculateTotal()
+      }
+    });
+  };
 
   const handleItemSelect = (item) => {
     const categoryItems = getItemsInCategory(item.category_name);
@@ -131,6 +145,8 @@ const MenuSelection = () => {
       setSelectedItems(reorderedItems);
       return;
     }
+    
+    
 
     // Add new item
     const newItem = {
@@ -213,7 +229,7 @@ const MenuSelection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-aliceBlue">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -464,6 +480,7 @@ const MenuSelection = () => {
                   <ShoppingCart size={20} />
                   Add to Cart
                 </button>
+                
                 <button
                   className={`w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2
                     ${
@@ -473,6 +490,7 @@ const MenuSelection = () => {
                     } 
                     transition-colors`}
                   disabled={selectedItems.length === 0}
+                  onClick={handleProceedToPay}
                 >
                   <CreditCard size={20} />
                   Proceed to Pay
