@@ -167,6 +167,21 @@ const Navbar = () => {
             ))}
           </div>
         </nav>
+        <div className="p-4 flex flex-col items-left justify-between">
+          <h1 className="text-lg font-bold">Offers</h1>
+          <Link to="/">
+            <img
+              src="https://img.freepik.com/free-vector/sale-promotion-ad-poster-design-template_53876-57700.jpg"
+              alt="Logo"
+              className={`${isNavExpanded ? "block" : "hidden"} h-30 w-40`}
+            />
+            <img
+              src="https://img.freepik.com/free-vector/sale-promotion-ad-poster-design-template_53876-57700.jpg"
+              alt="Logo"
+              className={`${isNavExpanded ? "hidden" : "block"} h-30 w-32`}
+            />
+          </Link>
+        </div>
       </div>
 
       {/* Main Content Area */}
@@ -280,7 +295,7 @@ const Navbar = () => {
                 {category.items.map((item, index) => (
                   <Link
                     key={index}
-                    to={`/events/${category.key}/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                    to={`/events`}
                     className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
                     onClick={() => {
                       setSelectedComponent(item);
