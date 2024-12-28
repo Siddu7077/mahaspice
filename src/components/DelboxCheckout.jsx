@@ -1,17 +1,49 @@
-import React, { useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, Users } from 'lucide-react';
 
-const DelboxCheckout = ({ selectedItems, totals, onBack }) => {
-  const [formData, setFormData] = useState({
-    name: '',
-    phone1: '',
-    phone2: '',
-    email: '',
-    address: '',
-    landmark: '',
-    date: '',
-    time: ''
+const DelboxCheckout = ({ selectedItems: initialItems, totals: initialTotals, onBack, guestCount }) => {
+  // Previous state declarations
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [totals, setTotals] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+  const [formData, setFormData] = useState(() => {
+    const savedForm = localStorage.getItem('checkoutFormData');
+    return savedForm ? JSON.parse(savedForm) : {
+      name: '',
+      phone1: '',
+      phone2: '',
+      email: '',
+      address: '',
+      landmark: '',
+      date: '',
+      time: ''
+    };
   });
+
+  // Previous useEffects remain the same
+  useEffect(() => {
+    const savedItems = localStorage.getItem('selectedItems');
+    const savedTotals = localStorage.getItem('orderTotals');
+    
+    if (savedItems && savedTotals) {
+      setSelectedItems(JSON.parse(savedItems));
+      setTotals(JSON.parse(savedTotals));
+    } else {
+      setSelectedItems(initialItems);
+      setTotals(initialTotals);
+    }
+    setIsLoading(false);
+  }, [initialItems, initialTotals]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+      localStorage.setItem('orderTotals', JSON.stringify(totals));
+      localStorage.setItem('checkoutFormData', JSON.stringify(formData));
+    }
+  }, [selectedItems, totals, formData, isLoading]);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -22,9 +54,13 @@ const DelboxCheckout = ({ selectedItems, totals, onBack }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle payment processing here
-    console.log('Form submitted:', formData);
-    console.log('Order details:', { selectedItems, totals });
+    setShowPaymentModal(true);
+    // Simulate redirect to payment gateway after 2 seconds
+    setTimeout(() => {
+      // Replace this with actual payment gateway integration
+      console.log('Redirecting to PhonePe...');
+      // window.location.href = 'YOUR_PHONEPE_GATEWAY_URL';
+    }, 2000);
   };
 
   const isFormValid = () => {
@@ -35,8 +71,58 @@ const DelboxCheckout = ({ selectedItems, totals, onBack }) => {
            formData.time;
   };
 
+  // Payment Gateway Modal Component
+  const PaymentModal = () => {
+    if (!showPaymentModal) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <h3 className="text-lg font-semibold mb-2">Connecting to Payment Gateway</h3>
+          <p className="text-gray-600">Please wait while we connect to PhonePe servers...</p>
+        </div>
+      </div>
+    );
+  };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading your order...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Empty cart state
+  if (!selectedItems || selectedItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <h2 className="text-2xl font-bold mb-4">No Items in Cart</h2>
+            <p className="text-gray-600 mb-6">Your shopping cart is empty.</p>
+            <button 
+              onClick={onBack}
+              className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Return to Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100 p-4 md:p-8">
+      {/* Payment Gateway Modal */}
+      <PaymentModal />
+
       <div className="max-w-6xl mx-auto">
         <button 
           onClick={onBack}
@@ -46,11 +132,18 @@ const DelboxCheckout = ({ selectedItems, totals, onBack }) => {
           Back to Menu
         </button>
 
+        {/* Rest of the component remains the same */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Delivery Details Form */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-6">Delivery Details</h2>
+            {/* Guest Count Display */}
+            <div className="mb-6 flex items-center gap-2 bg-gray-50 p-3 rounded-lg">
+              <Users className="text-gray-600" />
+              <span className="font-medium">Number of Guests: {guestCount}</span>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Form fields remain the same */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Name *
@@ -167,19 +260,26 @@ const DelboxCheckout = ({ selectedItems, totals, onBack }) => {
           {/* Order Summary */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-            <div className="space-y-4 mb-6">
+            
+            {/* Scrollable Items List */}
+            <div className="max-h-[40vh] overflow-y-auto mb-6 pr-2">
               {selectedItems.map((item) => (
-                <div key={item.id} className="flex justify-between items-center py-2 border-b">
-                  <div>
-                    <span className="font-medium">{item.name}</span>
-                    <span className="text-gray-600 ml-2">×{item.quantity}</span>
+                <div key={item.id} className="flex justify-between items-center py-3 border-b">
+                  <div className="flex-1">
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-sm text-gray-600">
+                      ₹{item.price} × {item.quantity}
+                    </p>
                   </div>
-                  <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
+                  <p className="font-semibold ml-4">
+                    ₹{(item.price * item.quantity).toFixed(2)}
+                  </p>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-2 pt-4">
+            {/* Price Summary */}
+            <div className="space-y-2 pt-4 border-t">
               <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
                 <span>₹{totals.subtotal.toFixed(2)}</span>
@@ -190,7 +290,7 @@ const DelboxCheckout = ({ selectedItems, totals, onBack }) => {
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Charges</span>
-                <span>₹500.00</span>
+                <span>₹{totals.deliveryCharge.toFixed(2)}</span>
               </div>
               <div className="flex justify-between font-bold text-lg border-t pt-4">
                 <span>Total</span>
