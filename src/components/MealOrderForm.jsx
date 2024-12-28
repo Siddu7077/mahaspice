@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, Phone, Mail, MapPin, ChevronRight, Calendar, Clock, ChevronDownIcon } from 'lucide-react';
 import { Menu } from '@headlessui/react';
 import MealBox from './BoxGenie';
+import { Settings } from 'lucide-react';
 import DeliveryMenu from './Delivery';
 
 const CustomMenu = ({ options, value, onChange, placeholder, className, icon: Icon }) => (
@@ -102,7 +103,7 @@ const MealOrderForm = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-row p-6">
-      {!formSubmitted ? (
+      {/* {!formSubmitted ? (
         <div className="flex-grow flex items-center justify-center">
           <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Order Details</h2>
@@ -215,7 +216,9 @@ const MealOrderForm = () => {
             {formData.serviceType === 'Delivery Box' && <DeliveryMenu />}
           </div>
         </div>
-      )}
+      )} */}
+      <Settings />
+      <h1>Under Construction, Will be Available Soon</h1>
     </div>
   );
 };
