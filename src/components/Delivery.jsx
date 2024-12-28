@@ -1,481 +1,341 @@
-import React, { useState } from "react";
-import {
-  Utensils,
-  Leaf,
-  PlusCircle,
-  MinusCircle,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import { menuItems, menuCategories } from "./data";
-import "./del.css";
+import React, { useState, useEffect } from "react";
+import { Plus, Minus, ShoppingCart, X } from "lucide-react";
 import DelboxCheckout from "./DelboxCheckout";
 
 const DeliveryMenu = () => {
+  const [menuData, setMenuData] = useState([]);
   const [menuType, setMenuType] = useState("veg");
-  const [selectedCategory, setSelectedCategory] = useState("beverages");
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [guestCount, setGuestCount] = useState(1);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isMobileOrderSummaryOpen, setIsMobileOrderSummaryOpen] =
-    useState(false);
-  const [isCheckout, setIsCheckout] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedItems, setSelectedItems] = useState(() => {
+    // Initialize from localStorage if available
+    const savedItems = localStorage.getItem('selectedItems');
+    return savedItems ? JSON.parse(savedItems) : [];
+  });
+  const [guestCount, setGuestCount] = useState(() => {
+    // Initialize from localStorage if available
+    const savedCount = localStorage.getItem('guestCount');
+    return savedCount ? parseInt(savedCount) : 5;
+  });
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isCheckout, setIsCheckout] = useState(() => {
+    // Initialize from localStorage if available
+    const savedCheckout = localStorage.getItem('isCheckout');
+    return savedCheckout ? JSON.parse(savedCheckout) : false;
+  });
+  const [error, setError] = useState(null);
 
-  const handleAddItem = (item) => {
-    const existingItem = selectedItems.find((i) => i.id === item.id);
-    if (existingItem) {
-      setSelectedItems(
-        selectedItems.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
-        )
-      );
-    } else {
-      setSelectedItems([
-        ...selectedItems,
-        { ...item, quantity: 1, category: selectedCategory },
-      ]);
-    }
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
+  }, [selectedItems]);
+
+  useEffect(() => {
+    localStorage.setItem('guestCount', guestCount.toString());
+  }, [guestCount]);
+
+  useEffect(() => {
+    localStorage.setItem('isCheckout', JSON.stringify(isCheckout));
+  }, [isCheckout]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/getHomeItems.php"
+        );
+        const data = await response.json();
+        const processedMenuItems = data.items || [];
+
+        const uniqueCategories = [
+          ...new Set(processedMenuItems.map((item) => item.category_type)),
+        ].map((category, index) => ({
+          id: index,
+          category_type: category,
+        }));
+
+        setMenuData(processedMenuItems);
+        setCategories(uniqueCategories);
+
+        if (uniqueCategories.length > 0) {
+          setSelectedCategory(uniqueCategories[0].category_type);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        setError(err.message || "Failed to load menu data");
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleGuestCountChange = (increment) => {
+    const newCount = Math.max(10, guestCount + increment);
+    setGuestCount(newCount);
+    updateDefaultQuantities(newCount);
+  };
+
+  const updateDefaultQuantities = (newGuestCount) => {
+    setSelectedItems((prevItems) =>
+      prevItems.map((item) => ({
+        ...item,
+        quantity: Math.ceil(newGuestCount),
+      }))
+    );
+  };
+
+  const handleItemQuantity = (itemId, change) => {
+    setSelectedItems((prevItems) =>
+      prevItems.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: Math.max(1, item.quantity + change) }
+          : item
+      )
+    );
   };
 
   const handleCheckout = () => {
     setIsCheckout(true);
   };
 
-  
-
-  const handleRemoveItem = (itemId) => {
-    const existingItem = selectedItems.find((i) => i.id === itemId);
-    if (existingItem.quantity > 1) {
-      setSelectedItems(
-        selectedItems.map((i) =>
-          i.id === itemId ? { ...i, quantity: i.quantity - 1 } : i
-        )
-      );
-    } else {
-      setSelectedItems(selectedItems.filter((i) => i.id !== itemId));
-    }
+  const handleAddItem = (item) => {
+    const defaultQuantity = Math.ceil(guestCount);
+    setSelectedItems((prevItems) => {
+      if (prevItems.some((i) => i.id === item.id)) {
+        return prevItems.filter((i) => i.id !== item.id);
+      }
+      return [...prevItems, { ...item, quantity: defaultQuantity }];
+    });
   };
 
-  const handleItemQuantityChange = (itemId, newQuantity) => {
-    const numQuantity = Math.max(0, Number(newQuantity));
-    if (numQuantity === 0) {
-      setSelectedItems(selectedItems.filter((i) => i.id !== itemId));
-    } else {
-      setSelectedItems(
-        selectedItems.map((i) =>
-          i.id === itemId ? { ...i, quantity: numQuantity } : i
-        )
-      );
-    }
-  };
-
-  const calculateTotals = () => {
+  const calculateTotals = React.useMemo(() => {
     const subtotal = selectedItems.reduce(
-      (total, item) => total + item.price * item.quantity * guestCount,
+      (total, item) => total + item.price * item.quantity,
       0
     );
     const tax = subtotal * 0.18;
-    const total = subtotal + tax + 500;
-    return { subtotal, tax, total };
-  };
+    const deliveryCharge = 500;
+    const total = subtotal + tax + deliveryCharge;
+    return { subtotal, tax, total, deliveryCharge };
+  }, [selectedItems]);
 
-  const { subtotal, tax, total } = calculateTotals();
+  const isItemSelected = (itemId) => selectedItems.some((item) => item.id === itemId);
 
-  // Get categories based on selected menu type
-  const categories = menuCategories[menuType].map((cat) => cat.id);
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
+  const { subtotal, tax, total, deliveryCharge } = calculateTotals;
+  
   if (isCheckout) {
     return (
       <DelboxCheckout
         selectedItems={selectedItems}
-        totals={calculateTotals()}
+        totals={calculateTotals}
+        guestCount={guestCount}
         onBack={() => setIsCheckout(false)}
       />
     );
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100">
-      {/* Mobile Header */}
-      <div className="md:hidden flex justify-between items-center p-4 bg-white shadow-md">
-        <button
-          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          className="p-2 bg-gray-100 rounded-lg"
-        >
-          <ChevronLeft />
-        </button>
-        <div className="flex items-center space-x-4">
-          <span
-            className={`${
-              menuType === "veg" ? "text-green-600" : "text-gray-500"
-            }`}
-          >
-            Veg
-          </span>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={menuType === "nonveg"}
-              onChange={() =>
-                setMenuType(menuType === "veg" ? "nonveg" : "veg")
-              }
-              className="sr-only peer"
-            />
-            <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600"></div>
-          </label>
-          <span
-            className={`${
-              menuType === "nonveg" ? "text-red-600" : "text-gray-500"
-            }`}
-          >
-            Non-Veg
-          </span>
-        </div>
-        <button
-          onClick={() => setIsMobileOrderSummaryOpen(!isMobileOrderSummaryOpen)}
-          className="p-2 bg-gray-100 rounded-lg"
-        >
-          <ChevronRight />
-        </button>
-      </div>
-
-      {/* Mobile Sidebar (Categories) */}
-      {isMobileSidebarOpen && (
-        <div className="md:hidden fixed inset-y-0 left-0 w-64 bg-white shadow-lg z-50 overflow-y-auto">
-          <div className="p-4 space-y-2">
-            {categories.map((category) => (
+    <div className="flex flex-col min-h-screen bg-gray-100">
+      {/* Controls Section */}
+      <div className="bg-white p-4 shadow">
+        <div className="flex flex-wrap items-center gap-6">
+          {/* Guest Count Controls */}
+          <div className="flex items-center">
+            <span className="font-semibold">Guests:</span>
+            <div className="flex items-center border rounded-lg overflow-hidden">
               <button
-                key={category}
-                onClick={() => {
-                  setSelectedCategory(category);
-                  setIsMobileSidebarOpen(false);
-                }}
-                className={`w-full text-left px-4 py-2 rounded-lg whitespace-nowrap ${
-                  selectedCategory === category
+                onClick={() => handleGuestCountChange(-1)}
+                className="p-3 bg-gray-100 hover:bg-gray-200"
+              >
+                <Minus size={16} />
+              </button>
+              <span className="px-4 py-2 min-w-[60px] text-center">
+                {guestCount}
+              </span>
+              <button
+                onClick={() => handleGuestCountChange(1)}
+                className="p-3 bg-gray-100 hover:bg-gray-200"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+          </div>
+
+          {/* Menu Type Toggle */}
+          <div className="flex items-center gap-2">
+            <span className="font-semibold">Menu Type:</span>
+            <div className="flex rounded-lg overflow-hidden border">
+              <button
+                onClick={() => setMenuType("veg")}
+                className={`px-4 py-2 ${
+                  menuType === "veg"
                     ? "bg-green-500 text-white"
-                    : "bg-gray-100 hover:bg-gray-200"
+                    : "bg-white text-gray-700"
                 }`}
               >
-                {menuCategories[menuType].find((cat) => cat.id === category)
-                  ?.name || category}
+                Veg
               </button>
-            ))}
+              <button
+                onClick={() => setMenuType("non-veg")}
+                className={`px-4 py-2 ${
+                  menuType === "non-veg"
+                    ? "bg-red-500 text-white"
+                    : "bg-white text-gray-700"
+                }`}
+              >
+                Non-Veg
+              </button>
+            </div>
           </div>
         </div>
-      )}
 
-      {/* Desktop Sidebar - Categories */}
-      <div className="hidden md:block w-48 bg-white shadow-lg pt-4 overflow-y-auto">
-        <div className="space-y-2 px-4">
+        {/* Category Navigation */}
+        <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
           {categories.map((category) => (
             <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`w-full text-left px-4 py-2 rounded-lg whitespace-nowrap ${
-                selectedCategory === category
+              key={category.id}
+              onClick={() => setSelectedCategory(category.category_type)}
+              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
+                selectedCategory === category.category_type
                   ? "bg-green-500 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  : "bg-gray-200 hover:bg-gray-300"
               }`}
             >
-              {menuCategories[menuType].find((cat) => cat.id === category)
-                ?.name || category}
+              {category.category_type}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Mobile Order Summary */}
-      {isMobileOrderSummaryOpen && (
-        <div className="md:hidden fixed inset-y-0 right-0 w-full bg-white shadow-lg z-50 overflow-y-auto p-6">
-          {/* Same content as desktop order summary, but full-width */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">Order Summary</h2>
-            <button
-              onClick={() => setIsMobileOrderSummaryOpen(false)}
-              className="p-2 bg-gray-100 rounded-lg"
-            >
-              <ChevronRight />
-            </button>
-          </div>
-
-          {/* Order summary content (same as desktop version) */}
-          {selectedItems.length === 0 ? (
-            <div className="text-center text-gray-500">No items selected</div>
-          ) : (
-            <>
-              {/* Selected Items List */}
-              <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-                {Object.entries(
-                  selectedItems.reduce((acc, item) => {
-                    if (!acc[item.category]) {
-                      acc[item.category] = [];
-                    }
-                    acc[item.category].push(item);
-                    return acc;
-                  }, {})
-                ).map(([category, items]) => (
-                  <div key={category} className="mb-4">
-                    <h3 className="text-lg font-bold mb-2 pb-2 border-b">
-                      {menuCategories[menuType].find(
-                        (cat) => cat.id === category
-                      )?.name || category}
-                    </h3>
-                    <div className="space-y-2">
-                      {items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex justify-between items-center bg-gray-100 p-3 rounded-lg"
-                        >
-                          <div>
-                            <span className="font-semibold">{item.name}</span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-gray-600 mr-2">
-                              × {item.quantity}
-                            </span>
-                            <span className="font-semibold">
-                              ₹{(item.price * item.quantity).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Bill Details */}
-              <div className="space-y-2 border-t pt-4">
-                <div className="flex justify-between">
-                  <span>Subtotal</span>
-                  <span>₹{subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Tax (18%)</span>
-                  <span>₹{tax.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Delivery Charges</span>
-                  <span>₹ 500</span>
-                </div>
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>₹{total.toFixed(2)}</span>
-                </div>
-              </div>
-
-              {/* Checkout Button */}
-              <button
-                className="w-full bg-green-500 text-white py-3 rounded-lg mt-6 hover:bg-green-600 transition-colors"
-                disabled={selectedItems.length === 0}
-              >
-                Proceed to Checkout
-              </button>
-            </>
-          )}
-        </div>
-      )}
-      <div className="flex-1 p-4 md:p-8 overflow-y-auto">
-        {/* Desktop Menu Type and Guest Count */}
-        <div className="hidden md:flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-4">
-            <span
-              className={`${
-                menuType === "veg"
-                  ? "text-green-600 font-semibold"
-                  : "text-gray-500"
-              }`}
-            >
-              Veg
-            </span>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={menuType === "nonveg"}
-                onChange={() =>
-                  setMenuType(menuType === "veg" ? "nonveg" : "veg")
-                }
-                className="sr-only peer"
-              />
-              <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none   rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600"></div>
-            </label>
-            <span
-              className={`${
-                menuType === "nonveg"
-                  ? "text-red-600 font-semibold"
-                  : "text-gray-500"
-              }`}
-            >
-              Non-Veg
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span>Guests:</span>
-            <div className="flex items-center">
-              <button
-                onClick={() => setGuestCount(Math.max(1, guestCount - 1))}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <MinusCircle />
-              </button>
-              <span className="mx-2">{guestCount}</span>
-              <button
-                onClick={() => setGuestCount(guestCount + 1)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <PlusCircle />
-              </button>
-            </div>
-          </div>
-        </div>
-
+      {/* Main Content */}
+      <div className="flex flex-col lg:flex-row flex-1 gap-4 p-4">
         {/* Menu Items Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-2 gap-4 md:gap-6">
-          {menuItems[menuType][selectedCategory].map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-lg shadow overflow-hidden w-full h-96 flex flex-col transform hover:shadow-lg transition-transform"
-            >
-              <div className="w-full overflow-hidden">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src =
-                      "https://via.placeholder.com/400x300?text=Image+Not+Available";
-                  }}
-                />
-              </div>
-              <div className="p-4 flex-grow flex flex-col justify-between">
-                <h3 className="text-lg font-bold truncate">{item.name}</h3>
-                <div className="flex justify-between items-center mt-2">
-                  <span className="text-green-600 font-semibold">
-                    ₹{item.price.toFixed(2)}
-                  </span>
-                  {!selectedItems.find((i) => i.id === item.id) ? (
-                    <button
-                      onClick={() => handleAddItem(item)}
-                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                    >
-                      Add
-                    </button>
-                  ) : (
-                    <div className="flex items-center border rounded-md overflow-hidden">
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="px-4 py-2 bg-red-500 text-white text-sm font-medium hover:bg-red-600"
-                      >
-                        <MinusCircle size={16} />
-                      </button>
-                      <input
-                        type="number"
-                        min="0"
-                        value={
-                          selectedItems.find((i) => i.id === item.id)
-                            ?.quantity || 0
-                        }
-                        onChange={(e) =>
-                          handleItemQuantityChange(item.id, e.target.value)
-                        }
-                        className="w-16 text-center border-l border-r border-gray-300 focus:outline-none"
-                        style={{ appearance: "textfield" }}
-                      />
-                      <button
-                        onClick={() => handleAddItem(item)}
-                        className="px-4 py-2 bg-green-500 text-white text-sm font-medium hover:bg-green-600"
-                      >
-                        <PlusCircle size={16} />
-                      </button>
+        <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {menuData
+              .filter((item) =>
+                menuType === "veg"
+                  ? item.veg_non === "veg"
+                  : item.veg_non === "non-veg"
+              )
+              .filter((item) => item.category_type === selectedCategory)
+              .map((item) => (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-lg shadow p-4 flex flex-col"
+                >
+                  <img
+                    src={`https://mahaspice.desoftimp.com/ms3/uploads/homeCategory/${item.image_path}`}
+                    alt={item.title}
+                    className="w-full h-48 object-cover rounded-lg"
+                    onError={(e) => {
+                      e.target.src = "/api/placeholder/400/320";
+                      e.target.onerror = null;
+                    }}
+                  />
+                  <div className="mt-4 flex-1 flex flex-col">
+                    <h3 className="font-bold flex-1">{item.title}</h3>
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-gray-600 font-semibold">₹{item.price}</p>
+                      {isItemSelected(item.id) ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleItemQuantity(item.id, -1)}
+                            className="p-1 rounded bg-gray-100 hover:bg-gray-200"
+                          >
+                            <Minus size={16} />
+                          </button>
+                          <span className="min-w-[40px] text-center">
+                            {selectedItems.find((i) => i.id === item.id)?.quantity || 0}
+                          </span>
+                          <button
+                            onClick={() => handleItemQuantity(item.id, 1)}
+                            className="p-1 rounded bg-gray-100 hover:bg-gray-200"
+                          >
+                            <Plus size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleAddItem(item)}
+                            className="ml-2 p-2 rounded bg-red-500 text-white hover:bg-red-600"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleAddItem(item)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                          <ShoppingCart size={16} />
+                          Add
+                        </button>
+                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Desktop Order Summary Sidebar */}
-      <div className="hidden md:block w-76 bg-white shadow-lg p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Order Summary</h2>
-        </div>
-
-        {selectedItems.length === 0 ? (
-          <div className="text-center text-gray-500">No items selected</div>
-        ) : (
-          <>
-            {/* Selected Items List */}
-            <div className="space-y-4 mb-6 max-h-86 overflow-y-auto">
-              {Object.entries(
-                selectedItems.reduce((acc, item) => {
-                  if (!acc[item.category]) {
-                    acc[item.category] = [];
-                  }
-                  acc[item.category].push(item);
-                  return acc;
-                }, {})
-              ).map(([category, items]) => (
-                <div key={category} className="mb-4">
-                  <h3 className="text-lg font-bold mb-2 pb-2 border-b">
-                    {menuCategories[menuType].find((cat) => cat.id === category)
-                      ?.name || category}
-                  </h3>
-                  <div className="space-y-2">
-                    {items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex justify-between items-center bg-gray-100 p-3 rounded-lg"
-                      >
-                        <div>
-                          <span className="font-semibold">{item.name}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-gray-600 mr-2">
-                            × {item.quantity}
-                          </span>
-                          <span className="font-semibold">
-                            ₹{(item.price * item.quantity).toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
               ))}
-            </div>
+          </div>
+        </div>
 
-            {/* Bill Details */}
-            <div className="space-y-2 border-t pt-4">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>₹{subtotal.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Tax (18%)</span>
-                <span>₹{tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery Charges</span>
-                <span>₹ 500</span>
-              </div>
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span>₹{total.toFixed(2)}</span>
-              </div>
-            </div>
+        {/* Order Summary */}
+        <div className="w-full lg:w-96 bg-white rounded-lg shadow-lg p-6 h-fit sticky top-4">
+          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
-            {/* Checkout Button */}
-            <button
-              className="w-full bg-green-500 text-white py-3 rounded-lg mt-6 hover:bg-green-600 transition-colors"
-              disabled={selectedItems.length === 0}
-              onClick={handleCheckout}
-            >
-              Proceed to Checkout
-            </button>
-          </>
-        )}
+          <div className="space-y-4 max-h-[50vh] overflow-y-auto">
+            {selectedItems.length === 0 ? (
+              <p className="text-gray-500">No items selected.</p>
+            ) : (
+              selectedItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex justify-between items-center py-2 border-b"
+                >
+                  <div>
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-sm text-gray-600">
+                      ₹{item.price} x {item.quantity}
+                    </p>
+                  </div>
+                  <p className="font-semibold">₹{item.price * item.quantity}</p>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="mt-4 space-y-2 pt-4 border-t">
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span>₹{subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Tax (18%)</span>
+              <span>₹{tax.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Delivery Charge</span>
+              <span>₹{deliveryCharge}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg pt-2 border-t">
+              <span>Total</span>
+              <span>₹{total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <button
+            className="mt-6 w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={selectedItems.length === 0}
+            onClick={handleCheckout}
+          >
+            <ShoppingCart size={20} />
+            Proceed to Checkout
+          </button>
+        </div>
       </div>
     </div>
   );
