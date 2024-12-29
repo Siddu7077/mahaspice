@@ -7,25 +7,102 @@ const DeliveryMenu = () => {
   const [menuType, setMenuType] = useState("veg");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedItems, setSelectedItems] = useState(() => {
-    // Initialize from localStorage if available
     const savedItems = localStorage.getItem('selectedItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
   const [guestCount, setGuestCount] = useState(() => {
-    // Initialize from localStorage if available
     const savedCount = localStorage.getItem('guestCount');
     return savedCount ? parseInt(savedCount) : 5;
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCheckout, setIsCheckout] = useState(() => {
-    // Initialize from localStorage if available
     const savedCheckout = localStorage.getItem('isCheckout');
     return savedCheckout ? JSON.parse(savedCheckout) : false;
   });
   const [error, setError] = useState(null);
 
-  s
+  // Function to clear localStorage
+  const clearLocalStorage = () => {
+    localStorage.removeItem('selectedItems');
+    localStorage.removeItem('guestCount');
+    localStorage.removeItem('isCheckout');
+  };
+
+  // Handle page visibility change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        clearLocalStorage();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  // Handle window unload
+  useEffect(() => {
+    const handleUnload = () => {
+      clearLocalStorage();
+    };
+
+    window.addEventListener('unload', handleUnload);
+
+    return () => {
+      window.removeEventListener('unload', handleUnload);
+    };
+  }, []);
+
+  // Handle inactivity timer
+  useEffect(() => {
+    let inactivityTimer;
+    const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes in milliseconds
+
+    const resetTimer = () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      inactivityTimer = setTimeout(() => {
+        clearLocalStorage();
+        // Reset states to default values
+        setSelectedItems([]);
+        setGuestCount(5);
+        setIsCheckout(false);
+      }, INACTIVITY_TIMEOUT);
+    };
+
+    // Events to track user activity
+    const activityEvents = [
+      'mousedown',
+      'mousemove',
+      'keypress',
+      'scroll',
+      'touchstart'
+    ];
+
+    // Add event listeners for user activity
+    activityEvents.forEach(event => {
+      document.addEventListener(event, resetTimer);
+    });
+
+    // Initial timer setup
+    resetTimer();
+
+    // Cleanup
+    return () => {
+      if (inactivityTimer) {
+        clearTimeout(inactivityTimer);
+      }
+      activityEvents.forEach(event => {
+        document.removeEventListener(event, resetTimer);
+      });
+    };
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
   }, [selectedItems]);
@@ -128,7 +205,7 @@ const DeliveryMenu = () => {
   if (error) return <div>Error: {error}</div>;
 
   const { subtotal, tax, total, deliveryCharge } = calculateTotals;
-  
+
   if (isCheckout) {
     return (
       <DelboxCheckout
@@ -143,73 +220,93 @@ const DeliveryMenu = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       {/* Controls Section */}
+      <div className="bg-white p-6 text-center">
+        <h2 className="text-3xl font-bold text-gray-800 tracking-tight">Home Delivery</h2>
+      </div>
       <div className="bg-white p-4 shadow">
-        <div className="flex flex-wrap items-center gap-6">
-          {/* Guest Count Controls */}
-          <div className="flex items-center">
-            <span className="font-semibold">Guests:</span>
-            <div className="flex items-center border rounded-lg overflow-hidden">
-              <button
-                onClick={() => handleGuestCountChange(-1)}
-                className="p-3 bg-gray-100 hover:bg-gray-200"
-              >
-                <Minus size={16} />
-              </button>
-              <span className="px-4 py-2 min-w-[60px] text-center">
-                {guestCount}
-              </span>
-              <button
-                onClick={() => handleGuestCountChange(1)}
-                className="p-3 bg-gray-100 hover:bg-gray-200"
-              >
-                <Plus size={16} />
-              </button>
+        <div className="flex flex-wrap justify-between items-center">
+          {/* Category Navigation - Left Side */}
+          <div className="w-full lg:w-7/12 mb-4 lg:mb-0">
+            <div className="flex flex-wrap gap-2 max-w-full">
+              {categories.map((category) => (
+                <button
+                  key={category.id}
+                  onClick={() => setSelectedCategory(category.category_type)}
+                  className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors min-w-[120px] text-center
+              ${selectedCategory === category.category_type
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                >
+                  {category.category_type}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Menu Type Toggle */}
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">Menu Type:</span>
-            <div className="flex rounded-lg overflow-hidden border">
-              <button
-                onClick={() => setMenuType("veg")}
-                className={`px-4 py-2 ${
-                  menuType === "veg"
-                    ? "bg-green-500 text-white"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                Veg
-              </button>
-              <button
-                onClick={() => setMenuType("non-veg")}
-                className={`px-4 py-2 ${
-                  menuType === "non-veg"
-                    ? "bg-red-500 text-white"
-                    : "bg-white text-gray-700"
-                }`}
-              >
-                Non-Veg
-              </button>
+          {/* Controls - Right Side */}
+          <div className="flex flex-wrap items-center gap-4 lg:gap-6 w-full lg:w-auto">
+            {/* Menu Type Toggle */}
+            <div className="w-full sm:w-auto order-2 sm:order-1">
+              <div className="flex justify-center gap-2 bg-gray-100 p-1 rounded-lg">
+                <button
+                  onClick={() => setMenuType("veg")}
+                  className={`px-6 py-2 rounded-md transition-all ${menuType === "veg"
+                      ? "bg-green-500 text-white shadow-md"
+                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                    }`}
+                >
+                  Veg
+                </button>
+                <button
+                  onClick={() => setMenuType("non-veg")}
+                  className={`px-6 py-2 rounded-md transition-all ${menuType === "non-veg"
+                      ? "bg-red-500 text-white shadow-md"
+                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                    }`}
+                >
+                  Non-Veg
+                </button>
+              </div>
+            </div>
+
+            {/* Guest Count Controls with Input */}
+            <div className="w-full sm:w-auto order-1 sm:order-2">
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-gray-700 font-medium">Guests:</span>
+                <div className="flex items-center bg-gray-100 rounded-lg overflow-hidden">
+                  <button
+                    onClick={() => handleGuestCountChange(-1)}
+                    className="p-2 hover:bg-gray-200 transition-colors"
+                  >
+                    <Minus size={16} className="text-gray-600" />
+                  </button>
+                  <input
+                    type="number"
+                    value={guestCount}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value) || 10;
+                      setGuestCount(Math.max(10, value));
+                      updateDefaultQuantities(Math.max(10, value));
+                    }}
+                    onBlur={(e) => {
+                      const value = parseInt(e.target.value) || 10;
+                      setGuestCount(Math.max(10, value));
+                      updateDefaultQuantities(Math.max(10, value));
+                    }}
+                    className="w-16 text-center bg-transparent border-none focus:outline-none font-semibold"
+                    min="10"
+                  />
+                  <button
+                    onClick={() => handleGuestCountChange(1)}
+                    className="p-2 hover:bg-gray-200 transition-colors"
+                  >
+                    <Plus size={16} className="text-gray-600" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Category Navigation */}
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => setSelectedCategory(category.category_type)}
-              className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                selectedCategory === category.category_type
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              {category.category_type}
-            </button>
-          ))}
         </div>
       </div>
 

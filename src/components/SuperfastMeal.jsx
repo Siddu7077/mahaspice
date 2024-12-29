@@ -5,7 +5,6 @@ import { Coffee, Sun, Moon, Plus, Minus } from "lucide-react";
 import SuperfastCheckOutform from "./SuperfastMealCheckOut";
 import ScrollToTop from "./ScrollToTop";
 
-
 const packageData = {
     breakfast: {
         "3CP": [
@@ -261,7 +260,7 @@ const packageImages = {
     "8CP": "https://new.caterninja.com/PackedMealBox/8cp.png",
 };
 
-const SuperfastMealBox = () => {
+const SuperfastMealBox = ({ formData }) => {
     const navigate = useNavigate();
     const [selectedMealType, setSelectedMealType] = useState("breakfast");
     const [selectedPackage, setSelectedPackage] = useState("3CP");
@@ -269,11 +268,38 @@ const SuperfastMealBox = () => {
     const [cart, setCart] = useState({});
     const [showCheckout, setShowCheckout] = useState(false);
 
-    if (showCheckout) {
-        return <SuperfastCheckOutform cart={cart} onBack={() => setShowCheckout(false)} />;
-      }
+    // Calculate cart total
+    const calculateCartTotal = () => {
+        return Object.entries(cart).reduce((total, [itemId, itemData]) => {
+            const itemPrice = parseFloat(itemData.details.price.replace("₹", ""));
+            return total + itemPrice * itemData.quantity;
+        }, 0);
+    };
 
-      const addToCart = (item) => {
+    // Calculate GST
+    const calculateGST = () => {
+        return Math.round(calculateCartTotal() * 0.18);
+    };
+
+    // Calculate total amount
+    const calculateTotalAmount = () => {
+        return calculateCartTotal() + calculateGST();
+    };
+
+    if (showCheckout) {
+        return (
+            <SuperfastCheckOutform 
+                cart={cart}
+                onBack={() => setShowCheckout(false)}
+                cartTotal={calculateCartTotal()}
+                gstAmount={calculateGST()}
+                formData={formData} 
+                totalAmount={calculateTotalAmount()}
+            />
+        );
+    }
+
+    const addToCart = (item) => {
         setCart((prevCart) => {
             const currentItem = prevCart[item.id] || { quantity: 0, details: item };
             return {
@@ -304,17 +330,6 @@ const SuperfastMealBox = () => {
         });
     };
 
-    const calculateCartTotal = () => {
-        return Object.entries(cart).reduce((total, [itemId, itemData]) => {
-            const itemPrice = parseFloat(itemData.details.price.replace("₹", ""));
-            return total + itemPrice * itemData.quantity;
-        }, 0);
-    };
-
-    const calculateGST = () => {
-        return Math.round(calculateCartTotal() * 0.18);
-    };
-
     const groupedCartItems = Object.entries(cart).reduce(
         (groups, [itemId, itemData]) => {
             const pkg = itemData.package;
@@ -334,19 +349,6 @@ const SuperfastMealBox = () => {
         }
         setShowCheckout(true);
     };
-
-    if (showCheckout) {
-        return (
-            <SuperfastCheckOutform
-            cart={cart}
-            onBack={() => setShowCheckout(false)}
-            cartTotal={calculateCartTotal()}
-            gstAmount={calculateGST()}
-            totalAmount={calculateCartTotal() + calculateGST()}
-        />
-        );
-    }
-
 
     const renderMealItems = () => {
         if (selectedMealType === "breakfast") {

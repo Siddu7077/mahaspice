@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Phone,
   Mail,
@@ -8,7 +8,6 @@ import {
   CreditCard,
   Package,
 } from "lucide-react";
-
 
 export const calculateCartTotal = (cart) => {
   return Object.values(cart).reduce((total, item) => {
@@ -21,15 +20,25 @@ export const calculateGST = (cartTotal) => {
   return +(cartTotal * 0.18).toFixed(2);
 };
 
-const SuperfastCheckOutform = ({ cart, onBack }) => {
+const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
   const [formData, setFormData] = useState({
-    name: "",
-    phone1: "",
-    phone2: "",
-    email: "",
-    address: "",
-    landmark: "",
+    name: initialFormData?.name || "",
+    phone1: initialFormData?.phone1 || "",
+    phone2: initialFormData?.phone2 || "",
+    email: initialFormData?.email || "",
+    address: initialFormData?.address || "",
+    landmark: initialFormData?.landmark || "",
   });
+
+  // Update form data when initialFormData changes
+  useEffect(() => {
+    if (initialFormData) {
+      setFormData(prevData => ({
+        ...prevData,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   const cartTotal = calculateCartTotal(cart);
   const gstAmount = calculateGST(cartTotal);
@@ -37,7 +46,8 @@ const SuperfastCheckOutform = ({ cart, onBack }) => {
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  // Group cart items by package
+
+  // Rest of your existing code remains the same...
   const groupedCartItems = Object.entries(cart).reduce(
     (groups, [itemId, itemData]) => {
       const pkg = itemData.package;
@@ -50,6 +60,7 @@ const SuperfastCheckOutform = ({ cart, onBack }) => {
     {}
   );
 
+  // Your existing validate function
   const validate = () => {
     const newErrors = {};
 
@@ -99,6 +110,7 @@ const SuperfastCheckOutform = ({ cart, onBack }) => {
       [name]: value,
     }));
   };
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">

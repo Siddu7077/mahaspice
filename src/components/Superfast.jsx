@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Users } from 'lucide-react';
 import SuperfastMealBox from './SuperfastMeal';
 import SuperfastDeliveryMenu from './SuperfastDelbox';
@@ -6,7 +6,7 @@ import SuperfastDeliveryMenu from './SuperfastDelbox';
 const Superfast = () => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
+    phone1: '',  // Changed from 'phone' to 'phone1' to match checkout form
     email: '',
     date: '',
     time: '',
@@ -17,9 +17,24 @@ const Superfast = () => {
     coordinates: null,
   });
 
-  const  [showNextComponent, setShowNextComponent] = useState(false);
+  const [minDate, setMinDate] = useState('');
+  const [showNextComponent, setShowNextComponent] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [locationError, setLocationError] = useState(false);
+
+  // Set minimum date when component mounts
+  useEffect(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const minDateStr = tomorrow.toISOString().split('T')[0];
+    setMinDate(minDateStr);
+
+    // Set default date to tomorrow
+    setFormData(prev => ({
+      ...prev,
+      date: minDateStr
+    }));
+  }, []);
 
   const serviceableAreas = [
     'hitech city',
@@ -31,7 +46,7 @@ const Superfast = () => {
   ];
 
   const isLocationServiceable = (location) => {
-    return serviceableAreas.some(area => 
+    return serviceableAreas.some(area =>
       location.toLowerCase().includes(area)
     );
   };
@@ -46,15 +61,26 @@ const Superfast = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!isLocationServiceable(formData.location)) {
       setLocationError(true);
       return;
     }
 
+    // Transform the form data to match SuperfastDelboxCheckout's expected format
+    const transformedFormData = {
+      name: formData.name,
+      phone1: formData.phone,  // Map phone to phone1
+      email: formData.email,
+      date: formData.date,
+      time: formData.time,
+      address: formData.location,  // Map location to address
+      guestCount: parseInt(formData.guestCount),
+    };
+
+    setFormData(transformedFormData);
     setShowNextComponent(true);
-    
-    // For breakfast, directly set to SuperfastMealbox
+
     if (formData.mealType === 'breakfast') {
       setSelectedComponent('SuperfastMealbox');
     } else if (formData.boxType === 'mealbox') {
@@ -74,11 +100,11 @@ const Superfast = () => {
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
             );
             const data = await response.json();
-            
+
             setFormData(prevData => ({
               ...prevData,
-              location: data.address.road && data.address.suburb ? 
-                `${data.address.road}, ${data.address.suburb}` : 
+              location: data.address.road && data.address.suburb ?
+                `${data.address.road}, ${data.address.suburb}` :
                 `${data.address.suburb || data.address.road || 'Location detected'}`,
               coordinates: { lat: latitude, lng: longitude }
             }));
@@ -129,13 +155,13 @@ const Superfast = () => {
       <div>
         {selectedComponent === 'SuperfastMealbox' && (
           <div className="p-4 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Superfast Mealbox Component</h2>
+            <h2 className="text-xl font-bold mb-4">Superfast Mealbox</h2>
             <SuperfastMealBox formData={formData} />
           </div>
         )}
         {selectedComponent === 'SuperfastDelbox' && (
           <div className="p-4 rounded-lg">
-            <h2 className="text-xl font-bold mb-4">Superfast Delbox Component</h2>
+            <h2 className="text-xl font-bold mb-4">Superfast Delivery box</h2>
             <SuperfastDeliveryMenu formData={formData} />
           </div>
         )}
@@ -193,6 +219,7 @@ const Superfast = () => {
                 name="date"
                 value={formData.date}
                 onChange={handleInputChange}
+                min={minDate}
                 className="w-full pl-10 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
                 required
               />
