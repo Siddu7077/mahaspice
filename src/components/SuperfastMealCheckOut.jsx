@@ -20,7 +20,7 @@ export const calculateGST = (cartTotal) => {
   return +(cartTotal * 0.18).toFixed(2);
 };
 
-const CheckOutform = ({ cart, onBack }) => {
+const SuperfastCheckOutform = ({ cart, onBack }) => {
   const [formData, setFormData] = useState({
     name: "",
     phone1: "",
@@ -322,8 +322,4 @@ const CheckOutform = ({ cart, onBack }) => {
   );
 };
 
-export default CheckOutform;
-
-// and after we submit the mealbox our selected items and all will be sent to 
-
-// now modify that checkout form such that after they click on procced to pay in mealbox component this checkout form must be filled with the data which we gave before such as name,phone etc
+export default SuperfastCheckOutform;

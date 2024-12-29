@@ -41,7 +41,7 @@ import MenuPage from "./Menu";
 import MenuSelection from "./MenuSelection";
 import MenuOrder from "./MenuOrder";
 import BulkCatering from "./BulkCatering";
-import SuperFastDelivery from "./SuperFastDelivery";
+import Superfast from "./Superfast";
 import SectionTwo from "./SectionTwo";
 import CartPage from "./CartPage";
 import MealOrderForm from "./MealOrderForm";
@@ -62,7 +62,7 @@ const Navbar = () => {
   // Define routes
   const routing = useRoutes([
     { path: "/", element: <HomePage /> },
-    { path: "/superfastDelivery", element: <SuperFastDelivery /> },
+    { path: "/superfast", element: <Superfast /> },
     { path: "/about", element: <About /> },
     { path: "/contact", element: <ContactForm /> },
     { path: "/feedback", element: <FeedbackForm /> },
