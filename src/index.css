@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 body {
-    @apply font-Roboto;
+    @apply font-sans;
   }
+  
   
