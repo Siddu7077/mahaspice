@@ -132,18 +132,18 @@ const Navbar = () => {
     <div className="flex h-screen bg-white text-black">
       <ScrollToTop />
       {/* Left Sidebar */}
-      <div className={`${isNavExpanded ? "w-64" : "w-44"} h-full transition-all duration-300 bg-white border-r border-gray-100`}>
+      <div className={`${isNavExpanded ? " w-72" : " w-52"} h-full transition-all duration-300 bg-white border-r border-gray-100`}>
         <div className="p-4 flex items-center justify-between">
           <Link to="/">
             <img
               src={logo}
               alt="Logo"
-              className={`${isNavExpanded ? "block" : "hidden"} h-30 w-64`}
+              className={`${isNavExpanded ? "block" : "hidden"} w-96`}
             />
             <img
               src={logo}
               alt="Logo"
-              className={`${isNavExpanded ? "hidden" : "block"} h-30 w-55`}
+              className={`${isNavExpanded ? "hidden" : "block"} w-60`}
             />
           </Link>
         </div>

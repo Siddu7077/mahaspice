@@ -262,13 +262,15 @@ const packageImages = {
 
 const SuperfastMealBox = ({ formData }) => {
     const navigate = useNavigate();
-    const [selectedMealType, setSelectedMealType] = useState("breakfast");
+    const [selectedMealType, setSelectedMealType] = useState("breakfast" );
     const [selectedPackage, setSelectedPackage] = useState("3CP");
     const [isVeg, setIsVeg] = useState(true);
     const [cart, setCart] = useState({});
     const [showCheckout, setShowCheckout] = useState(false);
 
-    // Calculate cart total
+    
+
+// Calculate cart total
     const calculateCartTotal = () => {
         return Object.entries(cart).reduce((total, [itemId, itemData]) => {
             const itemPrice = parseFloat(itemData.details.price.replace("₹", ""));

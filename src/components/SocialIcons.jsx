@@ -86,7 +86,7 @@ const SocialIcons = () => {
         <>
             
             <div 
-                className={`fixed right-4 top-1/2 -translate-y-1/2 z-10 transition-all duration-300 
+                className={`fixed right-4 top-1/2 -translate-y-1/2 z-50 transition-all duration-300 
                     ${isVisible ? 'w-auto opacity-100' : 'w-12 opacity-70'}`}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => {
