@@ -17,7 +17,6 @@ const SocialIcons = () => {
 
         return () => clearTimeout(initialTimer);
     }, []);
-
     useEffect(() => {
         let timer;
         if (isHovered) {

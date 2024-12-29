@@ -20,7 +20,7 @@ const Carousel = () => {
         setIsLoading(false);
       });
   }, []);
-
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentIndex(prev => (prev === slides.length - 1 ? 0 : prev + 1));

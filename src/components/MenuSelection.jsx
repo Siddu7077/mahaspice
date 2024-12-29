@@ -26,7 +26,7 @@ const MenuSelection = () => {
     setMenuPreference(preference);
     setSelectedItems([]);
   };
-
+  
   const handleInputChange = (e) => {
     const value = e.target.value;
     if (value === "" || /^\d+$/.test(value)) {

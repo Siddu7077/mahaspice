@@ -21,7 +21,7 @@ const SectionThree = () => {
             setError('Failed to load content');
             setLoading(false);
         }
-    };
+    }; 
 
     if (loading) return <div className="text-center p-4">Loading...</div>;
     if (error) return <div className="text-center p-4 text-red-500">{error}</div>;

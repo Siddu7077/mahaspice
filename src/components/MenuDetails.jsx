@@ -125,7 +125,6 @@ const MenuSelection = () => {
                     ...prev,
                     [section]: (prev[section] || []).filter(extraItem => extraItem !== item)
                 }));
-
                 // Adjust plate price
                 setPlatePrice(prev => prev - EXTRA_ITEM_CHARGE);
             }

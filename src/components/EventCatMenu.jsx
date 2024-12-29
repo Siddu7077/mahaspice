@@ -613,7 +613,7 @@ const EventCatMenu = () => {
                 </div>
               </div>
             </div>
-
+            
             {/* Center Column */}
             <div className="w-3/5 bg-white p-6 rounded-xl shadow-md">
               <h2 className="text-2xl font-bold mb-6 text-gray-800">

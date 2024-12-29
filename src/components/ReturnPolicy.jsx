@@ -14,7 +14,7 @@ const ReturnPolicy = () => {
           please call <span className="text-blue-600 font-medium">040-2222 8888</span>. Preparation of your order begins immediately after 
           confirmation. Returns are not accepted once your order is confirmed with the restaurant.
         </p>
-
+  
         {/* Food Order Errors */}
         <section className="mb-8">
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">Food Order Errors</h2>

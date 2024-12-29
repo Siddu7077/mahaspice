@@ -9,6 +9,15 @@ const VegNonVegToggle = ({ onToggle }) => {
     onToggle(newVegStatus);
   };
 
+
+
+
+
+
+
+
+
+  
   return (
     <div className="flex items-center m-2 space-x-3">
       <span className={`font-medium ${!isVeg ? 'text-green-600' : 'text-gray-400'}`}>

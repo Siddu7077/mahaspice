@@ -9,6 +9,7 @@ import {
   Package,
 } from "lucide-react";
 
+
 export const calculateCartTotal = (cart) => {
   return Object.values(cart).reduce((total, item) => {
     const itemPrice = parseFloat(item.details.price.replace("₹", ""));

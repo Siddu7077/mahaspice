@@ -55,7 +55,7 @@ const CartPage = () => {
           price: "₹220",
           image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
         },
-      ],
+      ], 
       nonVeg: [
         {
           id: 7,

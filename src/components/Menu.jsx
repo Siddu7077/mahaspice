@@ -19,7 +19,6 @@ const MenuPage = () => {
                 fetch('https://mahaspice.desoftimp.com/ms3/getgscd.php'),
                 fetch('https://mahaspice.desoftimp.com/ms3/get_pricing.php')
             ]);
-
             const categoriesData = await categoriesResponse.json();
             const pricingData = await pricingResponse.json();
 

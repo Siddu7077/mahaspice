@@ -6,7 +6,7 @@ const BulkCatering = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [hoveredIndex, setHoveredIndex] = useState(null);
-
+    
     useEffect(() => {
         fetchItems();
     }, []);

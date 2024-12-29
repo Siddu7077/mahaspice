@@ -17,7 +17,7 @@ const Superfast = () => {
     coordinates: null,
   });
 
-  const [showNextComponent, setShowNextComponent] = useState(false);
+  const  [showNextComponent, setShowNextComponent] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [locationError, setLocationError] = useState(false);
 

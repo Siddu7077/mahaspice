@@ -98,7 +98,7 @@ const DelboxCheckout = ({ selectedItems: initialItems, totals: initialTotals, on
     );
   }
 
-  // Empty cart state
+  
   if (!selectedItems || selectedItems.length === 0) {
     return (
       <div className="min-h-screen bg-gray-100 p-4 md:p-8">

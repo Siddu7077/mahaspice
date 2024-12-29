@@ -11,6 +11,7 @@ const SuperfastDeliveryMenu = () => {
     const savedItems = localStorage.getItem('selectedItems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
+  
   const [guestCount, setGuestCount] = useState(() => {
     // Initialize from localStorage if available
     const savedCount = localStorage.getItem('guestCount');

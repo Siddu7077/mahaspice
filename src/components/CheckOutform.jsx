@@ -5,7 +5,7 @@ import {
   MapPin,
   Home,
   Navigation,
-  CreditCard,
+  CreditCard, 
   Package,
 } from "lucide-react";
 

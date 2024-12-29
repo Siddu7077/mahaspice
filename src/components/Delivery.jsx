@@ -25,7 +25,7 @@ const DeliveryMenu = () => {
   });
   const [error, setError] = useState(null);
 
-  // Save state to localStorage whenever it changes
+  s
   useEffect(() => {
     localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
   }, [selectedItems]);

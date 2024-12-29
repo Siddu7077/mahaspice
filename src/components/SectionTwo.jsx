@@ -22,7 +22,7 @@ const SectionTwo = () => {
             link: "/events",
         },
     ]);
-
+    
     const [error, setError] = useState(null);
 
     useEffect(() => {

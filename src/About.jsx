@@ -8,6 +8,8 @@ const About = () => {
       value: "158,598", 
       label: "Happy Customers" 
     },
+
+    
     { 
       icon: <CheckCircle size={48} />, 
       value: "10+ Years", 

@@ -172,4 +172,4 @@ export const menuCategories = {
         { id: 'fries', name: 'Fries' },
         { id: 'curries', name: 'Curries' }
     ]
-};
+}; 

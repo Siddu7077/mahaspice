@@ -14,6 +14,7 @@ const FeedbackForm = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  
   const handleRatingChange = (rating) => {
     setFormData({ ...formData, rating });
   };

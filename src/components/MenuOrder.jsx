@@ -82,7 +82,7 @@ const MenuOrder = () => {
     }
     
     setMinDate(tomorrow.toISOString().split("T")[0]);
-    
+
     // Reset time if it doesn't match new constraints
     const availableSlots = getAvailableTimeSlots();
     if (!availableSlots.includes(userDetails.time)) {

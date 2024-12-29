@@ -12,7 +12,7 @@ const CallButton = () => {
             const a = document.createElement('a');
             a.href = 'tel:+919697798888';
             a.click();
-        } catch (error) {
+        } catch (error) { 
             
             alert('Call +91 969779 8888');
         }

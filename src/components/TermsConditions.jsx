@@ -8,6 +8,7 @@ const TermsConditions = () => {
       <p className="text-gray-600 mb-6">Please read these Terms of Use ("Terms", "Terms of Use") carefully before using www.digicafe.in (website)</p>
       <p className="text-gray-600 mb-8">We are a brand of MAHA SPICE CATERERS (www.mahaspice.in) unless otherwise stated.</p>
 
+
       <ul className="space-y-8">
         <li className="space-y-4">
           <h2 className="text-xl font-semibold">1. Definitions</h2>

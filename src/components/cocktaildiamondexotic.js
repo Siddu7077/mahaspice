@@ -9,7 +9,7 @@ const menuSections = {
     limit: 1,
     items: ['Harabhara Kabob', 'Veg Manchuria', 'Smiles Hearts', 'Cheese Balls']
   },
-  salad: {
+  salad: { 
     title: 'Salad',
     limit: 1,
     items: ['Green Salad', 'Sprouts Salad', 'Tossed Salad', 'Garden Salad']

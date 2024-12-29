@@ -209,8 +209,8 @@ const Navbar = () => {
 
           <div className="flex items-center space-x-4">
             <div className="flex items-center" onClick={handleCall}>
-              <Phone size={20} strokeWidth={2} className="relative top-1 right-1 text-green-600 cursor-pointer" />
-              <h2 className="text-xl text-green-600 cursor-pointer">969779 8888</h2>
+              <Phone size={20} strokeWidth={2} className="relative top-1/2 right-1 text-green-600 cursor-pointer" />
+              <h2 className="text-xl text-green-600 cursor-pointer">040-2222 8888 / 969779 8888</h2>
             </div>
             <Link to="/cart">
               <ShoppingCart className="text-black w-6 h-6 hover:text-green-500" />
@@ -242,7 +242,7 @@ const Navbar = () => {
         <div className="flex items-center lg:text-lg  justify-between">
           <Link
             to="/superfast"
-            className={`px-3 py-1.5 rounded-lg cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg  cursor-pointer ${
               selectedComponent === "Superfast" ? "bg-green-600 text-white" : "text-black"
             }`}
           >

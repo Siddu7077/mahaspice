@@ -270,9 +270,9 @@ const MealBox = () => {
 
     if (showCheckout) {
         return <CheckOutform cart={cart} onBack={() => setShowCheckout(false)} />;
-      }
+    }
 
-      const addToCart = (item) => {
+    const addToCart = (item) => {
         setCart((prevCart) => {
             const currentItem = prevCart[item.id] || { quantity: 0, details: item };
             return {

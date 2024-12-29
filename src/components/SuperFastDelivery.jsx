@@ -7,7 +7,7 @@ const SuperFastDelivery = () => {
             <h1 className="text-3xl font-bold text-red-700 mb-6 text-center">
                 Ultimate Catering Delivery Service
             </h1>
-
+    
             <div className="grid md:grid-cols-2 gap-6">
                 <div className="bg-gray-100 p-4 rounded-lg">
                     <div className="flex items-center mb-4">

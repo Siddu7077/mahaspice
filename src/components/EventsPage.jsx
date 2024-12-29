@@ -83,7 +83,7 @@ const EventsPage = () => {
       </div>
     );
   }
-
+  
   return (
     <div className="p-8">
       <h1 className="text-3xl font-bold text-green-700 mb-4">

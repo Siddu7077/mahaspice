@@ -51,7 +51,6 @@ const MenuNavbar = () => {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   };
-
   // Check if the current category is active
   const isActiveCategoryName = (formattedUrlName) => {
     // Remove hyphens and convert to lowercase for comparison
