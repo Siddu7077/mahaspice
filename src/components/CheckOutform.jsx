@@ -9,6 +9,7 @@ import {
   Package,
 } from "lucide-react";
 import { debounce } from 'lodash';
+
 export const calculateCartTotal = (cart) => {
   return Object.values(cart).reduce((total, item) => {
     const itemPrice = parseFloat(item.details.price.replace("₹", ""));
@@ -103,27 +104,35 @@ const CheckOutform = ({ cart, onBack }) => {
     try {
       setIsLoading(true);
       
-      const formattedCart = Object.entries(cart).map(([id, item]) => ({
-        name: item.details.name,
-        price: Number(item.details.price.replace('₹', '')),
-        quantity: Number(item.quantity),
-        package: item.package || 'Default'
-      }));
+      const formattedCart = Object.entries(cart).map(([id, item]) => {
+        console.log('Processing item:', item); // Log each item
+        return {
+          name: item.details.name,
+          price: Number(item.details.price.replace('₹', '')),
+          quantity: Number(item.quantity),
+          package: item.package
+        };
+      });
+  
+      const cleanFormData = {
+        name: formData.name.trim(),
+        phone1: formData.phone1.trim(),
+        phone2: formData.phone2 ? formData.phone2.trim() : '',
+        email: formData.email ? formData.email.trim() : '',
+        address: formData.address.trim(),
+        landmark: formData.landmark ? formData.landmark.trim() : ''
+      };
   
       const payload = {
         amount: Math.round(totalAmount * 100),
-        customerDetails: {
-          name: formData.name.trim(),
-          phone1: formData.phone1.trim(),
-          phone2: formData.phone2?.trim() || '',
-          email: formData.email?.trim() || '',
-          address: formData.address.trim(),
-          landmark: formData.landmark?.trim() || ''
-        },
+        customerDetails: cleanFormData,
         orderDetails: formattedCart
       };
   
-      console.log('Sending payload:', payload);
+      // Log the exact string being sent
+      console.log('Raw payload:', payload);
+      console.log('Stringified payload:', JSON.stringify(payload));
+      console.log('Stringified payload with spacing:', JSON.stringify(payload, null, 2));
   
       const response = await fetch(
         'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
@@ -150,9 +159,9 @@ const CheckOutform = ({ cart, onBack }) => {
         description: "Order Payment",
         order_id: data.order_id,
         prefill: {
-          name: formData.name,
-          email: formData.email || '',
-          contact: formData.phone1
+          name: cleanFormData.name,
+          email: cleanFormData.email,
+          contact: cleanFormData.phone1
         },
         handler: handlePaymentSuccess,
         modal: {
@@ -166,7 +175,7 @@ const CheckOutform = ({ cart, onBack }) => {
       const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (error) {
-      console.error('Error details:', error);
+      console.error('Error:', error);
       alert(error.message);
     } finally {
       setIsLoading(false);
@@ -201,11 +210,12 @@ const CheckOutform = ({ cart, onBack }) => {
         throw new Error("Payment verification failed");
       }
     } catch (error) {
-      console.error("Payment verification failed:", error);
-      alert("Payment verification failed. Please contact support.");
+      console.error('Error:', error);
+      alert(error.message);
+    } finally {
+      setIsLoading(false);
     }
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     handlePayment();
