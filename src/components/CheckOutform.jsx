@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Phone,
   Mail,
@@ -8,18 +8,6 @@ import {
   CreditCard, 
   Package,
 } from "lucide-react";
-import { debounce } from 'lodash';
-
-export const calculateCartTotal = (cart) => {
-  return Object.values(cart).reduce((total, item) => {
-    const itemPrice = parseFloat(item.details.price.replace("₹", ""));
-    return total + itemPrice * item.quantity;
-  }, 0);
-};
-
-export const calculateGST = (cartTotal) => {
-  return +(cartTotal * 0.18).toFixed(2);
-};
 
 const CheckOutform = ({ cart, onBack }) => {
   const [formData, setFormData] = useState({
@@ -31,13 +19,17 @@ const CheckOutform = ({ cart, onBack }) => {
     landmark: "",
   });
 
-  const cartTotal = calculateCartTotal(cart);
-  const gstAmount = calculateGST(cartTotal);
+  const cartTotal = Object.values(cart).reduce((total, item) => {
+    const itemPrice = parseFloat(item.details.price.replace("₹", ""));
+    return total + itemPrice * item.quantity;
+  }, 0);
+  
+  const gstAmount = +(cartTotal * 0.18).toFixed(2);
   const totalAmount = cartTotal + gstAmount;
-
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  // Group cart items by package
+
+  // Group cart items by package (keeping your existing grouping logic)
   const groupedCartItems = Object.entries(cart).reduce(
     (groups, [itemId, itemData]) => {
       const pkg = itemData.package;
@@ -50,13 +42,18 @@ const CheckOutform = ({ cart, onBack }) => {
     {}
   );
 
-  // Create a debounced version of validate
-  const debouncedValidate = React.useCallback(
-    debounce(() => {
-      validate();
-    }, 500),
-    []
-  );
+  useEffect(() => {
+    const loadRazorpayScript = async () => {
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        script.onload = resolve;
+        document.body.appendChild(script);
+      });
+    };
+    loadRazorpayScript();
+  }, []);
 
   const validate = () => {
     const newErrors = {};
@@ -87,83 +84,92 @@ const CheckOutform = ({ cart, onBack }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const initializeRazorpay = async () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  // Payment handling
   const handlePayment = async () => {
     if (!validate()) return;
-  
+
     try {
       setIsLoading(true);
-      
-      const formattedCart = Object.entries(cart).map(([id, item]) => {
-        console.log('Processing item:', item); // Log each item
-        return {
-          name: item.details.name,
-          price: Number(item.details.price.replace('₹', '')),
-          quantity: Number(item.quantity),
-          package: item.package
-        };
-      });
-  
-      const cleanFormData = {
-        name: formData.name.trim(),
-        phone1: formData.phone1.trim(),
-        phone2: formData.phone2 ? formData.phone2.trim() : '',
-        email: formData.email ? formData.email.trim() : '',
-        address: formData.address.trim(),
-        landmark: formData.landmark ? formData.landmark.trim() : ''
-      };
-  
-      const payload = {
-        amount: Math.round(totalAmount * 100),
-        customerDetails: cleanFormData,
-        orderDetails: formattedCart
-      };
-  
-      // Log the exact string being sent
-      console.log('Raw payload:', payload);
-      console.log('Stringified payload:', JSON.stringify(payload));
-      console.log('Stringified payload with spacing:', JSON.stringify(payload, null, 2));
-  
-      const response = await fetch(
-        'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        }
-      );
-  
-      const data = await response.json();
-      
-      if (!data.status || data.status === 'error') {
-        throw new Error(data.message || 'Order creation failed');
-      }
-  
+
+      // First, create a basic order to get order_id
       const options = {
-        key: "rzp_test_CROYWIJ5dxBvRA",
-        amount: data.amount,
+        key: "rzp_live_Mjm1GpVqxzwjQL",
+        amount: Math.round(totalAmount * 100),
         currency: "INR",
-        name: "DLVB IMPEX PVT. LTD.",
+        name: "Mahaspice Caterers",
         description: "Order Payment",
-        order_id: data.order_id,
         prefill: {
-          name: cleanFormData.name,
-          email: cleanFormData.email,
-          contact: cleanFormData.phone1
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone1
         },
-        handler: handlePaymentSuccess,
+        handler: async function(response) {
+          // Only send the order data after successful payment
+          try {
+            // First verify the payment
+            const verifyPayload = {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            };
+
+            const verifyResponse = await fetch(
+              'https://mahaspice.desoftimp.com/ms3/payment/verify_payment.php',
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Accept": "application/json"
+                },
+                body: JSON.stringify(verifyPayload),
+              }
+            );
+
+            const verifyData = await verifyResponse.json();
+
+            if (verifyData.status === "success") {
+              
+              const orderPayload = {
+                paymentId: response.razorpay_payment_id,
+                amount: Math.round(totalAmount * 100),
+                customerDetails: {
+                  name: formData.name.trim(),
+                  phone1: formData.phone1.trim(),
+                  phone2: formData.phone2?.trim() || '',
+                  email: formData.email?.trim() || '',
+                  address: formData.address.trim(),
+                  landmark: formData.landmark?.trim() || ''
+                },
+                orderDetails: Object.entries(cart).map(([id, item]) => ({
+                  name: item.details.name,
+                  price: parseFloat(item.details.price.replace(/[^\d.]/g, '')),
+                  quantity: parseInt(item.quantity),
+                  package: item.package
+                }))
+              };
+
+              const orderResponse = await fetch('https://mahaspice.desoftimp.com/ms3/payment/create_order.php', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify(orderPayload)
+              });
+
+              if (!orderResponse.ok) {
+                throw new Error('Failed to create order. Please contact support.');
+              }
+
+              alert("Payment successful! Order has been placed.");
+              // Add any additional success handling here
+            } else {
+              throw new Error("Payment verification failed");
+            }
+          } catch (error) {
+            console.error('Order Creation Error:', error);
+            alert('Payment successful ,Our customer care support will contact you soon.');
+          }
+        },
         modal: {
           ondismiss: () => setIsLoading(false)
         },
@@ -171,51 +177,17 @@ const CheckOutform = ({ cart, onBack }) => {
           color: "#22c55e"
         }
       };
-  
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
     } catch (error) {
-      console.error('Error:', error);
-      alert(error.message);
+      console.error('Payment Error:', error);
+      alert(error.message || 'Payment failed. Please try again later.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePaymentSuccess = async (response) => {
-    try {
-      const verifyPayload = {
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_signature: response.razorpay_signature,
-      };
-
-      const verifyResponse = await fetch(
-        `https://mahaspice.desoftimp.com/ms3/payment/verify_payment.php`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(verifyPayload),
-        }
-      );
-
-      const verifyData = await verifyResponse.json();
-
-      if (verifyData.status === "success") {
-        // Handle successful payment (e.g., clear cart, show success page)
-        alert("Payment successful!");
-      } else {
-        throw new Error("Payment verification failed");
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      alert(error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
   const handleSubmit = (e) => {
     e.preventDefault();
     handlePayment();
@@ -227,9 +199,7 @@ const CheckOutform = ({ cart, onBack }) => {
       ...prev,
       [name]: value,
     }));
-    validate(); // Direct validation without debouncing
   };
-
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">

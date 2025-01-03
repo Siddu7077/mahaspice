@@ -13,7 +13,7 @@ const packageData = {
                 name: "South Indian Breakfast",
                 image: "https://5.imimg.com/data5/AH/LH/SZ/SELLER-5331327/dinearth-10-3cp-11-4cp-round-plate-500x500.jpg",
                 items: ["Idli", "Vada", "Chutney", "Coffee"],
-                price: "₹200",
+                price: "₹1",
                 rating: 4.5,
                 time: "30 mins",
             },
