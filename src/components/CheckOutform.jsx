@@ -8,7 +8,7 @@ import {
   CreditCard, 
   Package,
 } from "lucide-react";
-
+import { debounce } from 'lodash';
 export const calculateCartTotal = (cart) => {
   return Object.values(cart).reduce((total, item) => {
     const itemPrice = parseFloat(item.details.price.replace("₹", ""));
@@ -49,6 +49,14 @@ const CheckOutform = ({ cart, onBack }) => {
     {}
   );
 
+  // Create a debounced version of validate
+  const debouncedValidate = React.useCallback(
+    debounce(() => {
+      validate();
+    }, 500),
+    []
+  );
+
   const validate = () => {
     const newErrors = {};
 
@@ -78,17 +86,129 @@ const CheckOutform = ({ cart, onBack }) => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const initializeRazorpay = async () => {
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
+  // Payment handling
+  const handlePayment = async () => {
+    if (!validate()) return;
+  
+    try {
+      setIsLoading(true);
+      
+      const formattedCart = Object.entries(cart).map(([id, item]) => ({
+        name: item.details.name,
+        price: Number(item.details.price.replace('₹', '')),
+        quantity: Number(item.quantity),
+        package: item.package || 'Default'
+      }));
+  
+      const payload = {
+        amount: Math.round(totalAmount * 100),
+        customerDetails: {
+          name: formData.name.trim(),
+          phone1: formData.phone1.trim(),
+          phone2: formData.phone2?.trim() || '',
+          email: formData.email?.trim() || '',
+          address: formData.address.trim(),
+          landmark: formData.landmark?.trim() || ''
+        },
+        orderDetails: formattedCart
+      };
+  
+      console.log('Sending payload:', payload);
+  
+      const response = await fetch(
+        'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        }
+      );
+  
+      const data = await response.json();
+      
+      if (!data.status || data.status === 'error') {
+        throw new Error(data.message || 'Order creation failed');
+      }
+  
+      const options = {
+        key: "rzp_test_CROYWIJ5dxBvRA",
+        amount: data.amount,
+        currency: "INR",
+        name: "DLVB IMPEX PVT. LTD.",
+        description: "Order Payment",
+        order_id: data.order_id,
+        prefill: {
+          name: formData.name,
+          email: formData.email || '',
+          contact: formData.phone1
+        },
+        handler: handlePaymentSuccess,
+        modal: {
+          ondismiss: () => setIsLoading(false)
+        },
+        theme: {
+          color: "#22c55e"
+        }
+      };
+  
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (error) {
+      console.error('Error details:', error);
+      alert(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePaymentSuccess = async (response) => {
+    try {
+      const verifyPayload = {
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature,
+      };
+
+      const verifyResponse = await fetch(
+        `https://mahaspice.desoftimp.com/ms3/payment/verify_payment.php`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(verifyPayload),
+        }
+      );
+
+      const verifyData = await verifyResponse.json();
+
+      if (verifyData.status === "success") {
+        // Handle successful payment (e.g., clear cart, show success page)
+        alert("Payment successful!");
+      } else {
+        throw new Error("Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Payment verification failed:", error);
+      alert("Payment verification failed. Please contact support.");
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        // Add your payment processing logic here
-      }, 2000);
-
-      console.log("Form submitted:", formData);
-    }
+    handlePayment();
   };
 
   const handleChange = (e) => {
@@ -97,7 +217,9 @@ const CheckOutform = ({ cart, onBack }) => {
       ...prev,
       [name]: value,
     }));
+    validate(); // Direct validation without debouncing
   };
+
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">
@@ -323,7 +445,3 @@ const CheckOutform = ({ cart, onBack }) => {
 };
 
 export default CheckOutform;
-
-// and after we submit the mealbox our selected items and all will be sent to 
-
-// now modify that checkout form such that after they click on procced to pay in mealbox component this checkout form must be filled with the data which we gave before such as name,phone etc
