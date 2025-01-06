@@ -22,7 +22,7 @@ const packageData = {
                 name: "Continental Breakfast",
                 image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8LKxWwfFgeTFHaXaxvXAVYbihR62TU7rIZA&s",
                 items: ["Bread", "Eggs", "Cereals", "Juice"],
-                price: "₹2",
+                price: "₹1",
                 rating: 4.6,
                 time: "35 mins",
             },

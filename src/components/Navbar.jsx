@@ -156,7 +156,7 @@ const Navbar = () => {
       {/* Left Sidebar */}
       <div
         className={`${
-          isNavExpanded ? " w-72" : " w-52"
+          isNavExpanded ? " w-64" : " w-48"
         } h-full transition-all duration-300 bg-white border-r border-gray-100`}
       >
         <div className="p-4 flex items-center justify-between">
@@ -164,12 +164,12 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Logo"
-              className={`${isNavExpanded ? "block" : "hidden"} w-96`}
+              className={`${isNavExpanded ? "block" : "hidden"} w-64`}
             />
             <img
               src={logo}
               alt="Logo"
-              className={`${isNavExpanded ? "hidden" : "block"} w-60`}
+              className={`${isNavExpanded ? "hidden" : "block"} w-48`}
             />
           </Link>
         </div>
@@ -298,8 +298,8 @@ const Navbar = () => {
 
         {/* Categories Navigation */}
         <div className="relative w-full bg-white border-t border-gray-100">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex items-center lg:text-lg  justify-between">
+          <div className="max-w-7xl h-10 mx-auto px-4">
+            <div className="flex items-center lg:text-sm  justify-between">
               <Link
                 to="/superfast"
                 className={`px-3 py-1.5 rounded-lg  cursor-pointer ${
