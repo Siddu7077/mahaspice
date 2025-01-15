@@ -31,8 +31,8 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
     const minDateStr = tomorrow.toISOString().split('T')[0];
     setMinDate(minDateStr);
 
-    // Calculate minimum time (now + 15 hours)
-    const minTimeDate = new Date(now.getTime() + (15 * 60 * 60 * 1000));
+    // Calculate minimum time (now + 16 hours)
+    const minTimeDate = new Date(now.getTime() + (16 * 60 * 60 * 1000));
     const hours = minTimeDate.getHours().toString().padStart(2, '0');
     const minutes = minTimeDate.getMinutes().toString().padStart(2, '0');
     setMinTime(`${hours}:${minutes}`);
@@ -88,7 +88,7 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
 
     // Validate date and time
     const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
-    const minDateTime = new Date(Date.now() + (15 * 60 * 60 * 1000)); // now + 15 hours
+    const minDateTime = new Date(Date.now() + (16 * 60 * 60 * 1000)); // now + 15 hours
 
     return selectedDateTime > minDateTime;
   };
@@ -261,9 +261,14 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
                   />
                   {formData.date === minDate && (
                     <p className="text-sm text-gray-500 mt-1">
-                      Minimum delivery time: {minTime}
+                      Minimum delivery time: {new Date(`1970-01-01T${minTime}:00`).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true,
+                      })}
                     </p>
                   )}
+
                 </div>
               </div>
             </form>

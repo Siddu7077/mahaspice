@@ -57,6 +57,7 @@ const DeliveryMenu = () => {
     };
   }, []);
 
+  
   // Handle inactivity timer
   useEffect(() => {
     let inactivityTimer;
@@ -150,7 +151,7 @@ const DeliveryMenu = () => {
   }, []);
 
   const handleGuestCountChange = (increment) => {
-    const newCount = Math.max(10, guestCount + increment);
+    const newCount = Math.max(5, guestCount + (increment *5));
     setGuestCount(newCount);
     updateDefaultQuantities(newCount);
   };
@@ -187,6 +188,7 @@ const DeliveryMenu = () => {
       return [...prevItems, { ...item, quantity: defaultQuantity }];
     });
   };
+  
 
   const calculateTotals = React.useMemo(() => {
     const subtotal = selectedItems.reduce(
@@ -201,11 +203,20 @@ const DeliveryMenu = () => {
 
   const isItemSelected = (itemId) => selectedItems.some((item) => item.id === itemId);
 
+  const filteredItems = React.useMemo(() => {
+    return menuData
+      .filter((item) =>
+        menuType === "veg"
+          ? item.veg_non === "veg"
+          : item.veg_non === "non-veg"
+      )
+      .filter((item) => item.category_type === selectedCategory);
+  }, [menuData, menuType, selectedCategory]);
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   const { subtotal, tax, total, deliveryCharge } = calculateTotals;
-
   if (isCheckout) {
     return (
       <DelboxCheckout
@@ -285,14 +296,14 @@ const DeliveryMenu = () => {
                     type="number"
                     value={guestCount}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value) || 10;
-                      setGuestCount(Math.max(10, value));
-                      updateDefaultQuantities(Math.max(10, value));
+                      const value = parseInt(e.target.value) || 5;
+                      setGuestCount(Math.max(5, value));
+                      updateDefaultQuantities(Math.max(5, value));
                     }}
                     onBlur={(e) => {
-                      const value = parseInt(e.target.value) || 10;
-                      setGuestCount(Math.max(10, value));
-                      updateDefaultQuantities(Math.max(10, value));
+                      const value = parseInt(e.target.value) || 5;
+                      setGuestCount(Math.max(5, value));
+                      updateDefaultQuantities(Math.max(5, value));
                     }}
                     className="w-16 text-center bg-transparent border-none focus:outline-none font-semibold"
                     min="10"
@@ -314,15 +325,15 @@ const DeliveryMenu = () => {
       <div className="flex flex-col lg:flex-row flex-1 gap-4 p-4">
         {/* Menu Items Grid */}
         <div className="flex-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {menuData
-              .filter((item) =>
-                menuType === "veg"
-                  ? item.veg_non === "veg"
-                  : item.veg_non === "non-veg"
-              )
-              .filter((item) => item.category_type === selectedCategory)
-              .map((item) => (
+          {filteredItems.length === 0 ? (
+            <div className="flex items-center justify-center h-64">
+              <p className="text-red-500 text-2xl font-bold text-center">
+                No items available in {selectedCategory} for {menuType === "veg" ? "vegetarian" : "non-vegetarian"} category
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredItems.map((item) => (
                 <div
                   key={item.id}
                   className="bg-white rounded-lg shadow p-4 flex flex-col"
@@ -377,7 +388,8 @@ const DeliveryMenu = () => {
                   </div>
                 </div>
               ))}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Order Summary */}
