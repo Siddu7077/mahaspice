@@ -33,7 +33,7 @@ const CheckOutform = ({ cart, onBack }) => {
   }, 0);
   
   const gstAmount = +(cartTotal * 0.18).toFixed(2);
-  const totalAmount = cartTotal + gstAmount;
+  const totalAmount = (cartTotal + gstAmount).toFixed(2);
 
   // Load Razorpay script
   useEffect(() => {
