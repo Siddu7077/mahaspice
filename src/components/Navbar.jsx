@@ -57,6 +57,7 @@ import TermsConditions from "./TermsConditions";
 import ReturnPolicy from "./ReturnPolicy";
 import CheckOutform from "./CheckOutform";
 import ScrollToTop from "./ScrollToTop";
+import AuthSystem from "./AuthSystem";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -89,6 +90,7 @@ const Navbar = () => {
     { path: "/events/:eventType", element: <EventsPage /> },
     { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },
     { path: "/superfast", element: <MealOrderForm /> },
+    { path: "/login", element: <AuthSystem /> },
     {
       path: "/events/:eventType/:serviceType/Menu/:menuType",
       element: <MenuSelection />,
@@ -279,17 +281,17 @@ const Navbar = () => {
               {isUserDropdownOpen && (
                 <div className="absolute right-0 z-50 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
                   <Link
-                    to="/profile"
+                    to="/login"
                     className="block px-4 py-2 hover:bg-green-50"
                   >
-                    Profile
+                    login
                   </Link>
-                  <Link
+                  {/* <Link
                     to="/logout"
                     className="block px-4 py-2 hover:bg-green-50"
                   >
                     Logout
-                  </Link>
+                  </Link> */}
                 </div>
               )}
             </div>
