@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Users, CreditCard } from 'lucide-react';
+import { useAuth } from "./AuthSystem";
 
 const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
+  const { user } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [minDate, setMinDate] = useState('');
   const [minTime, setMinTime] = useState('');
@@ -18,6 +20,19 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
     date: '',
     time: ''
   });
+
+  // Pre-fill form with user data
+  useEffect(() => {
+    if (user) {
+      setFormData(prevData => ({
+        ...prevData,
+        name: user.name || "",
+        phone1: user.phone || "",
+        email: user.email || "",
+        address: user.address || ""
+      }));
+    }
+  }, [user]);
 
   // Load Razorpay script
   useEffect(() => {

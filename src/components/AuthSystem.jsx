@@ -6,6 +6,49 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const refreshUserData = async () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (!storedUser) {
+        setLoading(false);
+        return;
+      }
+
+      const userData = JSON.parse(storedUser);
+      const response = await fetch('https://mahaspice.desoftimp.com/ms3/login/get-user-details.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ phone: userData.phone })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Update local storage and state with fresh data
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setUser(data.user);
+      } else {
+        throw new Error(data.error || 'Failed to fetch user data');
+      }
+    }catch (error) {
+      console.error('Error refreshing user data:', error);
+      // Handle error - you might want to logout the user if refresh fails
+      logout();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshUserData();
+  }, []); // Run on mount
 
   useEffect(() => {
     // Check for existing user session on component mount
@@ -23,11 +66,17 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
-    window.location.href = '/login';
+    window.location.href = '/';
+  };
+
+  const updateUser = (newData) => {
+    setUser(newData);
+    localStorage.setItem('user', JSON.stringify(newData));
+    refreshUserData(); // Refresh data from server after update
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, refreshUserData, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -131,7 +180,7 @@ const AuthSystem = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('phone', formData.phone);
       formDataToSend.append('otp', formData.otp);
-
+  
       const response = await fetch(`${API_BASE_URL}/verify-otp.php`, {
         method: 'POST',
         body: formDataToSend,
@@ -171,16 +220,28 @@ const AuthSystem = () => {
             setError('Signup failed. Please try again.');
           }
         } else {
-          // Store basic user information we have
-          const userData = {
-            phone: formData.phone,
-            isAuthenticated: true,
-            loginTime: new Date().toISOString()
-          };
+          // After OTP verification, fetch user details
+          const userDetailsResponse = await fetch(`${API_BASE_URL}/get-user-details.php`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ phone: formData.phone })
+          });
           
-          // Store user information in context and localStorage
-          login(userData);
-          window.location.href = '/';
+          if (!userDetailsResponse.ok) {
+            throw new Error(`HTTP error! status: ${userDetailsResponse.status}`);
+          }
+          
+          const userDetails = await userDetailsResponse.json();
+          
+          if (userDetails.success) {
+            // Store complete user information in context
+            login(userDetails.user);
+            window.location.href = '/';
+          } else {
+            setError('Failed to fetch user details. Please try again.');
+          }
         }
       } else {
         setError('Invalid OTP. Please try again.');

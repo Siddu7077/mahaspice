@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import {
   Phone, Mail, MapPin, Home, Navigation, CreditCard, Package,
 } from "lucide-react";
+import { useAuth } from "./AuthSystem";
 
 const CheckOutform = ({ cart, onBack }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     phone1: "",
@@ -17,7 +19,20 @@ const CheckOutform = ({ cart, onBack }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
 
-  // Group cart items by package
+  // Pre-fill form with user data
+  useEffect(() => {
+    if (user) {
+      setFormData(prevData => ({
+        ...prevData,
+        name: user.name || "",
+        phone1: user.phone || "",
+        email: user.email || "",
+        address: user.address || "",
+      }));
+    }
+  }, [user]);
+
+  // Rest of the component code remains the same...
   const groupedCartItems = Object.entries(cart).reduce((acc, [itemId, item]) => {
     const pkg = item.package || 'Default';
     if (!acc[pkg]) {
@@ -93,38 +108,38 @@ const CheckOutform = ({ cart, onBack }) => {
       console.log("Sending order payload:", orderPayload);
 
       try {
-    const orderResponse = await fetch(
-        'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
-        {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderPayload)
+        const orderResponse = await fetch(
+            'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderPayload)
+            }
+        );
+
+        // Log the raw response for debugging
+        const responseText = await orderResponse.text();
+        console.log("Raw response:", responseText);
+
+        // Try to parse as JSON
+        let orderData;
+        try {
+            orderData = JSON.parse(responseText);
+        } catch (e) {
+            throw new Error(`Invalid JSON response: ${responseText}`);
         }
-    );
 
-    // Log the raw response for debugging
-    const responseText = await orderResponse.text();
-    console.log("Raw response:", responseText);
+        if (!orderResponse.ok) {
+            throw new Error(`HTTP error! status: ${orderResponse.status}, message: ${orderData.message || responseText}`);
+        }
 
-    // Try to parse as JSON
-    let orderData;
-    try {
-        orderData = JSON.parse(responseText);
-    } catch (e) {
-        throw new Error(`Invalid JSON response: ${responseText}`);
-    }
+        if (orderData.status !== "success") {
+            throw new Error(orderData.message || "Failed to create order");
+        }
 
-    if (!orderResponse.ok) {
-        throw new Error(`HTTP error! status: ${orderResponse.status}, message: ${orderData.message || responseText}`);
-    }
-
-    if (orderData.status !== "success") {
-        throw new Error(orderData.message || "Failed to create order");
-    }
-
-    setIsSuccess(true);
+        setIsSuccess(true);
 
         setTimeout(() => {
           window.location.href = '/';
@@ -235,7 +250,6 @@ const CheckOutform = ({ cart, onBack }) => {
       </div>
     </div>
   );
-
 
 
   return (
