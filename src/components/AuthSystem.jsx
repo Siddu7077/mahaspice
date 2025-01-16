@@ -1,7 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Phone, Home, Lock } from 'lucide-react';
+import { createContext, useContext } from 'react';
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Check for existing user session on component mount
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
 
 const AuthSystem = () => {
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showOTP, setShowOTP] = useState(false);
   const [error, setError] = useState('');
@@ -54,7 +89,6 @@ const AuthSystem = () => {
     setError('');
     
     if (isLogin) {
-      // Login flow
       try {
         const formDataToSend = new FormData();
         formDataToSend.append('phone', formData.phone);
@@ -84,7 +118,6 @@ const AuthSystem = () => {
         setError('Unable to check user. Please try again.');
       }
     } else {
-      // Sign up flow - First send OTP
       const otpSent = await sendOTP(formData.phone);
       if (otpSent) {
         setShowOTP(true);
@@ -112,7 +145,6 @@ const AuthSystem = () => {
       
       if (data.success) {
         if (!isLogin) {
-          // After OTP verification, proceed with signup
           const signupFormData = new FormData();
           signupFormData.append('name', formData.name);
           signupFormData.append('phone', formData.phone);
@@ -139,8 +171,16 @@ const AuthSystem = () => {
             setError('Signup failed. Please try again.');
           }
         } else {
-          // Login success
-          window.location.href = 'https://mahaspice.in';
+          // Store basic user information we have
+          const userData = {
+            phone: formData.phone,
+            isAuthenticated: true,
+            loginTime: new Date().toISOString()
+          };
+          
+          // Store user information in context and localStorage
+          login(userData);
+          window.location.href = '/';
         }
       } else {
         setError('Invalid OTP. Please try again.');

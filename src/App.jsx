@@ -3,9 +3,11 @@ import { BrowserRouter } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
+import { AuthProvider } from "./components/AuthSystem";
 
 const App = () => {
   return (
+    <AuthProvider>
     <BrowserRouter>
       
       <ScrollToTop />
@@ -15,6 +17,7 @@ const App = () => {
       </div>
       <Footer />
     </BrowserRouter>
+    </AuthProvider>
   );
 };
 

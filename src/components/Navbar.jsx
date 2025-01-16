@@ -58,6 +58,8 @@ import ReturnPolicy from "./ReturnPolicy";
 import CheckOutform from "./CheckOutform";
 import ScrollToTop from "./ScrollToTop";
 import AuthSystem from "./AuthSystem";
+import ProfilePage from "./ProfilePage";
+import UserDropdown from "./UserDropdown";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -91,6 +93,7 @@ const Navbar = () => {
     { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },
     { path: "/superfast", element: <MealOrderForm /> },
     { path: "/login", element: <AuthSystem /> },
+    { path: "/profile", element: <ProfilePage /> },
     {
       path: "/events/:eventType/:serviceType/Menu/:menuType",
       element: <MenuSelection />,
@@ -271,30 +274,7 @@ const Navbar = () => {
             <Link to="/cart">
               <ShoppingCart className="text-black w-6 h-6 hover:text-green-500" />
             </Link>
-            <div className="relative">
-              <img
-                src={user}
-                alt="User Profile"
-                className="rounded-full w-10 h-10 cursor-pointer"
-                onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-              />
-              {isUserDropdownOpen && (
-                <div className="absolute right-0 z-50 mt-2 w-48 bg-white text-green-800 rounded-lg shadow-lg">
-                  <Link
-                    to="/login"
-                    className="block px-4 py-2 hover:bg-green-50"
-                  >
-                    login
-                  </Link>
-                  {/* <Link
-                    to="/logout"
-                    className="block px-4 py-2 hover:bg-green-50"
-                  >
-                    Logout
-                  </Link> */}
-                </div>
-              )}
-            </div>
+            <UserDropdown />
           </div>
         </header>
 
