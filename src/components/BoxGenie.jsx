@@ -116,18 +116,25 @@ const MealBox = () => {
 
     if (newValue !== "") {
       const numValue = parseInt(newValue, 10);
-      if (numValue >= 0) {
+      if (numValue >= 10 || numValue === 0) { // Allow 0 or minimum 10
         updateQuantity(itemId, numValue);
+      } else if (numValue > 0) {
+        updateQuantity(itemId, 10); // Set to minimum if below 10
       }
     }
   };
 
   const handleBlur = (itemId) => {
-    if (quantityInputs[itemId] === "") {
+    const currentValue = parseInt(quantityInputs[itemId], 10);
+    if (isNaN(currentValue) || currentValue === 0) {
       setQuantityInputs((prev) => ({ ...prev, [itemId]: "0" }));
       updateQuantity(itemId, 0);
+    } else if (currentValue < 10) {
+      setQuantityInputs((prev) => ({ ...prev, [itemId]: "10" }));
+      updateQuantity(itemId, 10);
     }
   };
+  
 
   // Helper function to group cart items by package
   const getGroupedCart = () => {
@@ -173,19 +180,33 @@ const MealBox = () => {
       return {
         ...prevCart,
         [item.id]: {
-          quantity: currentItem.quantity + 1,
+          quantity: 10,
           details: item,
           package: selectedPackage,
           mealType: selectedMealType,
         },
       };
     });
+    setQuantityInputs((prev) => ({
+      ...prev,
+      [item.id]: "10",
+    }));
   };
 
   const updateQuantity = (itemId, newQuantity) => {
+    // Ensure minimum quantity of 10
+    if (newQuantity > 0 && newQuantity < 10) {
+      newQuantity = 10;
+    }
+    
     setCart((prevCart) => {
       if (newQuantity === 0) {
         const { [itemId]: removedItem, ...restCart } = prevCart;
+        // Also update quantityInputs when removing item
+        setQuantityInputs((prev) => {
+          const { [itemId]: removed, ...rest } = prev;
+          return rest;
+        });
         return restCart;
       }
       return {
@@ -195,8 +216,15 @@ const MealBox = () => {
           quantity: newQuantity,
         },
       };
+      
     });
+    setQuantityInputs((prev) => ({
+      ...prev,
+      [itemId]: newQuantity.toString(),
+    }));
   };
+
+  
 
   const calculateCartTotal = () => {
     return Object.entries(cart).reduce((total, [itemId, itemData]) => {
@@ -385,20 +413,22 @@ const MealBox = () => {
                           {cart[item.id] ? (
                             <div className="flex items-center gap-2">
                             <button
-                              onClick={() => updateQuantity(item.id, cart[item.id].quantity - 1)}
+                              onClick={() => {
+                                const newQuantity = cart[item.id].quantity - 1;
+                                updateQuantity(item.id, newQuantity < 10 && newQuantity !== 0 ? 10 : newQuantity);
+                              }}
                               className="bg-orange-500 text-white rounded-full p-1"
                             >
                               <Minus size={16} />
                             </button>
                             <input
                               type="number"
-                              value={cart[item.id].quantity}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value) || 0;
-                                updateQuantity(item.id, value);
-                              }}
-                              className="w-12 text-center border rounded"
-                              min="0"
+                              value={quantityInputs[item.id] || cart[item.id].quantity}
+                              onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                              onBlur={() => handleBlur(item.id)}
+                              className="w-16 text-center border rounded"
+                              min="10"
+                              step="1"
                             />
                             <button
                               onClick={() => updateQuantity(item.id, cart[item.id].quantity + 1)}
@@ -459,34 +489,32 @@ const MealBox = () => {
                           </div>
                           {cart[item.id] ? (
                             <div className="flex items-center gap-2">
-                              <button
-                                onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    cart[item.id].quantity - 1
-                                  )
-                                }
-                                className={`${
-                                  isVeg ? "bg-green-500" : "bg-red-500"
-                                } text-white rounded-full p-1`}
-                              >
-                                <Minus size={16} />
-                              </button>
-                              <span>{cart[item.id].quantity}</span>
-                              <button
-                                onClick={() =>
-                                  updateQuantity(
-                                    item.id,
-                                    cart[item.id].quantity + 1
-                                  )
-                                }
-                                className={`${
-                                  isVeg ? "bg-green-500" : "bg-red-500"
-                                } text-white rounded-full p-1`}
-                              >
-                                <Plus size={16} />
-                              </button>
-                            </div>
+                            <button
+                              onClick={() => {
+                                const newQuantity = cart[item.id].quantity - 1;
+                                updateQuantity(item.id, newQuantity < 10 && newQuantity !== 0 ? 10 : newQuantity);
+                              }}
+                              className={`${isVeg ? "bg-green-500" : "bg-red-500"} text-white rounded-full p-1`}
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <input
+                              type="number"
+                              value={quantityInputs[item.id] || cart[item.id].quantity}
+                              onChange={(e) => handleQuantityChange(item.id, e.target.value)}
+                              onBlur={() => handleBlur(item.id)}
+                              className="w-16 text-center border rounded"
+                              min="10"
+                              step="1"
+                            />
+                            <button
+                              onClick={() => updateQuantity(item.id, cart[item.id].quantity + 1)}
+                              className={`${isVeg ? "bg-green-500" : "bg-red-500"} text-white rounded-full p-1`}
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
+                        
                           ) : (
                             <button
                               onClick={() => addToCart(item)}
