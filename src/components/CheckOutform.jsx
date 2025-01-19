@@ -32,6 +32,7 @@ const CheckOutform = ({ cart, onBack }) => {
     }
   }, [user]);
 
+  
   // Rest of the component code remains the same...
   const groupedCartItems = Object.entries(cart).reduce((acc, [itemId, item]) => {
     const pkg = item.package || 'Default';

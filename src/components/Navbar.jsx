@@ -60,6 +60,7 @@ import ScrollToTop from "./ScrollToTop";
 import AuthSystem from "./AuthSystem";
 import ProfilePage from "./ProfilePage";
 import UserDropdown from "./UserDropdown";
+import DesignMenu from "./DesignMenu";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -94,6 +95,7 @@ const Navbar = () => {
     { path: "/superfast", element: <MealOrderForm /> },
     { path: "/login", element: <AuthSystem /> },
     { path: "/profile", element: <ProfilePage /> },
+    { path: "/events/personalized-menu", element: <DesignMenu /> },
     {
       path: "/events/:eventType/:serviceType/Menu/:menuType",
       element: <MenuSelection />,

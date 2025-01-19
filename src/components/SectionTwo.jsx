@@ -102,7 +102,7 @@ const SectionTwo = () => {
                             {/* <h3 className="text-2xl font-extrabold text-gray-800 border-b-2 border-green-500 pb-2">
                                 {title}
                             </h3> */}
-                            <div className="flex items-center justify-center py-1">
+                            <div className="flex items-center justify-center">
                                 <img
                                     src={image}
                                     alt={title}
