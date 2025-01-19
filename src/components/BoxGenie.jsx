@@ -81,6 +81,11 @@ const MealBox = () => {
   const [gstPercentage, setGstPercentage] = useState(18);
   const [availableCoupons, setAvailableCoupons] = useState([]);
 
+  // Add missing getFinalTotal function
+  const getFinalTotal = () => {
+    return calculateCartTotal() - calculateDiscount() + calculateGST();
+  };
+
   const serviceType = window.location.pathname === "/box" ? "box_genie" : "";
 
   useEffect(() => {
@@ -298,44 +303,6 @@ const MealBox = () => {
     setShowCheckout(true);
   };
 
-  if (!packageData) return <div>Loading...</div>;
-  if (showCheckout) {
-    return (
-      <CheckOutform
-        cart={cart}
-        onBack={() => setShowCheckout(false)}
-        cartTotal={calculateCartTotal()}
-        gstAmount={calculateGST()}
-        totalAmount={calculateCartTotal() + calculateGST()}
-      />
-    );
-  }
-
-  const calculateDiscount = () => {
-    if (!appliedCoupon) return 0;
-
-    const subtotal = calculateCartTotal();
-    if (subtotal < appliedCoupon.min_order_value) {
-      setAppliedCoupon(null);
-      setError(
-        `Minimum order value of ₹${appliedCoupon.min_order_value} required`
-      );
-      return 0;
-    }
-
-    let discount = 0;
-    if (appliedCoupon.discount_type === "percentage") {
-      discount = (subtotal * appliedCoupon.discount_value) / 100;
-      if (appliedCoupon.max_discount) {
-        discount = Math.min(discount, appliedCoupon.max_discount);
-      }
-    } else {
-      discount = appliedCoupon.discount_value;
-    }
-
-    return Math.round(discount);
-  };
-
   const handleApplyCoupon = () => {
     setError("");
     const coupon = availableCoupons.find(
@@ -365,11 +332,58 @@ const MealBox = () => {
     setError("");
   };
 
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+
+    const subtotal = calculateCartTotal();
+    if (subtotal < appliedCoupon.min_order_value) {
+      setAppliedCoupon(null);
+      setError(
+        `Minimum order value of ₹${appliedCoupon.min_order_value} required`
+      );
+      return 0;
+    }
+
+    let discount = 0;
+    if (appliedCoupon.discount_type === "percentage") {
+      discount = (subtotal * appliedCoupon.discount_value) / 100;
+      if (appliedCoupon.max_discount) {
+        discount = Math.min(discount, appliedCoupon.max_discount);
+      }
+    } else {
+      discount = appliedCoupon.discount_value;
+    }
+
+    return Math.round(discount);
+  };
+
   // Modify the calculateGST function
   const calculateGST = () => {
     const subtotal = calculateCartTotal() - calculateDiscount();
     return Math.round((subtotal * gstPercentage) / 100);
   };
+
+  if (!packageData) return <div>Loading...</div>;
+  if (showCheckout) {
+    return (
+      <CheckOutform
+        cart={cart}
+        onBack={() => setShowCheckout(false)}
+        cartTotal={calculateCartTotal()}
+        gstAmount={calculateGST()}
+        gstPercentage={gstPercentage}
+        calculateDiscount={calculateDiscount()}
+        totalAmount={getFinalTotal()}
+        appliedCoupon={appliedCoupon}
+        discountAmount={calculateDiscount()}
+      />
+    );
+  }
+
+ 
+
+  
+
 
   const availablePackages = getAvailablePackages();
 

@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from "react";
 import {
-  Phone, Mail, MapPin, Home, Navigation, CreditCard, Package,
+  Phone,
+  Mail,
+  MapPin,
+  Home,
+  Navigation,
+  CreditCard,
+  Package,
 } from "lucide-react";
 import { useAuth } from "./AuthSystem";
 
-const CheckOutform = ({ cart, onBack }) => {
+const CheckOutform = ({
+  cart,
+  onBack,
+  cartTotal,
+  gstAmount,
+  totalAmount,
+  appliedCoupon,
+  discountAmount,
+  gstPercentage,
+  calculateDiscount,
+}) => {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
@@ -22,7 +38,7 @@ const CheckOutform = ({ cart, onBack }) => {
   // Pre-fill form with user data
   useEffect(() => {
     if (user) {
-      setFormData(prevData => ({
+      setFormData((prevData) => ({
         ...prevData,
         name: user.name || "",
         phone1: user.phone || "",
@@ -32,39 +48,34 @@ const CheckOutform = ({ cart, onBack }) => {
     }
   }, [user]);
 
-  
-  // Rest of the component code remains the same...
-  const groupedCartItems = Object.entries(cart).reduce((acc, [itemId, item]) => {
-    const pkg = item.package || 'Default';
-    if (!acc[pkg]) {
-      acc[pkg] = [];
-    }
-    acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
-    return acc;
-  }, {});
-
-  const cartTotal = Object.values(cart).reduce((total, item) => {
-    const itemPrice = parseFloat(item.details.price.replace("₹", ""));
-    return total + itemPrice * item.quantity;
-  }, 0);
-  
-  const gstAmount = +(cartTotal * 0.18).toFixed(2);
-  const totalAmount = (cartTotal + gstAmount).toFixed(2);
+  // Group cart items by package
+  const groupedCartItems = Object.entries(cart).reduce(
+    (acc, [itemId, item]) => {
+      const pkg = item.package || "Default";
+      if (!acc[pkg]) {
+        acc[pkg] = [];
+      }
+      acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
+      return acc;
+    },
+    {}
+  );
 
   // Load Razorpay script
   useEffect(() => {
     const loadRazorpay = async () => {
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
       script.async = true;
       script.onload = () => setRazorpayLoaded(true);
       document.body.appendChild(script);
     };
     loadRazorpay();
-    
-    // Cleanup
+
     return () => {
-      const script = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+      const script = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
       if (script) {
         document.body.removeChild(script);
       }
@@ -76,7 +87,7 @@ const CheckOutform = ({ cart, onBack }) => {
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.phone1.trim()) newErrors.phone1 = "Phone number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -93,67 +104,71 @@ const CheckOutform = ({ cart, onBack }) => {
         customerDetails: {
           name: formData.name.trim(),
           phone1: formData.phone1.trim(),
-          phone2: formData.phone2?.trim() || '',
-          email: formData.email?.trim() || '',
+          phone2: formData.phone2?.trim() || "",
+          email: formData.email?.trim() || "",
           address: formData.address.trim(),
-          landmark: formData.landmark?.trim() || ''
+          landmark: formData.landmark?.trim() || "",
         },
         orderDetails: Object.entries(cart).map(([id, item]) => ({
           name: item.details.name,
-          price: parseFloat(item.details.price.replace(/[^\d.]/g, '')),
+          price: parseFloat(item.details.price.replace(/[^\d.]/g, "")),
           quantity: parseInt(item.quantity),
-          package: item.package
-        }))
+          package: item.package,
+        })),
+        coupon: appliedCoupon
+          ? {
+              code: appliedCoupon.code,
+              discount: discountAmount,
+              type: appliedCoupon.discount_type,
+            }
+          : null,
       };
 
       console.log("Sending order payload:", orderPayload);
 
+      const orderResponse = await fetch(
+        "https://mahaspice.desoftimp.com/ms3/payment/create_order.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderPayload),
+        }
+      );
+
+      const responseText = await orderResponse.text();
+      console.log("Raw response:", responseText);
+
+      let orderData;
       try {
-        const orderResponse = await fetch(
-            'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderPayload)
-            }
-        );
-
-        // Log the raw response for debugging
-        const responseText = await orderResponse.text();
-        console.log("Raw response:", responseText);
-
-        // Try to parse as JSON
-        let orderData;
-        try {
-            orderData = JSON.parse(responseText);
-        } catch (e) {
-            throw new Error(`Invalid JSON response: ${responseText}`);
-        }
-
-        if (!orderResponse.ok) {
-            throw new Error(`HTTP error! status: ${orderResponse.status}, message: ${orderData.message || responseText}`);
-        }
-
-        if (orderData.status !== "success") {
-            throw new Error(orderData.message || "Failed to create order");
-        }
-
-        setIsSuccess(true);
-
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 3000);
-
-      } catch (error) {
-        console.error("Error saving order:", error);
-        throw new Error(`Failed to save order: ${error.message}`);
+        orderData = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Invalid JSON response: ${responseText}`);
       }
 
+      if (!orderResponse.ok) {
+        throw new Error(
+          `HTTP error! status: ${orderResponse.status}, message: ${
+            orderData.message || responseText
+          }`
+        );
+      }
+
+      if (orderData.status !== "success") {
+        throw new Error(orderData.message || "Failed to create order");
+      }
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 3000);
     } catch (error) {
       console.error("Error in payment success handler:", error);
-      alert(`Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`);
+      alert(
+        `Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`
+      );
     } finally {
       setIsLoading(false);
     }
@@ -165,9 +180,10 @@ const CheckOutform = ({ cart, onBack }) => {
     try {
       setIsLoading(true);
 
-      // Check if Razorpay is loaded
       if (!window.Razorpay) {
-        throw new Error("Razorpay SDK failed to load. Please refresh the page and try again.");
+        throw new Error(
+          "Razorpay SDK failed to load. Please refresh the page and try again."
+        );
       }
 
       const options = {
@@ -175,29 +191,30 @@ const CheckOutform = ({ cart, onBack }) => {
         amount: Math.round(totalAmount * 100),
         currency: "INR",
         name: "Mahaspice Caterers",
-        description: "Order Payment",
+        description: appliedCoupon
+          ? `Order Payment (Coupon: ${appliedCoupon.code})`
+          : "Order Payment",
         prefill: {
           name: formData.name,
           email: formData.email,
-          contact: formData.phone1
+          contact: formData.phone1,
         },
         handler: handlePaymentSuccess,
         modal: {
-          ondismiss: function() {
+          ondismiss: function () {
             setIsLoading(false);
-          }
+          },
         },
         theme: {
-          color: "#22c55e"
-        }
+          color: "#22c55e",
+        },
       };
 
       const razorpayInstance = new window.Razorpay(options);
       razorpayInstance.open();
-      
     } catch (error) {
-      console.error('Payment Error:', error);
-      alert('Payment initiation failed: ' + error.message);
+      console.error("Payment Error:", error);
+      alert("Payment initiation failed: " + error.message);
       setIsLoading(false);
     }
   };
@@ -205,7 +222,9 @@ const CheckOutform = ({ cart, onBack }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!razorpayLoaded) {
-      alert("Payment system is still loading. Please wait a moment and try again.");
+      alert(
+        "Payment system is still loading. Please wait a moment and try again."
+      );
       return;
     }
     handlePayment();
@@ -213,12 +232,11 @@ const CheckOutform = ({ cart, onBack }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
   };
-
   // Success Modal
   if (isSuccess) {
     return (
@@ -438,9 +456,13 @@ const CheckOutform = ({ cart, onBack }) => {
                 <span>₹{cartTotal}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>GST (18%)</span>
+                <span>GST ({gstPercentage}%)</span>
                 <span>₹{gstAmount}</span>
               </div>
+              <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount</span>
+                      <span>-₹{calculateDiscount}</span>
+                    </div>
               <div className="border-t pt-4">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total Amount</span>
