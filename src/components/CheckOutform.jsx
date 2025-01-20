@@ -7,6 +7,9 @@ import {
   Navigation,
   CreditCard,
   Package,
+  MapPinned,
+  Calendar,
+  Clock,
 } from "lucide-react";
 import { useAuth } from "./AuthSystem";
 
@@ -29,11 +32,139 @@ const CheckOutform = ({
     email: "",
     address: "",
     landmark: "",
+    location: "",
+    deliveryDate: "",
+    deliveryTime: "",
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
+
+  const isPastFourPM = () => {
+    const now = new Date();
+    const istOffset = 330; // IST offset is UTC+5:30 (330 minutes)
+    const istTime = new Date(now.getTime() + (istOffset + now.getTimezoneOffset()) * 60000);
+    return istTime.getHours() >= 16;
+  };
+
+  const getMinDate = () => {
+    const today = new Date();
+    if (isPastFourPM()) {
+      // If it's past 4 PM IST, minimum date is tomorrow
+      today.setDate(today.getDate() + 1);
+    }
+    return today.toISOString().split('T')[0];
+  };
+
+  const getAvailableTimeSlots = () => {
+    const today = new Date();
+    const selectedDate = new Date(formData.deliveryDate);
+    const isToday = selectedDate.toISOString().split('T')[0] === today.toISOString().split('T')[0];
+
+    // Base time slots
+    const allTimeSlots = [
+      "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
+      "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM"
+    ];
+
+    if (!isToday) {
+      return allTimeSlots;
+    }
+    const istOffset = 330; // IST offset in minutes
+    const istTime = new Date(today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000);
+    const currentHour = istTime.getHours();
+    const currentMinutes = istTime.getMinutes();
+
+    return allTimeSlots.filter(slot => {
+      const [time, period] = slot.split(' ');
+      let [hours, minutes] = time.split(':');
+      hours = parseInt(hours);
+      if (period === 'PM' && hours !== 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
+
+      // Calculate if slot is at least 4 hours ahead
+      const slotTotalMinutes = hours * 60;
+      const currentTotalMinutes = currentHour * 60 + currentMinutes;
+      return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19; // 19 is 7 PM
+    });
+  };
+
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split('T')[0];
+
+    if (selectedDate === today && isPastFourPM()) {
+      alert("We cannot deliver orders today after 4 PM IST. Please select another date.");
+      return;
+    }
+
+    // Clear selected time when date changes
+    setFormData(prev => ({
+      ...prev,
+      deliveryDate: selectedDate,
+      deliveryTime: ""
+    }));
+  };
+
+  // Time slots
+  const timeSlots = [
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+    "6:00 PM",
+    "7:00 PM",
+    "8:00 PM",
+  ];
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch("https://mahaspice.desoftimp.com/ms3/displayDeloc.php");
+        const data = await response.json();
+        
+        if (data.success && data.locations) {
+          // Filter for box_genie service type and get unique locations with prices
+          const boxGenieLocations = data.locations
+            .filter(loc => loc.service_type === "box_genie")
+            .reduce((acc, loc) => {
+              acc[loc.location] = {
+                location: loc.location,
+                price: parseFloat(loc.price)
+              };
+              return acc;
+            }, {});
+
+          // Convert to array and sort alphabetically
+          const sortedLocations = Object.values(boxGenieLocations)
+            .sort((a, b) => a.location.localeCompare(b.location));
+
+          setLocations(sortedLocations);
+        }
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  const handleLocationChange = (e) => {
+    const selectedLocation = locations.find(loc => loc.location === e.target.value);
+    setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
+    handleChange(e);
+  };
+
+  
+  const finalTotal = totalAmount + deliveryCharge;
+
 
   // Pre-fill form with user data
   useEffect(() => {
@@ -87,10 +218,14 @@ const CheckOutform = ({
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.phone1.trim()) newErrors.phone1 = "Phone number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
+    if (!formData.location) newErrors.location = "Location is required";
+    if (!formData.deliveryDate) newErrors.deliveryDate = "Delivery date is required";
+    if (!formData.deliveryTime) newErrors.deliveryTime = "Delivery time is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handlePaymentSuccess = async (response) => {
     try {
@@ -368,6 +503,85 @@ const CheckOutform = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Location*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <MapPinned className="ml-3 h-5 w-5 text-gray-400" />
+                  <select
+                    name="location"
+                    value={formData.location}
+                    onChange={handleLocationChange}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map((loc) => (
+                      <option key={loc.location} value={loc.location}>
+                        {loc.location} (₹{loc.price} delivery)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.location && (
+                  <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+                )}
+              </div>
+
+              {/* Add Date Picker */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Date*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <Calendar className="ml-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="deliveryDate"
+                    value={formData.deliveryDate}
+                    onChange={handleDateChange}
+                    min={getMinDate()}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  />
+                </div>
+                {errors.deliveryDate && (
+                  <p className="text-red-500 text-sm mt-1">{errors.deliveryDate}</p>
+                )}
+              </div>
+
+              {/* Modified Time Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Time*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <Clock className="ml-3 h-5 w-5 text-gray-400" />
+                  <select
+                    name="deliveryTime"
+                    value={formData.deliveryTime}
+                    onChange={handleChange}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                    disabled={!formData.deliveryDate}
+                  >
+                    <option value="">Select delivery time</option>
+                    {formData.deliveryDate && getAvailableTimeSlots().map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.deliveryTime && (
+                  <p className="text-red-500 text-sm mt-1">{errors.deliveryTime}</p>
+                )}
+                {formData.deliveryDate && getAvailableTimeSlots().length === 0 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    No available delivery slots for today. Please select another date.
+                  </p>
+                )}
+              </div>
+
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Address*
                 </label>
                 <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
@@ -459,14 +673,20 @@ const CheckOutform = ({
                 <span>GST ({gstPercentage}%)</span>
                 <span>₹{gstAmount}</span>
               </div>
+              {calculateDiscount > 0 && (
               <div className="flex justify-between text-sm text-green-600">
-                      <span>Discount</span>
-                      <span>-₹{calculateDiscount}</span>
-                    </div>
+                <span>Discount</span>
+                <span>-₹{calculateDiscount}</span>
+              </div>
+            )}
+              <div className="flex justify-between text-gray-600">
+                <span>Delivery Charge</span>
+                <span>₹{deliveryCharge}</span>
+              </div>
               <div className="border-t pt-4">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total Amount</span>
-                  <span>₹{totalAmount}</span>
+                  <span>₹{finalTotal}</span>
                 </div>
               </div>
 
