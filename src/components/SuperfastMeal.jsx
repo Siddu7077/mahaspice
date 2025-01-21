@@ -1,657 +1,911 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Coffee, Sun, Moon, Plus, Minus } from "lucide-react";
-import SuperfastCheckOutform from "./SuperfastMealCheckOut";
+import { Coffee, Sun, Moon, Plus, Minus, Trash2, X } from "lucide-react";
+import CheckOutform from "./CheckOutform";
 import ScrollToTop from "./ScrollToTop";
+import { useAuth } from "./AuthSystem";
+import SuperfastCheckOutform from "./SuperfastMealCheckOut";
 
-const packageData = {
-    breakfast: {
-        "3CP": [
-            {
-                id: "b1",
-                name: "South Indian Breakfast",
-                image: "https://5.imimg.com/data5/AH/LH/SZ/SELLER-5331327/dinearth-10-3cp-11-4cp-round-plate-500x500.jpg",
-                items: ["Idli", "Vada", "Chutney", "Coffee"],
-                price: "₹200",
-                rating: 4.5,
-                time: "30 mins",
-            },
-            {
-                id: "b2",
-                name: "Continental Breakfast",
-                image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8LKxWwfFgeTFHaXaxvXAVYbihR62TU7rIZA&s",
-                items: ["Bread", "Eggs", "Cereals", "Juice"],
-                price: "₹250",
-                rating: 4.6,
-                time: "35 mins",
-            },
-            {
-                id: "b3",
-                name: "Healthy Morning",
-                image: "https://www.eatingwell.com/thmb/eMVOdsl3W0lRYj4Vyo9QlJGnLFE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/ewl-251317-oatmeal-with-fruit-nuts-4000x2700-1661582aac034fa1ab3f1c1442b8b4d7.jpg",
-                items: ["Oatmeal", "Fruits", "Nuts", "Green Tea"],
-                price: "₹220",
-                rating: 4.4,
-                time: "25 mins",
-            }
-        ],
-        "5CP": [
-            {
-                id: "b4",
-                name: "Premium Breakfast Combo",
-                image: "https://e7.pngegg.com/pngimages/464/169/png-clipart-masala-dosa-south-indian-cuisine-idli-dish-soup-food-thumbnail.png",
-                items: ["Masala Dosa", "Upma", "Pongal", "Coffee", "Fruits"],
-                price: "₹350",
-                rating: 4.7,
-                time: "40 mins",
-            },
-            {
-                id: "b5",
-                name: "Executive Breakfast",
-                image: "https://i.ytimg.com/vi/N3seYS1Vc44/maxresdefault.jpg",
-                items: ["Poha", "Paratha", "Yogurt", "Juice", "Fruits"],
-                price: "₹380",
-                rating: 4.8,
-                time: "45 mins",
-            }
-        ],
-        "8CP": [
-            {
-                id: "b6",
-                name: "Deluxe Breakfast Feast",
-                image: "https://m.media-amazon.com/images/I/71eeCcPX9ZL._AC_UF894,1000_QL80_.jpg",
-                items: ["Masala Dosa", "Poori", "Kesari Bath", "Coffee", "Fruits", "Juice", "Chutney", "Sambar"],
-                price: "₹450",
-                rating: 4.8,
-                time: "45 mins",
-            },
-            {
-                id: "b7",
-                name: "Grand Morning Platter",
-                image: "https://www.shutterstock.com/image-photo/group-south-indian-food-dosa-260nw-388496599.jpg",
-                items: ["Idli", "Vada", "Dosa", "Upma", "Pongal", "Coffee", "Juice", "Fruits"],
-                price: "₹480",
-                rating: 4.9,
-                time: "50 mins",
-            }
-        ]
-    },
-    lunch: {
-        "3CP": {
-            veg: [
-                {
-                    id: "l1",
-                    name: "Classic Veg Lunch",
-                    image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-                    items: ["Veg Biryani", "Raita", "Dal"],
-                    price: "₹300",
-                    rating: 4.5,
-                    time: "45 mins",
-                },
-                {
-                    id: "l2",
-                    name: "North Indian Veg",
-                    image: "https://neeyog.com/wp-content/uploads/2018/12/Screenshot_20190302-103929_Instagram.jpg",
-                    items: ["Roti", "Paneer Curry", "Dal"],
-                    price: "₹320",
-                    rating: 4.6,
-                    time: "40 mins",
-                }
-            ],
-            nonVeg: [
-                {
-                    id: "l3",
-                    name: "Classic Non-Veg Lunch",
-                    image: "https://neeyog.com/wp-content/uploads/2018/12/Screenshot_20190302-103929_Instagram.jpg",
-                    items: ["Chicken Biryani", "Raita", "Gravy"],
-                    price: "₹350",
-                    rating: 4.7,
-                    time: "50 mins",
-                },
-                {
-                    id: "l4",
-                    name: "Grilled Chicken Meal",
-                    image: "https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto,w_366/RX_THUMBNAIL/IMAGES/VENDOR/2024/10/18/ff22d08e-8419-4e1f-b1a9-4aaed9f7b716_387620.jpg",
-                    items: ["Grilled Chicken", "Rice", "Curry"],
-                    price: "₹380",
-                    rating: 4.6,
-                    time: "45 mins",
-                }
-            ]
-        },
-        "5CP": {
-            veg: [
-                {
-                    id: "l5",
-                    name: "Premium Veg Thali",
-                    image: "https://5.imimg.com/data5/SELLER/Default/2023/2/YX/EA/JD/5331327/5cp-meal-tray-natraj-white.jpg",
-                    items: ["Rice", "Dal", "Paneer", "Roti", "Dessert"],
-                    price: "₹400",
-                    rating: 4.8,
-                    time: "55 mins",
-                }
-            ],
-            nonVeg: [
-                {
-                    id: "l6",
-                    name: "Premium Non-Veg Thali",
-                    image: "https://neeyog.com/wp-content/uploads/2018/12/Screenshot_20181122-232956_Zomato.jpg",
-                    items: ["Biryani", "Chicken Curry", "Roti", "Raita", "Dessert"],
-                    price: "₹450",
-                    rating: 4.8,
-                    time: "60 mins",
-                }
-            ]
-        },
-        "8CP": {
-            veg: [
-                {
-                    id: "l7",
-                    name: "Deluxe Veg Feast",
-                    image: "https://5.imimg.com/data5/SELLER/Default/2024/2/390739195/ON/KY/XL/12882037/8cp-meal-tray-250x250.jpeg",
-                    items: ["Rice", "Dal", "Paneer", "Roti", "Curry", "Salad", "Raita", "Dessert"],
-                    price: "₹500",
-                    rating: 4.9,
-                    time: "65 mins",
-                }
-            ],
-            nonVeg: [
-                {
-                    id: "l8",
-                    name: "Royal Non-Veg Feast",
-                    image: "https://cheetah.cherishx.com/uploads/1722579633_large.jpg",
-                    items: ["Biryani", "Chicken", "Fish", "Roti", "Dal", "Salad", "Raita", "Dessert"],
-                    price: "₹600",
-                    rating: 4.9,
-                    time: "70 mins",
-                }
-            ]
-        }
-    },
-    dinner: {
-        "3CP": {
-            veg: [
-                {
-                    id: "d1",
-                    name: "Light Veg Dinner",
-                    image: "https://b.zmtcdn.com/data/dish_photos/34e/a46d8562780d21a8d4809814e7da134e.jpeg",
-                    items: ["Roti", "Dal", "Sabzi"],
-                    price: "₹280",
-                    rating: 4.5,
-                    time: "40 mins",
-                },
-                {
-                    id: "d2",
-                    name: "Healthy Veg Bowl",
-                    image: "https://5.imimg.com/data5/SELLER/Default/2024/7/433427466/FL/GI/JO/3869089/3cp-meal-tray.jpeg",
-                    items: ["Mixed Veg", "Brown Rice", "Soup"],
-                    price: "₹300",
-                    rating: 4.6,
-                    time: "35 mins",
-                }
-            ],
-            nonVeg: [
-                {
-                    id: "d3",
-                    name: "Classic Non-Veg Dinner",
-                    image: "https://5.imimg.com/data5/SELLER/Default/2023/2/PG/UI/UN/5331327/3cp-oracle-meal-tray-500x500.jpg",
-                    items: ["Chicken Curry", "Roti", "Salad"],
-                    price: "₹350",
-                    rating: 4.7,
-                    time: "45 mins",
-                }
-            ]
-        },
-        "5CP": {
-            veg: [
-                {
-                    id: "d4",
-                    name: "Premium Veg Dinner",
-                    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRacW513-BQ7g1YAh_eOGHD4ZXuhb03sKI6INIzhqMoOJFOZ3rOP8wn93kgoftJJ9IypMQ&usqp=CAU",
-                    items: ["Paneer", "Roti", "Dal", "Rice", "Dessert"],
-                    price: "₹400",
-                    rating: 4.8,
-                    time: "50 mins",
-                }
-            ],
-            nonVeg: [
-                {
-                    id: "d5",
-                    name: "Premium Non-Veg Dinner",
-                    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRacW513-BQ7g1YAh_eOGHD4ZXuhb03sKI6INIzhqMoOJFOZ3rOP8wn93kgoftJJ9IypMQ&usqp=CAU",
-                    items: ["Butter Chicken", "Roti", "Dal", "Rice", "Dessert"],
-                    price: "₹450",
-                    rating: 4.8,
-                    time: "55 mins",
-                }
-            ]
-        },
-        "8CP": {
-            veg: [
-                {
-                    id: "d6",
-                    name: "Royal Veg Dinner",
-                    image: "https://imgmedia.lbb.in/media/2019/10/5d9a756aff37ab388e154d0a_1570403690976.jpg",
-                    items: ["Paneer", "Roti", "Dal", "Rice", "Curry", "Salad", "Raita", "Dessert"],
-                    price: "₹500",
-                    rating: 4.9,
-                    time: "60 mins",
-                }
-            ],
-            nonVeg: [
-                {
-                    id: "d7",
-                    name: "Royal Non-Veg Dinner",
-                    image: "https://example.com/dinner7.jpg",
-                    items: ["Mutton", "Chicken", "Roti", "Rice", "Dal", "Salad", "Raita", "Dessert"],
-                    price: "₹600",
-                    rating: 4.9,
-                    time: "65 mins",
-                }
-            ]
-        }
-    }
-};
-
-const packageImages = {
-    "3CP": "https://new.caterninja.com/PackedMealBox/3cp.png",
-    "5CP": "https://new.caterninja.com/PackedMealBox/5cp.png",
-    "8CP": "https://new.caterninja.com/PackedMealBox/8cp.png",
-};
-
-const SuperfastMealBox = ({ formData }) => {
-    const navigate = useNavigate();
-    const [selectedMealType, setSelectedMealType] = useState("breakfast" );
-    const [selectedPackage, setSelectedPackage] = useState("3CP");
-    const [isVeg, setIsVeg] = useState(true);
-    const [cart, setCart] = useState({});
-    const [showCheckout, setShowCheckout] = useState(false);
-
+// Keeping the existing helper functions
+const transformApiData = (apiData) => {
+    // Filter superfast items first
+    const superfastItems = apiData.filter(item => item.is_superfast === "Yes");
     
-
-// Calculate cart total
-    const calculateCartTotal = () => {
-        return Object.entries(cart).reduce((total, [itemId, itemData]) => {
-            const itemPrice = parseFloat(itemData.details.price.replace("₹", ""));
-            return total + itemPrice * itemData.quantity;
-        }, 0);
+    // Get unique CP types from filtered items
+    const cpTypes = [
+      ...new Set(superfastItems.map((item) => item.cp_type.toUpperCase())),
+    ];
+  
+    // Initialize the transformed data structure
+    const transformed = {
+      breakfast: {},
+      lunch: {},
+      dinner: {},
     };
-
-    // Calculate GST
-    const calculateGST = () => {
-        return Math.round(calculateCartTotal() * 0.18);
-    };
-
-    // Calculate total amount
-    const calculateTotalAmount = () => {
-        return calculateCartTotal() + calculateGST();
-    };
-
-    if (showCheckout) {
-        return (
-            <SuperfastCheckOutform 
-                cart={cart}
-                onBack={() => setShowCheckout(false)}
-                cartTotal={calculateCartTotal()}
-                gstAmount={calculateGST()}
-                formData={formData} 
-                totalAmount={calculateTotalAmount()}
-            />
-        );
-    }
-
-    const addToCart = (item) => {
-        setCart((prevCart) => {
-            const currentItem = prevCart[item.id] || { quantity: 0, details: item };
-            return {
-                ...prevCart,
-                [item.id]: {
-                    quantity: currentItem.quantity + 1,
-                    details: item,
-                    package: selectedPackage,
-                    mealType: selectedMealType,
-                },
-            };
-        });
-    };
-
-    const updateQuantity = (itemId, newQuantity) => {
-        setCart((prevCart) => {
-            if (newQuantity === 0) {
-                const { [itemId]: removedItem, ...restCart } = prevCart;
-                return restCart;
-            }
-            return {
-                ...prevCart,
-                [itemId]: {
-                    ...prevCart[itemId],
-                    quantity: newQuantity,
-                },
-            };
-        });
-    };
-
-    const groupedCartItems = Object.entries(cart).reduce(
-        (groups, [itemId, itemData]) => {
-            const pkg = itemData.package;
-            if (!groups[pkg]) {
-                groups[pkg] = [];
-            }
-            groups[pkg].push({ itemId, ...itemData });
-            return groups;
-        },
-        {}
-    );
-
-    const handleCheckout = () => {
-        if (Object.keys(cart).length === 0) {
-            alert("Your cart is empty!");
-            return;
-        }
-        setShowCheckout(true);
-    };
-
-    const renderMealItems = () => {
-        if (selectedMealType === "breakfast") {
-            return packageData.breakfast[selectedPackage].map((item) => (
-                <div key={item.id} className="p-4 border rounded-xl flex items-center justify-between border-orange-200">
-                    <div className="flex items-center">
-                        <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-24 h-24 object-cover rounded-lg mr-4"
-                        />
-                        <div>
-                            <h3 className="font-semibold text-orange-700">{item.name}</h3>
-                            <p className="text-gray-600 w-15 mb-3">{item.items.join(", ")}</p>
-                            <div className="flex items-center gap-2 text-gray-600">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-semibold">{item.price}</span>
-                                    <span className="text-sm text-gray-500">• {item.time}</span>
-                                    <span className="text-sm text-gray-500">• ★ {item.rating}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {cart[item.id] ? (
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => updateQuantity(item.id, cart[item.id].quantity - 1)}
-                                className="bg-orange-500 text-white rounded-full p-1"
-                            >
-                                <Minus size={16} />
-                            </button>
-                            <span>{cart[item.id].quantity}</span>
-                            <button
-                                onClick={() => updateQuantity(item.id, cart[item.id].quantity + 1)}
-                                className="bg-orange-500 text-white rounded-full p-1"
-                            >
-                                <Plus size={16} />
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => addToCart(item)}
-                            className="px-4 py-2 bg-orange-500 text-white rounded-lg"
-                        >
-                            Add
-                        </button>
-                    )}
-                </div>
-            ));
+  
+    // Initialize the structure for each CP type
+    cpTypes.forEach((cpType) => {
+      transformed.breakfast[cpType] = [];
+      transformed.lunch[cpType] = { veg: [], nonVeg: [] };
+      transformed.dinner[cpType] = { veg: [], nonVeg: [] };
+    });
+  
+    // Transform only the superfast items
+    superfastItems.forEach((item) => {
+      const mealTime = item.meal_time.toLowerCase();
+      const cpType = item.cp_type.toUpperCase();
+      const isVeg = item.veg_non_veg === "Veg";
+  
+      const transformedItem = {
+        id: item.id.toString(),
+        name: item.cp_name,
+        image: `https://mahaspice.desoftimp.com/ms3${item.image_address}`,
+        items: item.description.split(","),
+        price: `₹${item.price}`,
+        rating: 4.5,
+        time: "30 mins", // Since we're only including superfast items
+        isSuperfast: true
+      };
+  
+      // Sort into appropriate category
+      if (mealTime === "breakfast") {
+        transformed.breakfast[cpType].push(transformedItem);
+      } else {
+        if (isVeg) {
+          transformed[mealTime][cpType].veg.push(transformedItem);
         } else {
-            const items = packageData[selectedMealType][selectedPackage][isVeg ? "veg" : "nonVeg"];
-            return items.map((item) => (
-                <div
-                    key={item.id}
-                    className={`p-4 border rounded-xl flex items-center justify-between ${
-                        isVeg ? "border-green-200" : "border-red-200"
-                    }`}
-                >
-                    <div className="flex items-center">
-                        <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-24 h-24 object-cover rounded-lg mr-4"
-                        />
-                        <div>
-                            <h3 className={`font-semibold ${isVeg ? "text-green-700" : "text-red-700"}`}>
-                                {item.name}
-                            </h3>
-                            <p className="text-gray-600 w-15 mb-3">{item.items.join(", ")}</p>
-                            <div className="flex items-center gap-2 text-gray-600">
-                                <div className={`border-2 ${
-                                    isVeg ? "border-green-500" : "border-red-500"
-                                } p-1 rounded`}>
-                                    <div className={`w-3 h-3 rounded-full ${
-                                        isVeg ? "bg-green-500" : "bg-red-500"
-                                    }`}></div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="font-semibold">{item.price}</span>
-                                    <span className="text-sm text-gray-500">• {item.time}</span>
-                                    <span className="text-sm text-gray-500">• ★ {item.rating}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {cart[item.id] ? (
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => updateQuantity(item.id, cart[item.id].quantity - 1)}
-                                className={`${isVeg ? "bg-green-500" : "bg-red-500"} text-white rounded-full p-1`}
-                            >
-                                <Minus size={16} />
-                            </button>
-                            <span>{cart[item.id].quantity}</span>
-                            <button
-                                onClick={() => updateQuantity(item.id, cart[item.id].quantity + 1)}
-                                className={`${isVeg ? "bg-green-500" : "bg-red-500"} text-white rounded-full p-1`}
-                            >
-                                <Plus size={16} />
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => addToCart(item)}
-                            className={`px-4 py-2 ${
-                                isVeg ? "bg-green-500" : "bg-red-500"
-                            } text-white rounded-lg`}
-                        >
-                            Add
-                        </button>
-                    )}
-                </div>
-            ));
+          transformed[mealTime][cpType].nonVeg.push(transformedItem);
         }
-    };
+      }
+    });
+  
+    return { data: transformed, cpTypes };
+  };
+  
+//   export default transformApiData;
 
-    if (showCheckout) {
-        return (
-            <SuperfastCheckOutform
-                cart={cart}
-                calculateCartTotal={calculateCartTotal}
-                calculateGST={calculateGST}
-            />
-        );
-    }
-
-    return (
-        <div className="min-h-screen bg-gray-50">
-            <ScrollToTop />
-            
-            {/* Header with Meal Type Selection */}
-            <div className="sticky top-0 z-20 bg-white shadow-sm">
-                <div className="flex justify-center gap-4 p-4">
-                    <button
-                        onClick={() => {
-                            setSelectedMealType("breakfast");
-                            setSelectedPackage("3CP");
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                            selectedMealType === "breakfast" 
-                                ? "bg-orange-100 text-orange-600" 
-                                : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                    >
-                        <Coffee className="w-5 h-5" />
-                        Breakfast
-                    </button>
-                    <button
-                        onClick={() => {
-                            setSelectedMealType("lunch");
-                            setSelectedPackage("3CP");
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                            selectedMealType === "lunch" 
-                                ? "bg-orange-100 text-orange-600" 
-                                : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                    >
-                        <Sun className="w-5 h-5" />
-                        Lunch
-                    </button>
-                    <button
-                        onClick={() => {
-                            setSelectedMealType("dinner");
-                            setSelectedPackage("3CP");
-                        }}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                            selectedMealType === "dinner" 
-                                ? "bg-orange-100 text-orange-600" 
-                                : "text-gray-600 hover:bg-gray-100"
-                        }`}
-                    >
-                        <Moon className="w-5 h-5" />
-                        Dinner
-                    </button>
-                </div>
-            </div>
-
-            {/* Main Content Grid */}
-            <div className="container mx-auto px-4 py-6">
-                <div className="grid grid-cols-12 gap-6">
-                    {/* Left Column - Package Selection */}
-                    <div className="col-span-2">
-                        <div className="bg-white rounded-lg shadow p-4">
-                            {selectedMealType !== "breakfast" && (
-                                <div className="mb-6">
-                                    <div className="w-full bg-gray-200 p-1 rounded-full relative flex items-center cursor-pointer mb-4">
-                                        <motion.div
-                                            className="absolute left-0 top-0 bottom-0 w-1/2 rounded-full bg-white shadow-md"
-                                            animate={{
-                                                x: isVeg ? 0 : "100%",
-                                                backgroundColor: isVeg ? "#14cc2a" : "#EF4444",
-                                            }}
-                                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                                        />
-                                        <div
-                                            className="w-full flex justify-between text-sm z-10 relative"
-                                            onClick={() => setIsVeg(!isVeg)}
-                                        >
-                                            <div className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
-                                                isVeg ? "text-white font-semibold" : "text-gray-700 font-medium"
-                                            }`}>
-                                                Veg
-                                            </div>
-                                            <div className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
-                                                !isVeg ? "text-white font-semibold" : "text-gray-700 font-medium"
-                                            }`}>
-                                                NonVeg
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <h2 className="text-lg font-semibold mb-4">Package Type</h2>
-                            <div className="space-y-3">
-                                {Object.keys(packageData[selectedMealType]).map((pkg) => (
-                                    <button
-                                        key={pkg}
-                                        onClick={() => setSelectedPackage(pkg)}
-                                        className={`w-full flex items-center justify-around p-4 rounded-xl border-2 text-sm transition-all ${
-                                            selectedPackage === pkg
-                                                ? "border-green-500 bg-green-50"
-                                                : "border-gray-200 hover:border-green-200"
-                                        }`}
-                                    >
-                                        <img
-                                            src={packageImages[pkg]}
-                                            alt={`${pkg} Package`}
-                                            className="w-1/3 h-auto mb-2 rounded"
-                                        />
-                                        {pkg} Package
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Middle Column - Menu Items */}
-                    <div className="col-span-7">
-                        <div className="bg-white rounded-lg shadow p-4">
-                            <div className="space-y-4">
-                                {renderMealItems()}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Column - Cart */}
-                    <div className="col-span-3">
-                        {Object.keys(cart).length > 0 && (
-                            <div className="bg-white rounded-lg shadow p-4 sticky top-24">
-                                <h3 className="text-lg font-semibold mb-4">Cart Summary</h3>
-                                {Object.entries(groupedCartItems).map(([pkg, items]) => (
-                                    <div key={pkg} className="mb-4">
-                                        <div className="flex items-center mb-2">
-                                            <img
-                                                src={packageImages[pkg]}
-                                                alt={`${pkg} Package`}
-                                                className="w-12 h-12 mr-2 object-contain"
-                                            />
-                                            <h4 className="font-semibold">{pkg} Package</h4>
-                                        </div>
-                                        {items.map(({ itemId, details, quantity }) => (
-                                            <div key={itemId} className="flex justify-between mb-2 text-sm">
-                                                <span>{details.name} ({quantity})</span>
-                                                <span className="font-medium">{details.price}</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ))}
-
-                                <div className="border-t mt-4 pt-4 space-y-2">
-                                    <div className="flex justify-between text-sm">
-                                        <span>Subtotal</span>
-                                        <span>₹{calculateCartTotal()}</span>
-                                    </div>
-                                    <div className="flex justify-between text-sm">
-                                        <span>GST (18%)</span>
-                                        <span>₹{calculateGST()}</span>
-                                    </div>
-                                    <div className="flex justify-between font-semibold">
-                                        <span>Total</span>
-                                        <span>₹{calculateCartTotal() + calculateGST()}</span>
-                                    </div>
-                                </div>
-                                
-                                <button
-                                    onClick={handleCheckout}
-                                    className="w-full mt-4 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium"
-                                >
-                                    Proceed to Checkout
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+const getPackageImage = (cpType) => {
+  const defaultImage = "https://new.caterninja.com/PackedMealBox/3cp.png";
+  const packageImages = {
+    "3CP": "https://new.caterninja.com/PackedMealBox/3cp.png",
+    "4CP": "https://new.caterninja.com/PackedMealBox/3cp.png",
+    "5CP": "https://new.caterninja.com/PackedMealBox/5cp.png",
+    "6CP": "https://new.caterninja.com/PackedMealBox/5cp.png",
+    "8CP": "https://new.caterninja.com/PackedMealBox/8cp.png",
+  };
+  return packageImages[cpType] || defaultImage;
 };
 
-export default SuperfastMealBox;
+const SuperfastMeal = () => {
+  const navigate = useNavigate();
+  const [packageData, setPackageData] = useState(null);
+  const [cpTypes, setCpTypes] = useState([]);
+  const [selectedMealType, setSelectedMealType] = useState("breakfast");
+  const [selectedPackage, setSelectedPackage] = useState("");
+  const [isVeg, setIsVeg] = useState(true);
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("mealCart");
+    return savedCart ? JSON.parse(savedCart) : {};
+  });
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [error, setError] = useState("");
+  const [gstPercentage, setGstPercentage] = useState(18);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+
+  // Add missing getFinalTotal function
+  const getFinalTotal = () => {
+    return calculateCartTotal() - calculateDiscount() + calculateGST();
+  };
+
+  const serviceType = window.location.pathname === "/box" ? "box_genie" : "";
+
+  useEffect(() => {
+    // Fetch GST data
+    fetch("https://mahaspice.desoftimp.com/ms3/displaygst.php")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const serviceGst = data.data.find(
+            (item) => item.service_type === serviceType
+          );
+          if (serviceGst) {
+            setGstPercentage(serviceGst.gst_percentage);
+          }
+        }
+      })
+      .catch((err) => console.error("Error fetching GST:", err));
+
+    // Fetch coupons
+    fetch("https://mahaspice.desoftimp.com/ms3/displaycoupons.php")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          const validCoupons = data.coupons.filter(
+            (coupon) =>
+              coupon.coupon_type === serviceType &&
+              coupon.is_active &&
+              new Date(coupon.valid_from) <= new Date() &&
+              new Date(coupon.valid_until) >= new Date() &&
+              coupon.usage_count < coupon.usage_limit
+          );
+          setAvailableCoupons(validCoupons);
+        }
+      })
+      .catch((err) => console.error("Error fetching coupons:", err));
+  }, [serviceType]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/cptypes.php"
+        );
+        const data = await response.json();
+        const { data: transformedData, cpTypes } = transformApiData(data);
+        setPackageData(transformedData);
+        setCpTypes(cpTypes);
+        // Removed the setSelectedPackage(cpTypes[1]) line so no package is selected initially
+      } catch (error) {
+        console.error("Error fetching package data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("mealCart", JSON.stringify(cart));
+  }, [cart]);
+
+  const [quantityInputs, setQuantityInputs] = useState(() => {
+    const savedCart = JSON.parse(localStorage.getItem("mealCart") || "{}");
+    return Object.keys(savedCart).reduce(
+      (acc, itemId) => ({
+        ...acc,
+        [itemId]: savedCart[itemId].quantity.toString(),
+      }),
+      {}
+    );
+  });
+
+  const handleQuantityChange = (itemId, value) => {
+    const newValue = value.replace(/[^0-9]/g, "");
+    setQuantityInputs((prev) => ({ ...prev, [itemId]: newValue }));
+
+    if (newValue !== "") {
+      const numValue = parseInt(newValue, 10);
+      if (numValue >= 10 || numValue === 0) {
+        // Allow 0 or minimum 10
+        updateQuantity(itemId, numValue);
+      } else if (numValue > 0) {
+        updateQuantity(itemId, 10); // Set to minimum if below 10
+      }
+    }
+  };
+
+  const handleBlur = (itemId) => {
+    const currentValue = parseInt(quantityInputs[itemId], 10);
+    if (isNaN(currentValue) || currentValue === 0) {
+      setQuantityInputs((prev) => ({ ...prev, [itemId]: "0" }));
+      updateQuantity(itemId, 0);
+    } else if (currentValue < 10) {
+      setQuantityInputs((prev) => ({ ...prev, [itemId]: "10" }));
+      updateQuantity(itemId, 10);
+    }
+  };
+
+  const removeFromCart = (itemId) => {
+    setCart((prevCart) => {
+      const { [itemId]: removedItem, ...restCart } = prevCart;
+      return restCart;
+    });
+    setQuantityInputs((prev) => {
+      const { [itemId]: removed, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  // Helper function to group cart items by package
+  const getGroupedCart = () => {
+    return Object.entries(cart).reduce((acc, [itemId, itemData]) => {
+      const packageType = itemData.package;
+      if (!acc[packageType]) {
+        acc[packageType] = [];
+      }
+      acc[packageType].push({ itemId, ...itemData });
+      return acc;
+    }, {});
+  };
+
+  // Helper function to calculate package subtotal
+  const calculatePackageSubtotal = (items) => {
+    return items
+      .reduce(
+        (total, { details, quantity }) =>
+          total + parseFloat(details.price.replace("₹", "")) * quantity,
+        0
+      )
+      .toFixed(2);
+  };
+
+  const getAvailablePackages = () => {
+    if (!packageData) return [];
+    return Object.keys(packageData[selectedMealType])
+      .filter((pkg) => {
+        if (selectedMealType === "breakfast") {
+          return packageData[selectedMealType][pkg].length >= 0;
+        } else {
+          if (isVeg) {
+            return packageData[selectedMealType][pkg].veg.length >= 0;
+          } else {
+            return packageData[selectedMealType][pkg].nonVeg.length >= 0;
+          }
+        }
+      })
+      .sort((a, b) => a.localeCompare(b)); // Changed to sort in ascending order
+  };
+
+  const addToCart = (item) => {
+    setCart((prevCart) => {
+      const currentItem = prevCart[item.id] || { quantity: 0, details: item };
+      return {
+        ...prevCart,
+        [item.id]: {
+          quantity: 10,
+          details: item,
+          package: selectedPackage,
+          mealType: selectedMealType,
+        },
+      };
+    });
+    setQuantityInputs((prev) => ({
+      ...prev,
+      [item.id]: "10",
+    }));
+  };
+
+  const updateQuantity = (itemId, newQuantity) => {
+    // Ensure minimum quantity of 10
+    if (newQuantity > 0 && newQuantity < 10) {
+      newQuantity = 10;
+    }
+
+    setCart((prevCart) => {
+      if (newQuantity === 0) {
+        const { [itemId]: removedItem, ...restCart } = prevCart;
+        // Also update quantityInputs when removing item
+        setQuantityInputs((prev) => {
+          const { [itemId]: removed, ...rest } = prev;
+          return rest;
+        });
+        return restCart;
+      }
+      return {
+        ...prevCart,
+        [itemId]: {
+          ...prevCart[itemId],
+          quantity: newQuantity,
+        },
+      };
+    });
+    setQuantityInputs((prev) => ({
+      ...prev,
+      [itemId]: newQuantity.toString(),
+    }));
+  };
+
+  const calculateCartTotal = () => {
+    return Object.entries(cart).reduce((total, [itemId, itemData]) => {
+      const itemPrice = parseFloat(itemData.details.price.replace("₹", ""));
+      return total + itemPrice * itemData.quantity;
+    }, 0);
+  };
+
+  // const calculateGST = () => {
+  //   return Math.round(calculateCartTotal() * 0.18);
+  // };
+
+  const { user } = useAuth();
+
+  const handleCheckout = () => {
+    if (Object.keys(cart).length === 0) {
+      alert("Your cart is empty!");
+      return;
+    }
+
+    if (!user) {
+      // Store current path for redirect after login
+      const currentPath = window.location.pathname;
+      localStorage.setItem("checkoutRedirect", currentPath);
+
+      if (confirm("Please login before going to Checkout")) {
+        window.location.href = "/login";
+      } else {
+        return;
+      }
+    }
+
+    // If we get here, cart is not empty and user is logged in
+    setShowCheckout(true);
+  };
+
+  const handleApplyCoupon = () => {
+    setError("");
+    const coupon = availableCoupons.find(
+      (c) => c.code === couponCode.toUpperCase()
+    );
+
+    if (!coupon) {
+      setError("Invalid coupon code");
+      setAppliedCoupon(null);
+      return;
+    }
+
+    const subtotal = calculateCartTotal();
+    if (subtotal < coupon.min_order_value) {
+      setError(`Minimum order value of ₹${coupon.min_order_value} required`);
+      setAppliedCoupon(null);
+      return;
+    }
+
+    setAppliedCoupon(coupon);
+    setError("");
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setError("");
+  };
+
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
+
+    const subtotal = calculateCartTotal();
+    if (subtotal < appliedCoupon.min_order_value) {
+      setAppliedCoupon(null);
+      setError(
+        `Minimum order value of ₹${appliedCoupon.min_order_value} required`
+      );
+      return 0;
+    }
+
+    let discount = 0;
+    if (appliedCoupon.discount_type === "percentage") {
+      discount = (subtotal * appliedCoupon.discount_value) / 100;
+      if (appliedCoupon.max_discount) {
+        discount = Math.min(discount, appliedCoupon.max_discount);
+      }
+    } else {
+      discount = appliedCoupon.discount_value;
+    }
+
+    return Math.round(discount);
+  };
+
+  // Modify the calculateGST function
+  const calculateGST = () => {
+    const subtotal = calculateCartTotal() - calculateDiscount();
+    return Math.round((subtotal * gstPercentage) / 100);
+  };
+
+  if (!packageData) return <div>Loading...</div>;
+  if (showCheckout) {
+    return (
+      <SuperfastCheckOutform
+        cart={cart}
+        onBack={() => setShowCheckout(false)}
+        cartTotal={calculateCartTotal()}
+        gstAmount={calculateGST()}
+        gstPercentage={gstPercentage}
+        calculateDiscount={calculateDiscount()}
+        totalAmount={getFinalTotal()}
+        appliedCoupon={appliedCoupon}
+        discountAmount={calculateDiscount()}
+      />
+    );
+  }
+
+  const availablePackages = getAvailablePackages();
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <ScrollToTop />
+
+      {/* Header with Meal Type Selection */}
+      <div className="sticky top-0 z-20 bg-white shadow-sm flex items-center justify-center">
+        <div className="flex justify-center gap-4 p-4">
+          <button
+            onClick={() => {
+              setSelectedMealType("breakfast");
+              // setSelectedPackage(getAvailablePackages()[0]);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              selectedMealType === "breakfast"
+                ? "bg-orange-100 text-orange-600"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <Coffee className="w-5 h-5" />
+            Breakfast
+          </button>
+          <button
+            onClick={() => {
+              setSelectedMealType("lunch");
+              // setSelectedPackage(getAvailablePackages()[0]);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              selectedMealType === "lunch"
+                ? "bg-orange-100 text-orange-600"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <Sun className="w-5 h-5" />
+            Lunch
+          </button>
+          <button
+            onClick={() => {
+              setSelectedMealType("dinner");
+              // setSelectedPackage(getAvailablePackages()[0]);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+              selectedMealType === "dinner"
+                ? "bg-orange-100 text-orange-600"
+                : "text-gray-600 hover:bg-gray-100"
+            }`}
+          >
+            <Moon className="w-5 h-5" />
+            Dinner
+          </button>
+        </div>
+        {/* Veg/NonVeg Toggle for lunch and dinner */}
+        {selectedMealType !== "breakfast" && (
+          <div className="min-w-44 max-w-48">
+            <div className="w-full bg-gray-200 p-1 rounded-full relative flex items-center cursor-pointer">
+              <motion.div
+                className="absolute left-0 top-0 bottom-0 w-1/2 rounded-full bg-white shadow-md"
+                animate={{
+                  x: isVeg ? 0 : "100%",
+                  backgroundColor: isVeg ? "#14cc2a" : "#EF4444",
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              />
+              <div
+                className="w-full flex justify-between text-sm z-10 relative"
+                onClick={() => setIsVeg(!isVeg)}
+              >
+                <div
+                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
+                    isVeg
+                      ? "text-white font-semibold"
+                      : "text-gray-700 font-medium"
+                  }`}
+                >
+                  Veg
+                </div>
+                <div
+                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
+                    !isVeg
+                      ? "text-white font-semibold"
+                      : "text-gray-700 font-medium"
+                  }`}
+                >
+                  NonVeg
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-7 gap-6">
+          {/* Left Column - 80% */}
+          <div className="col-span-5">
+            {/* Package Buttons Row */}
+            <div className="text-left py-2">
+              <p className="text-gray-600 font-semibold text-lg">
+                Select a package to view available items
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              {availablePackages.length > 0 ? (
+                availablePackages
+                  .sort((a, b) => a.localeCompare(b)) // Sort in ascending order
+                  .map((pkg) => (
+                    <button
+                      key={pkg}
+                      onClick={() => setSelectedPackage(pkg)}
+                      className={`flex flex-col items-center justify-between p-4 rounded-xl border-2 min-w-fit transition-all ${
+                        selectedPackage === pkg
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-green-200"
+                      }`}
+                    >
+                      <img
+                        src={getPackageImage(pkg)}
+                        alt={`${pkg} Package`}
+                        className="w-44 h-auto mb-2 rounded"
+                      />
+                      <span className="whitespace-nowrap">{pkg} Package</span>
+                    </button>
+                  ))
+              ) : (
+                <div className="w-full text-center py-4 bg-gray-100 rounded-lg text-gray-600">
+                  No packages available for this selection
+                </div>
+              )}
+            </div>
+
+            {/* Meal Items Grid */}
+            {selectedPackage ? (
+              <>
+                <h1 className="font-bold text-xl text-orange-700 mb-2 capitalize">
+                  {selectedMealType} for {selectedPackage}
+                </h1>
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Breakfast Menu Items */}
+                  {selectedMealType === "breakfast" &&
+                    (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
+                      packageData.breakfast[selectedPackage]
+                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-4 border rounded-xl border-orange-200 bg-white"
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-48 object-cover rounded-lg mb-4"
+                            />
+                            <h3 className="font-semibold text-orange-700 mb-2">
+                              {item.name}
+                            </h3>
+                            <p className="text-gray-600 text-sm mb-4">
+                              {item.items.join(", ")}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold">
+                                {item.price}
+                              </span>
+                              {cart[item.id] ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      const newQuantity =
+                                        cart[item.id].quantity - 1;
+                                      updateQuantity(
+                                        item.id,
+                                        newQuantity < 10 && newQuantity !== 0
+                                          ? 10
+                                          : newQuantity
+                                      );
+                                    }}
+                                    className="bg-orange-500 text-white rounded-full p-1"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <input
+                                    type="number"
+                                    value={
+                                      quantityInputs[item.id] ||
+                                      cart[item.id].quantity
+                                    }
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item.id,
+                                        e.target.value
+                                      )
+                                    }
+                                    onBlur={() => handleBlur(item.id)}
+                                    className="w-16 text-center border rounded"
+                                    min="10"
+                                    step="1"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      updateQuantity(
+                                        item.id,
+                                        cart[item.id].quantity + 1
+                                      )
+                                    }
+                                    className="bg-orange-500 text-white rounded-full p-1"
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => addToCart(item)}
+                                  className="px-4 py-2 bg-orange-500 text-white rounded-lg"
+                                >
+                                  Add
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="w-full text-center py-4 bg-gray-100 rounded-lg text-gray-600">
+                        No packages available for this selection
+                      </div>
+                    ))}
+
+                  {/* Non-Breakfast Menu Items */}
+                  {selectedMealType !== "breakfast" &&
+                    (packageData?.[selectedMealType]?.[selectedPackage]?.[
+                      isVeg ? "veg" : "nonVeg"
+                    ]?.length > 0 ? (
+                      packageData[selectedMealType][selectedPackage][
+                        isVeg ? "veg" : "nonVeg"
+                      ]
+                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className={`p-4 border rounded-xl bg-white ${
+                              isVeg ? "border-green-200" : "border-red-200"
+                            }`}
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-48 object-cover rounded-lg mb-4"
+                            />
+                            <h3
+                              className={`font-semibold mb-2 ${
+                                isVeg ? "text-green-700" : "text-red-700"
+                              }`}
+                            >
+                              {item.name}
+                            </h3>
+                            <p className="text-gray-600 text-sm mb-4">
+                              {item.items.join(", ")}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`border-2 ${
+                                    isVeg
+                                      ? "border-green-500"
+                                      : "border-red-500"
+                                  } p-1 rounded`}
+                                >
+                                  <div
+                                    className={`w-3 h-3 rounded-full ${
+                                      isVeg ? "bg-green-500" : "bg-red-500"
+                                    }`}
+                                  ></div>
+                                </div>
+                                <span className="font-semibold">
+                                  {item.price}
+                                </span>
+                              </div>
+                              {cart[item.id] ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      const newQuantity =
+                                        cart[item.id].quantity - 1;
+                                      updateQuantity(
+                                        item.id,
+                                        newQuantity < 10 && newQuantity !== 0
+                                          ? 10
+                                          : newQuantity
+                                      );
+                                    }}
+                                    className={`${
+                                      isVeg ? "bg-green-500" : "bg-red-500"
+                                    } text-white rounded-full p-1`}
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <input
+                                    type="number"
+                                    value={
+                                      quantityInputs[item.id] ||
+                                      cart[item.id].quantity
+                                    }
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item.id,
+                                        e.target.value
+                                      )
+                                    }
+                                    onBlur={() => handleBlur(item.id)}
+                                    className="w-16 text-center border rounded"
+                                    min="10"
+                                    step="1"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      updateQuantity(
+                                        item.id,
+                                        cart[item.id].quantity + 1
+                                      )
+                                    }
+                                    className={`${
+                                      isVeg ? "bg-green-500" : "bg-red-500"
+                                    } text-white rounded-full p-1`}
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => addToCart(item)}
+                                  className={`px-4 py-2 ${
+                                    isVeg ? "bg-green-500" : "bg-red-500"
+                                  } text-white rounded-lg`}
+                                >
+                                  Add
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <div className="w-full text-center py-4 bg-gray-100 rounded-lg text-gray-600">
+                        No packages available for this selection
+                      </div>
+                    ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                {/* <p className="text-gray-600 text-lg">
+      Please select a package to view available items
+    </p> */}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - 20% */}
+          <div className="col-span-2">
+            {Object.keys(cart).length > 0 ? (
+              <div className="bg-white rounded-lg shadow p-4 sticky top-24">
+                <h3 className="text-lg font-semibold mb-4">Cart Summary</h3>
+
+                {Object.entries(getGroupedCart()).map(
+                  ([packageType, items]) => (
+                    <div key={packageType} className="mb-6 last:mb-4">
+                      <div className="flex items-center gap-3 mb-3 bg-gray-50 p-3 rounded-lg">
+                        <img
+                          src={getPackageImage(packageType)}
+                          alt={packageType}
+                          className="w-16 h-16 object-contain"
+                        />
+                        <div>
+                          <h4 className="font-semibold text-gray-800">
+                            {packageType} Package
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {items.length}{" "}
+                            {items.length === 1 ? "item" : "items"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {items.map(({ itemId, details, quantity }) => (
+                        <div key={itemId} className="mb-3 last:mb-0 pl-3">
+                          <div className="flex justify-between items-start mb-2">
+                            <p className="font-medium text-gray-700">
+                              {details.name}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                {details.price}
+                              </span>
+                              <button
+                                onClick={() => removeFromCart(itemId)}
+                                className="text-red-500 hover:text-red-600 p-1 rounded-full hover:bg-red-50 transition-colors"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">
+                                Quantity: {quantityInputs[itemId] || quantity}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                )}
+
+                <div className="mb-4">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) =>
+                        setCouponCode(e.target.value.toUpperCase())
+                      }
+                      placeholder="Enter coupon code"
+                      className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  {error && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 text-red-600 rounded-lg text-sm">
+                      {error}
+                    </div>
+                  )}
+                  {appliedCoupon && (
+                    <div className="mt-2 p-2 bg-green-50 border border-green-200 text-green-600 rounded-lg text-sm flex justify-between items-center">
+                      <span>{appliedCoupon.description}</span>
+                      <button
+                        onClick={removeCoupon}
+                        className="p-1 hover:bg-green-100 rounded-full"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t mt-4 pt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Subtotal</span>
+                    <span>₹{calculateCartTotal()}</span>
+                  </div>
+                  {appliedCoupon && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount</span>
+                      <span>-₹{calculateDiscount()}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span>GST ({gstPercentage}%)</span>
+                    <span>₹{calculateGST()}</span>
+                  </div>
+                  <div className="flex justify-between font-semibold">
+                    <span>Total</span>
+                    <span>
+                      ₹
+                      {calculateCartTotal() -
+                        calculateDiscount() +
+                        calculateGST()}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleCheckout}
+                  className="w-full mt-4 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition-colors font-medium"
+                >
+                  Proceed to Checkout
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-4 text-center text-gray-600">
+                Your cart is empty
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SuperfastMeal;

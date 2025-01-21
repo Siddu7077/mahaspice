@@ -7,100 +7,383 @@ import {
   Navigation,
   CreditCard,
   Package,
+  MapPinned,
+  Calendar,
+  Clock,
 } from "lucide-react";
+import { useAuth } from "./AuthSystem";
+import DownloadInvoice from "./DownloadInvoice";
 
-export const calculateCartTotal = (cart) => {
-  return Object.values(cart).reduce((total, item) => {
-    const itemPrice = parseFloat(item.details.price.replace("₹", ""));
-    return total + itemPrice * item.quantity;
-  }, 0);
-};
-
-export const calculateGST = (cartTotal) => {
-  return +(cartTotal * 0.18).toFixed(2);
-};
-
-const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
+const SuperfastCheckOutform = ({
+  cart,
+  onBack,
+  cartTotal,
+  gstAmount,
+  totalAmount,
+  appliedCoupon,
+  discountAmount,
+  gstPercentage,
+  calculateDiscount,
+}) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
-    name: initialFormData?.name || "",
-    phone1: initialFormData?.phone1 || "",
-    phone2: initialFormData?.phone2 || "",
-    email: initialFormData?.email || "",
-    address: initialFormData?.address || "",
-    landmark: initialFormData?.landmark || "",
+    name: "",
+    phone1: "",
+    phone2: "",
+    email: "",
+    address: "",
+    landmark: "",
+    location: "",
+    deliveryDate: "",
+    deliveryTime: "",
   });
-
-  // Update form data when initialFormData changes
-  useEffect(() => {
-    if (initialFormData) {
-      setFormData(prevData => ({
-        ...prevData,
-        ...initialFormData
-      }));
-    }
-  }, [initialFormData]);
-
-  const cartTotal = calculateCartTotal(cart);
-  const gstAmount = calculateGST(cartTotal);
-  const totalAmount = cartTotal + gstAmount;
-
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [locations, setLocations] = useState([]);
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
 
-  // Rest of your existing code remains the same...
-  const groupedCartItems = Object.entries(cart).reduce(
-    (groups, [itemId, itemData]) => {
-      const pkg = itemData.package;
-      if (!groups[pkg]) {
-        groups[pkg] = [];
+  const isPastFourPM = () => {
+    const now = new Date();
+    const istOffset = 330; // IST offset is UTC+5:30 (330 minutes)
+    const istTime = new Date(
+      now.getTime() + (istOffset + now.getTimezoneOffset()) * 60000
+    );
+    return istTime.getHours() >= 16;
+  };
+
+  const getMinDate = () => {
+    const today = new Date();
+    if (isPastFourPM()) {
+      // If it's past 4 PM IST, minimum date is tomorrow
+      today.setDate(today.getDate() + 1);
+    }
+    return today.toISOString().split("T")[0];
+  };
+
+  const getAvailableTimeSlots = () => {
+    const today = new Date();
+    const selectedDate = new Date(formData.deliveryDate);
+    const isToday =
+      selectedDate.toISOString().split("T")[0] ===
+      today.toISOString().split("T")[0];
+
+    // Base time slots
+    const allTimeSlots = [
+      "10:00 AM",
+      "11:00 AM",
+      "12:00 PM",
+      "1:00 PM",
+      "2:00 PM",
+      "3:00 PM",
+      "4:00 PM",
+      "5:00 PM",
+      "6:00 PM",
+      "7:00 PM",
+    ];
+
+    if (!isToday) {
+      return allTimeSlots;
+    }
+    const istOffset = 330; // IST offset in minutes
+    const istTime = new Date(
+      today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000
+    );
+    const currentHour = istTime.getHours();
+    const currentMinutes = istTime.getMinutes();
+
+    return allTimeSlots.filter((slot) => {
+      const [time, period] = slot.split(" ");
+      let [hours, minutes] = time.split(":");
+      hours = parseInt(hours);
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
+
+      // Calculate if slot is at least 4 hours ahead
+      const slotTotalMinutes = hours * 60;
+      const currentTotalMinutes = currentHour * 60 + currentMinutes;
+      return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19; // 19 is 7 PM
+    });
+  };
+
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split("T")[0];
+
+    if (selectedDate === today && isPastFourPM()) {
+      alert(
+        "We cannot deliver orders today after 4 PM IST. Please select another date."
+      );
+      return;
+    }
+
+    // Clear selected time when date changes
+    setFormData((prev) => ({
+      ...prev,
+      deliveryDate: selectedDate,
+      deliveryTime: "",
+    }));
+  };
+
+  // Time slots
+  const timeSlots = [
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+    "6:00 PM",
+    "7:00 PM",
+    "8:00 PM",
+  ];
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displayDeloc.php"
+        );
+        const data = await response.json();
+
+        if (data.success && data.locations) {
+          // Filter for box_genie service type and get unique locations with prices
+          const boxGenieLocations = data.locations
+            .filter((loc) => loc.service_type === "superfast")
+            .reduce((acc, loc) => {
+              acc[loc.location] = {
+                location: loc.location,
+                price: parseFloat(loc.price),
+              };
+              return acc;
+            }, {});
+
+          // Convert to array and sort alphabetically
+          const sortedLocations = Object.values(boxGenieLocations).sort(
+            (a, b) => a.location.localeCompare(b.location)
+          );
+
+          setLocations(sortedLocations);
+        }
+      } catch (error) {
+        console.error("Error fetching locations:", error);
       }
-      groups[pkg].push({ itemId, ...itemData });
-      return groups;
+    };
+
+    fetchLocations();
+  }, []);
+
+  const handleLocationChange = (e) => {
+    const selectedLocation = locations.find(
+      (loc) => loc.location === e.target.value
+    );
+    setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
+    handleChange(e);
+  };
+
+  const finalTotal = totalAmount + deliveryCharge;
+
+  // Pre-fill form with user data
+  useEffect(() => {
+    if (user) {
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        phone1: user.phone || "",
+        email: user.email || "",
+        address: user.address || "",
+      }));
+    }
+  }, [user]);
+
+  // Group cart items by package
+  const groupedCartItems = Object.entries(cart).reduce(
+    (acc, [itemId, item]) => {
+      const pkg = item.package || "Default";
+      if (!acc[pkg]) {
+        acc[pkg] = [];
+      }
+      acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
+      return acc;
     },
     {}
   );
 
-  // Your existing validate function
+  // Load Razorpay script
+  useEffect(() => {
+    const loadRazorpay = async () => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => setRazorpayLoaded(true);
+      document.body.appendChild(script);
+    };
+    loadRazorpay();
+
+    return () => {
+      const script = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
+      if (script) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   const validate = () => {
     const newErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
-    }
-
-    if (!formData.phone1.trim()) {
-      newErrors.phone1 = "Primary phone number is required";
-    } else if (!/^\d{10}$/.test(formData.phone1)) {
-      newErrors.phone1 = "Enter valid 10-digit number";
-    }
-
-    if (formData.phone2 && !/^\d{10}$/.test(formData.phone2)) {
-      newErrors.phone2 = "Enter valid 10-digit number";
-    }
-
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Enter valid email address";
-    }
-
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required";
-    }
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.phone1.trim()) newErrors.phone1 = "Phone number is required";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+    if (!formData.location) newErrors.location = "Location is required";
+    if (!formData.deliveryDate)
+      newErrors.deliveryDate = "Delivery date is required";
+    if (!formData.deliveryTime)
+      newErrors.deliveryTime = "Delivery time is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const handlePaymentSuccess = async (response) => {
+    try {
+      setIsLoading(true);
+      console.log("Payment successful, response:", response);
+
+      const orderPayload = {
+        razorpay_order_id: response.razorpay_order_id,
+        paymentId: response.razorpay_payment_id,
+        amount: Math.round(totalAmount * 100),
+        customerDetails: {
+          name: formData.name.trim(),
+          phone1: formData.phone1.trim(),
+          phone2: formData.phone2?.trim() || "",
+          email: formData.email?.trim() || "",
+          address: formData.address.trim(),
+          landmark: formData.landmark?.trim() || "",
+        },
+        orderDetails: Object.entries(cart).map(([id, item]) => ({
+          name: item.details.name,
+          price: parseFloat(item.details.price.replace(/[^\d.]/g, "")),
+          quantity: parseInt(item.quantity),
+          package: item.package,
+        })),
+        coupon: appliedCoupon
+          ? {
+              code: appliedCoupon.code,
+              discount: discountAmount,
+              type: appliedCoupon.discount_type,
+            }
+          : null,
+      };
+
+      console.log("Sending order payload:", orderPayload);
+
+      const orderResponse = await fetch(
+        "https://mahaspice.desoftimp.com/ms3/payment/create_order.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderPayload),
+        }
+      );
+
+      const responseText = await orderResponse.text();
+      console.log("Raw response:", responseText);
+
+      let orderData;
+      try {
+        orderData = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      if (!orderResponse.ok) {
+        throw new Error(
+          `HTTP error! status: ${orderResponse.status}, message: ${
+            orderData.message || responseText
+          }`
+        );
+      }
+
+      if (orderData.status !== "success") {
+        throw new Error(orderData.message || "Failed to create order");
+      }
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 3000);
+    } catch (error) {
+      console.error("Error in payment success handler:", error);
+      alert(
+        `Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!validate()) return;
+
+    try {
+      setIsLoading(true);
+
+      if (!window.Razorpay) {
+        throw new Error(
+          "Razorpay SDK failed to load. Please refresh the page and try again."
+        );
+      }
+
+      const options = {
+        key: "rzp_live_Mjm1GpVqxzwjQL",
+        amount: Math.round(totalAmount * 100),
+        currency: "INR",
+        name: "Mahaspice Caterers",
+        description: appliedCoupon
+          ? `Order Payment (Coupon: ${appliedCoupon.code})`
+          : "Order Payment",
+        prefill: {
+          name: formData.name,
+          email: formData.email,
+          contact: formData.phone1,
+        },
+        handler: handlePaymentSuccess,
+        modal: {
+          ondismiss: function () {
+            setIsLoading(false);
+          },
+        },
+        theme: {
+          color: "#22c55e",
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
+    } catch (error) {
+      console.error("Payment Error:", error);
+      alert("Payment initiation failed: " + error.message);
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) {
-      setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        // Add your payment processing logic here
-      }, 2000);
-
-      console.log("Form submitted:", formData);
+    if (!razorpayLoaded) {
+      alert(
+        "Payment system is still loading. Please wait a moment and try again."
+      );
+      return;
     }
+    handlePayment();
   };
 
   const handleChange = (e) => {
@@ -110,7 +393,52 @@ const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
       [name]: value,
     }));
   };
+  // Success Modal
+  if (isSuccess) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-green-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              ></path>
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Order Successful!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Your order has been placed successfully. Redirecting to home page...
+          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
+  // Loading overlay
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Processing Your Payment
+        </h3>
+        <p className="text-sm text-gray-500 text-center">
+          Please wait while we securely process your payment
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">
@@ -207,6 +535,91 @@ const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
                 )}
               </div>
 
+              {/* Add Date Picker */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Date*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <Calendar className="ml-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="deliveryDate"
+                    value={formData.deliveryDate}
+                    onChange={handleDateChange}
+                    min={getMinDate()}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  />
+                </div>
+                {errors.deliveryDate && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.deliveryDate}
+                  </p>
+                )}
+              </div>
+
+              {/* Modified Time Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Time*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <Clock className="ml-3 h-5 w-5 text-gray-400" />
+                  <select
+                    name="deliveryTime"
+                    value={formData.deliveryTime}
+                    onChange={handleChange}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                    disabled={!formData.deliveryDate}
+                  >
+                    <option value="">Select delivery time</option>
+                    {formData.deliveryDate &&
+                      getAvailableTimeSlots().map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                {errors.deliveryTime && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.deliveryTime}
+                  </p>
+                )}
+                {formData.deliveryDate &&
+                  getAvailableTimeSlots().length === 0 && (
+                    <p className="text-red-500 text-sm mt-1">
+                      No available delivery slots for today. Please select
+                      another date.
+                    </p>
+                  )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Location*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <MapPinned className="ml-3 h-5 w-5 text-gray-400" />
+                  <select
+                    name="location"
+                    value={formData.location}
+                    onChange={handleLocationChange}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map((loc) => (
+                      <option key={loc.location} value={loc.location}>
+                        {loc.location}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.location && (
+                  <p className="text-red-500 text-sm mt-1">{errors.location}</p>
+                )}
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Address*
@@ -287,7 +700,19 @@ const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
               ))}
             </div>
           </div>
-
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Price Summary</h2>
+            <DownloadInvoice
+              formData={formData}
+              cart={cart}
+              cartTotal={cartTotal}
+              gstAmount={gstAmount}
+              deliveryCharge={deliveryCharge}
+              finalTotal={finalTotal}
+              discountAmount={discountAmount}
+              gstPercentage={gstPercentage}
+            />
+          </div>
           {/* Price Summary */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Price Summary</h2>
@@ -297,13 +722,23 @@ const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
                 <span>₹{cartTotal}</span>
               </div>
               <div className="flex justify-between text-gray-600">
-                <span>GST (18%)</span>
+                <span>GST ({gstPercentage}%)</span>
                 <span>₹{gstAmount}</span>
+              </div>
+              {calculateDiscount > 0 && (
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount</span>
+                  <span>-₹{calculateDiscount}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-gray-600">
+                <span>Delivery Charge</span>
+                <span>₹{deliveryCharge}</span>
               </div>
               <div className="border-t pt-4">
                 <div className="flex justify-between font-bold text-lg">
                   <span>Total Amount</span>
-                  <span>₹{totalAmount}</span>
+                  <span>₹{finalTotal}</span>
                 </div>
               </div>
 
@@ -318,6 +753,7 @@ const SuperfastCheckOutform = ({ cart, onBack, formData: initialFormData }) => {
           </div>
         </div>
       </div>
+
       {isLoading && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">

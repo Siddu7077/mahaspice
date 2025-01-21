@@ -541,84 +541,86 @@ const MealBox = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {/* Breakfast Menu Items */}
                   {selectedMealType === "breakfast" &&
-        (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
-          packageData.breakfast[selectedPackage]
-            .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
-            .map((item) => (
-                        <div
-                          key={item.id}
-                          className="p-4 border rounded-xl border-orange-200 bg-white"
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-48 object-cover rounded-lg mb-4"
-                          />
-                          <h3 className="font-semibold text-orange-700 mb-2">
-                            {item.name}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-4">
-                            {item.items.join(", ")}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold">{item.price}</span>
-                            {cart[item.id] ? (
-                              <div className="flex items-center gap-2">
+                    (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
+                      packageData.breakfast[selectedPackage]
+                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-4 border rounded-xl border-orange-200 bg-white"
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-48 object-cover rounded-lg mb-4"
+                            />
+                            <h3 className="font-semibold text-orange-700 mb-2">
+                              {item.name}
+                            </h3>
+                            <p className="text-gray-600 text-sm mb-4">
+                              {item.items.join(", ")}
+                            </p>
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold">
+                                {item.price}
+                              </span>
+                              {cart[item.id] ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      const newQuantity =
+                                        cart[item.id].quantity - 1;
+                                      updateQuantity(
+                                        item.id,
+                                        newQuantity < 10 && newQuantity !== 0
+                                          ? 10
+                                          : newQuantity
+                                      );
+                                    }}
+                                    className="bg-orange-500 text-white rounded-full p-1"
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <input
+                                    type="number"
+                                    value={
+                                      quantityInputs[item.id] ||
+                                      cart[item.id].quantity
+                                    }
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item.id,
+                                        e.target.value
+                                      )
+                                    }
+                                    onBlur={() => handleBlur(item.id)}
+                                    className="w-16 text-center border rounded"
+                                    min="10"
+                                    step="1"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      updateQuantity(
+                                        item.id,
+                                        cart[item.id].quantity + 1
+                                      )
+                                    }
+                                    className="bg-orange-500 text-white rounded-full p-1"
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                              ) : (
                                 <button
-                                  onClick={() => {
-                                    const newQuantity =
-                                      cart[item.id].quantity - 1;
-                                    updateQuantity(
-                                      item.id,
-                                      newQuantity < 10 && newQuantity !== 0
-                                        ? 10
-                                        : newQuantity
-                                    );
-                                  }}
-                                  className="bg-orange-500 text-white rounded-full p-1"
+                                  onClick={() => addToCart(item)}
+                                  className="px-4 py-2 bg-orange-500 text-white rounded-lg"
                                 >
-                                  <Minus size={16} />
+                                  Add
                                 </button>
-                                <input
-                                  type="number"
-                                  value={
-                                    quantityInputs[item.id] ||
-                                    cart[item.id].quantity
-                                  }
-                                  onChange={(e) =>
-                                    handleQuantityChange(
-                                      item.id,
-                                      e.target.value
-                                    )
-                                  }
-                                  onBlur={() => handleBlur(item.id)}
-                                  className="w-16 text-center border rounded"
-                                  min="10"
-                                  step="1"
-                                />
-                                <button
-                                  onClick={() =>
-                                    updateQuantity(
-                                      item.id,
-                                      cart[item.id].quantity + 1
-                                    )
-                                  }
-                                  className="bg-orange-500 text-white rounded-full p-1"
-                                >
-                                  <Plus size={16} />
-                                </button>
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => addToCart(item)}
-                                className="px-4 py-2 bg-orange-500 text-white rounded-lg"
-                              >
-                                Add
-                              </button>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        ))
                     ) : (
                       <div className="w-full text-center py-4 bg-gray-100 rounded-lg text-gray-600">
                         No packages available for this selection
@@ -627,111 +629,117 @@ const MealBox = () => {
 
                   {/* Non-Breakfast Menu Items */}
                   {selectedMealType !== "breakfast" &&
-        (packageData?.[selectedMealType]?.[selectedPackage]?.[isVeg ? "veg" : "nonVeg"]?.length > 0 ? (
-          packageData[selectedMealType][selectedPackage][isVeg ? "veg" : "nonVeg"]
-            .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
-            .map((item) => (
-                        <div
-                          key={item.id}
-                          className={`p-4 border rounded-xl bg-white ${
-                            isVeg ? "border-green-200" : "border-red-200"
-                          }`}
-                        >
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-48 object-cover rounded-lg mb-4"
-                          />
-                          <h3
-                            className={`font-semibold mb-2 ${
-                              isVeg ? "text-green-700" : "text-red-700"
+                    (packageData?.[selectedMealType]?.[selectedPackage]?.[
+                      isVeg ? "veg" : "nonVeg"
+                    ]?.length > 0 ? (
+                      packageData[selectedMealType][selectedPackage][
+                        isVeg ? "veg" : "nonVeg"
+                      ]
+                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className={`p-4 border rounded-xl bg-white ${
+                              isVeg ? "border-green-200" : "border-red-200"
                             }`}
                           >
-                            {item.name}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-4">
-                            {item.items.join(", ")}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`border-2 ${
-                                  isVeg ? "border-green-500" : "border-red-500"
-                                } p-1 rounded`}
-                              >
-                                <div
-                                  className={`w-3 h-3 rounded-full ${
-                                    isVeg ? "bg-green-500" : "bg-red-500"
-                                  }`}
-                                ></div>
-                              </div>
-                              <span className="font-semibold">
-                                {item.price}
-                              </span>
-                            </div>
-                            {cart[item.id] ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-48 object-cover rounded-lg mb-4"
+                            />
+                            <h3
+                              className={`font-semibold mb-2 ${
+                                isVeg ? "text-green-700" : "text-red-700"
+                              }`}
+                            >
+                              {item.name}
+                            </h3>
+                            <p className="text-gray-600 text-sm mb-4">
+                              {item.items.join(", ")}
+                            </p>
+                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    const newQuantity =
-                                      cart[item.id].quantity - 1;
-                                    updateQuantity(
-                                      item.id,
-                                      newQuantity < 10 && newQuantity !== 0
-                                        ? 10
-                                        : newQuantity
-                                    );
-                                  }}
-                                  className={`${
-                                    isVeg ? "bg-green-500" : "bg-red-500"
-                                  } text-white rounded-full p-1`}
+                                <div
+                                  className={`border-2 ${
+                                    isVeg
+                                      ? "border-green-500"
+                                      : "border-red-500"
+                                  } p-1 rounded`}
                                 >
-                                  <Minus size={16} />
-                                </button>
-                                <input
-                                  type="number"
-                                  value={
-                                    quantityInputs[item.id] ||
-                                    cart[item.id].quantity
-                                  }
-                                  onChange={(e) =>
-                                    handleQuantityChange(
-                                      item.id,
-                                      e.target.value
-                                    )
-                                  }
-                                  onBlur={() => handleBlur(item.id)}
-                                  className="w-16 text-center border rounded"
-                                  min="10"
-                                  step="1"
-                                />
-                                <button
-                                  onClick={() =>
-                                    updateQuantity(
-                                      item.id,
-                                      cart[item.id].quantity + 1
-                                    )
-                                  }
-                                  className={`${
-                                    isVeg ? "bg-green-500" : "bg-red-500"
-                                  } text-white rounded-full p-1`}
-                                >
-                                  <Plus size={16} />
-                                </button>
+                                  <div
+                                    className={`w-3 h-3 rounded-full ${
+                                      isVeg ? "bg-green-500" : "bg-red-500"
+                                    }`}
+                                  ></div>
+                                </div>
+                                <span className="font-semibold">
+                                  {item.price}
+                                </span>
                               </div>
-                            ) : (
-                              <button
-                                onClick={() => addToCart(item)}
-                                className={`px-4 py-2 ${
-                                  isVeg ? "bg-green-500" : "bg-red-500"
-                                } text-white rounded-lg`}
-                              >
-                                Add
-                              </button>
-                            )}
+                              {cart[item.id] ? (
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={() => {
+                                      const newQuantity =
+                                        cart[item.id].quantity - 1;
+                                      updateQuantity(
+                                        item.id,
+                                        newQuantity < 10 && newQuantity !== 0
+                                          ? 10
+                                          : newQuantity
+                                      );
+                                    }}
+                                    className={`${
+                                      isVeg ? "bg-green-500" : "bg-red-500"
+                                    } text-white rounded-full p-1`}
+                                  >
+                                    <Minus size={16} />
+                                  </button>
+                                  <input
+                                    type="number"
+                                    value={
+                                      quantityInputs[item.id] ||
+                                      cart[item.id].quantity
+                                    }
+                                    onChange={(e) =>
+                                      handleQuantityChange(
+                                        item.id,
+                                        e.target.value
+                                      )
+                                    }
+                                    onBlur={() => handleBlur(item.id)}
+                                    className="w-16 text-center border rounded"
+                                    min="10"
+                                    step="1"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      updateQuantity(
+                                        item.id,
+                                        cart[item.id].quantity + 1
+                                      )
+                                    }
+                                    className={`${
+                                      isVeg ? "bg-green-500" : "bg-red-500"
+                                    } text-white rounded-full p-1`}
+                                  >
+                                    <Plus size={16} />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => addToCart(item)}
+                                  className={`px-4 py-2 ${
+                                    isVeg ? "bg-green-500" : "bg-red-500"
+                                  } text-white rounded-lg`}
+                                >
+                                  Add
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))
+                        ))
                     ) : (
                       <div className="w-full text-center py-4 bg-gray-100 rounded-lg text-gray-600">
                         No packages available for this selection

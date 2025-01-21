@@ -12,6 +12,7 @@ import {
   Clock,
 } from "lucide-react";
 import { useAuth } from "./AuthSystem";
+import DownloadInvoice from "./DownloadInvoice";
 
 const CheckOutform = ({
   cart,
@@ -46,7 +47,9 @@ const CheckOutform = ({
   const isPastFourPM = () => {
     const now = new Date();
     const istOffset = 330; // IST offset is UTC+5:30 (330 minutes)
-    const istTime = new Date(now.getTime() + (istOffset + now.getTimezoneOffset()) * 60000);
+    const istTime = new Date(
+      now.getTime() + (istOffset + now.getTimezoneOffset()) * 60000
+    );
     return istTime.getHours() >= 16;
   };
 
@@ -56,34 +59,46 @@ const CheckOutform = ({
       // If it's past 4 PM IST, minimum date is tomorrow
       today.setDate(today.getDate() + 1);
     }
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split("T")[0];
   };
 
   const getAvailableTimeSlots = () => {
     const today = new Date();
     const selectedDate = new Date(formData.deliveryDate);
-    const isToday = selectedDate.toISOString().split('T')[0] === today.toISOString().split('T')[0];
+    const isToday =
+      selectedDate.toISOString().split("T")[0] ===
+      today.toISOString().split("T")[0];
 
     // Base time slots
     const allTimeSlots = [
-      "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM",
-      "3:00 PM", "4:00 PM", "5:00 PM", "6:00 PM", "7:00 PM"
+      "10:00 AM",
+      "11:00 AM",
+      "12:00 PM",
+      "1:00 PM",
+      "2:00 PM",
+      "3:00 PM",
+      "4:00 PM",
+      "5:00 PM",
+      "6:00 PM",
+      "7:00 PM",
     ];
 
     if (!isToday) {
       return allTimeSlots;
     }
     const istOffset = 330; // IST offset in minutes
-    const istTime = new Date(today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000);
+    const istTime = new Date(
+      today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000
+    );
     const currentHour = istTime.getHours();
     const currentMinutes = istTime.getMinutes();
 
-    return allTimeSlots.filter(slot => {
-      const [time, period] = slot.split(' ');
-      let [hours, minutes] = time.split(':');
+    return allTimeSlots.filter((slot) => {
+      const [time, period] = slot.split(" ");
+      let [hours, minutes] = time.split(":");
       hours = parseInt(hours);
-      if (period === 'PM' && hours !== 12) hours += 12;
-      if (period === 'AM' && hours === 12) hours = 0;
+      if (period === "PM" && hours !== 12) hours += 12;
+      if (period === "AM" && hours === 12) hours = 0;
 
       // Calculate if slot is at least 4 hours ahead
       const slotTotalMinutes = hours * 60;
@@ -94,18 +109,20 @@ const CheckOutform = ({
 
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
 
     if (selectedDate === today && isPastFourPM()) {
-      alert("We cannot deliver orders today after 4 PM IST. Please select another date.");
+      alert(
+        "We cannot deliver orders today after 4 PM IST. Please select another date."
+      );
       return;
     }
 
     // Clear selected time when date changes
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       deliveryDate: selectedDate,
-      deliveryTime: ""
+      deliveryTime: "",
     }));
   };
 
@@ -127,24 +144,27 @@ const CheckOutform = ({
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await fetch("https://mahaspice.desoftimp.com/ms3/displayDeloc.php");
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displayDeloc.php"
+        );
         const data = await response.json();
-        
+
         if (data.success && data.locations) {
           // Filter for box_genie service type and get unique locations with prices
           const boxGenieLocations = data.locations
-            .filter(loc => loc.service_type === "box_genie")
+            .filter((loc) => loc.service_type === "box_genie")
             .reduce((acc, loc) => {
               acc[loc.location] = {
                 location: loc.location,
-                price: parseFloat(loc.price)
+                price: parseFloat(loc.price),
               };
               return acc;
             }, {});
 
           // Convert to array and sort alphabetically
-          const sortedLocations = Object.values(boxGenieLocations)
-            .sort((a, b) => a.location.localeCompare(b.location));
+          const sortedLocations = Object.values(boxGenieLocations).sort(
+            (a, b) => a.location.localeCompare(b.location)
+          );
 
           setLocations(sortedLocations);
         }
@@ -157,14 +177,14 @@ const CheckOutform = ({
   }, []);
 
   const handleLocationChange = (e) => {
-    const selectedLocation = locations.find(loc => loc.location === e.target.value);
+    const selectedLocation = locations.find(
+      (loc) => loc.location === e.target.value
+    );
     setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
     handleChange(e);
   };
 
-  
   const finalTotal = totalAmount + deliveryCharge;
-
 
   // Pre-fill form with user data
   useEffect(() => {
@@ -219,13 +239,14 @@ const CheckOutform = ({
     if (!formData.phone1.trim()) newErrors.phone1 = "Phone number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.location) newErrors.location = "Location is required";
-    if (!formData.deliveryDate) newErrors.deliveryDate = "Delivery date is required";
-    if (!formData.deliveryTime) newErrors.deliveryTime = "Delivery time is required";
+    if (!formData.deliveryDate)
+      newErrors.deliveryDate = "Delivery date is required";
+    if (!formData.deliveryTime)
+      newErrors.deliveryTime = "Delivery time is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
 
   const handlePaymentSuccess = async (response) => {
     try {
@@ -378,12 +399,26 @@ const CheckOutform = ({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+            <svg
+              className="w-8 h-8 text-green-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              ></path>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Order Successful!</h2>
-          <p className="text-gray-600 mb-6">Your order has been placed successfully. Redirecting to home page...</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Order Successful!
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Your order has been placed successfully. Redirecting to home page...
+          </p>
           <div className="animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent mx-auto"></div>
         </div>
       </div>
@@ -404,7 +439,6 @@ const CheckOutform = ({
       </div>
     </div>
   );
-
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">
@@ -501,8 +535,6 @@ const CheckOutform = ({
                 )}
               </div>
 
-              
-
               {/* Add Date Picker */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -520,7 +552,9 @@ const CheckOutform = ({
                   />
                 </div>
                 {errors.deliveryDate && (
-                  <p className="text-red-500 text-sm mt-1">{errors.deliveryDate}</p>
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.deliveryDate}
+                  </p>
                 )}
               </div>
 
@@ -539,21 +573,26 @@ const CheckOutform = ({
                     disabled={!formData.deliveryDate}
                   >
                     <option value="">Select delivery time</option>
-                    {formData.deliveryDate && getAvailableTimeSlots().map((time) => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
+                    {formData.deliveryDate &&
+                      getAvailableTimeSlots().map((time) => (
+                        <option key={time} value={time}>
+                          {time}
+                        </option>
+                      ))}
                   </select>
                 </div>
                 {errors.deliveryTime && (
-                  <p className="text-red-500 text-sm mt-1">{errors.deliveryTime}</p>
-                )}
-                {formData.deliveryDate && getAvailableTimeSlots().length === 0 && (
                   <p className="text-red-500 text-sm mt-1">
-                    No available delivery slots for today. Please select another date.
+                    {errors.deliveryTime}
                   </p>
                 )}
+                {formData.deliveryDate &&
+                  getAvailableTimeSlots().length === 0 && (
+                    <p className="text-red-500 text-sm mt-1">
+                      No available delivery slots for today. Please select
+                      another date.
+                    </p>
+                  )}
               </div>
 
               <div>
@@ -580,7 +619,6 @@ const CheckOutform = ({
                   <p className="text-red-500 text-sm mt-1">{errors.location}</p>
                 )}
               </div>
-
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -662,7 +700,19 @@ const CheckOutform = ({
               ))}
             </div>
           </div>
-
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Price Summary</h2>
+            <DownloadInvoice
+              formData={formData}
+              cart={cart}
+              cartTotal={cartTotal}
+              gstAmount={gstAmount}
+              deliveryCharge={deliveryCharge}
+              finalTotal={finalTotal}
+              discountAmount={discountAmount}
+              gstPercentage={gstPercentage}
+            />
+          </div>
           {/* Price Summary */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Price Summary</h2>
@@ -676,11 +726,11 @@ const CheckOutform = ({
                 <span>₹{gstAmount}</span>
               </div>
               {calculateDiscount > 0 && (
-              <div className="flex justify-between text-sm text-green-600">
-                <span>Discount</span>
-                <span>-₹{calculateDiscount}</span>
-              </div>
-            )}
+                <div className="flex justify-between text-sm text-green-600">
+                  <span>Discount</span>
+                  <span>-₹{calculateDiscount}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-600">
                 <span>Delivery Charge</span>
                 <span>₹{deliveryCharge}</span>
@@ -703,6 +753,7 @@ const CheckOutform = ({
           </div>
         </div>
       </div>
+
       {isLoading && (
         <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">

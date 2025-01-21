@@ -61,6 +61,7 @@ import AuthSystem from "./AuthSystem";
 import ProfilePage from "./ProfilePage";
 import UserDropdown from "./UserDropdown";
 import DesignMenu from "./DesignMenu";
+import SuperfastMeal from "./SuperfastMeal";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -95,6 +96,7 @@ const Navbar = () => {
     { path: "/superfast", element: <MealOrderForm /> },
     { path: "/login", element: <AuthSystem /> },
     { path: "/profile", element: <ProfilePage /> },
+    { path: "/superfastmeal", element: <SuperfastMeal /> },
     { path: "/events/personalized-menu", element: <DesignMenu /> },
     {
       path: "/events/:eventType/:serviceType/Menu/:menuType",
