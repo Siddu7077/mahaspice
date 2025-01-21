@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, Users } from 'lucide-react';
 import SuperfastMealBox from './SuperfastMeal';
 import SuperfastDeliveryMenu from './SuperfastDelbox';
-
+import { useAuth } from './AuthSystem'; // Import useAuth hook
 const Superfast = () => {
+  const { user } = useAuth(); // Get user from auth context
   const [formData, setFormData] = useState({
     name: '',
-    phone1: '',  // Changed from 'phone' to 'phone1' to match checkout form
+    phone1: '',
     email: '',
     date: '',
     time: '',
@@ -22,20 +23,32 @@ const Superfast = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [locationError, setLocationError] = useState(false);
 
-  // Set minimum date when component mounts
+  // Set minimum date and prefill user data when component mounts
   useEffect(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const minDateStr = tomorrow.toISOString().split('T')[0];
     setMinDate(minDateStr);
 
-    // Set default date to tomorrow
-    setFormData(prev => ({
-      ...prev,
-      date: minDateStr
-    }));
-  }, []);
+    // Pre-fill form with user data if available
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: user.name || '',
+        phone1: user.phone || '',
+        email: user.email || '',
+        date: minDateStr,
+        location: user.address || '' // You might want to parse this to match serviceable areas
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        date: minDateStr
+      }));
+    }
+  }, [user]); // Added user as dependency
 
+  // Rest of your existing code remains the same
   const serviceableAreas = [
     'hitech city',
     'madhapur',
@@ -67,14 +80,13 @@ const Superfast = () => {
       return;
     }
 
-    // Transform the form data to match SuperfastDelboxCheckout's expected format
     const transformedFormData = {
       name: formData.name,
-      phone1: formData.phone,  // Map phone to phone1
+      phone1: formData.phone,
       email: formData.email,
       date: formData.date,
       time: formData.time,
-      address: formData.location,  // Map location to address
+      address: formData.location,
       guestCount: parseInt(formData.guestCount),
     };
 
@@ -191,7 +203,7 @@ const Superfast = () => {
             <input
               type="tel"
               name="phone"
-              value={formData.phone}
+              value={formData.phone1}
               onChange={handleInputChange}
               className="w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
               required
