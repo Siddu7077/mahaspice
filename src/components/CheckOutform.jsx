@@ -501,30 +501,7 @@ const CheckOutform = ({
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Delivery Location*
-                </label>
-                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
-                  <MapPinned className="ml-3 h-5 w-5 text-gray-400" />
-                  <select
-                    name="location"
-                    value={formData.location}
-                    onChange={handleLocationChange}
-                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
-                  >
-                    <option value="">Select a location</option>
-                    {locations.map((loc) => (
-                      <option key={loc.location} value={loc.location}>
-                        {loc.location} (₹{loc.price} delivery)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {errors.location && (
-                  <p className="text-red-500 text-sm mt-1">{errors.location}</p>
-                )}
-              </div>
+              
 
               {/* Add Date Picker */}
               <div>
@@ -576,6 +553,31 @@ const CheckOutform = ({
                   <p className="text-red-500 text-sm mt-1">
                     No available delivery slots for today. Please select another date.
                   </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Location*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <MapPinned className="ml-3 h-5 w-5 text-gray-400" />
+                  <select
+                    name="location"
+                    value={formData.location}
+                    onChange={handleLocationChange}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  >
+                    <option value="">Select a location</option>
+                    {locations.map((loc) => (
+                      <option key={loc.location} value={loc.location}>
+                        {loc.location}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.location && (
+                  <p className="text-red-500 text-sm mt-1">{errors.location}</p>
                 )}
               </div>
 

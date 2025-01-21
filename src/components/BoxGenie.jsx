@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Coffee, Sun, Moon, Plus, Minus, Trash2, X } from "lucide-react";
 import CheckOutform from "./CheckOutform";
 import ScrollToTop from "./ScrollToTop";
-import { useAuth } from './AuthSystem';
+import { useAuth } from "./AuthSystem";
 
 // Keeping the existing helper functions
 const transformApiData = (apiData) => {
@@ -220,7 +220,6 @@ const MealBox = () => {
 
   const getAvailablePackages = () => {
     if (!packageData) return [];
-
     return Object.keys(packageData[selectedMealType])
       .filter((pkg) => {
         if (selectedMealType === "breakfast") {
@@ -233,7 +232,7 @@ const MealBox = () => {
           }
         }
       })
-      .sort((a, b) => b.localeCompare(a)); // Sort in descending order
+      .sort((a, b) => a.localeCompare(b)); // Changed to sort in ascending order
   };
 
   const addToCart = (item) => {
@@ -299,25 +298,23 @@ const MealBox = () => {
   const { user } = useAuth();
 
   const handleCheckout = () => {
-  
     if (Object.keys(cart).length === 0) {
       alert("Your cart is empty!");
       return;
     }
-  
+
     if (!user) {
       // Store current path for redirect after login
       const currentPath = window.location.pathname;
-      localStorage.setItem('checkoutRedirect', currentPath);
-      
+      localStorage.setItem("checkoutRedirect", currentPath);
+
       if (confirm("Please login before going to Checkout")) {
-        window.location.href = '/login';
+        window.location.href = "/login";
       } else {
         return;
       }
     }
-    
-  
+
     // If we get here, cart is not empty and user is logged in
     setShowCheckout(true);
   };
@@ -398,11 +395,6 @@ const MealBox = () => {
       />
     );
   }
-
- 
-
-  
-
 
   const availablePackages = getAvailablePackages();
 
@@ -506,7 +498,12 @@ const MealBox = () => {
           {/* Left Column - 80% */}
           <div className="col-span-5">
             {/* Package Buttons Row */}
-            <div className="flex gap-4 mb-6 overflow-x-auto pb-4">
+            <div className="text-left py-2">
+              <p className="text-gray-600 font-semibold text-lg">
+                Please select a package to view available items
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {availablePackages.length > 0 ? (
                 availablePackages
                   .sort((a, b) => a.localeCompare(b)) // Sort in ascending order
@@ -523,7 +520,7 @@ const MealBox = () => {
                       <img
                         src={getPackageImage(pkg)}
                         alt={`${pkg} Package`}
-                        className="w-24 h-auto mb-2 rounded"
+                        className="w-44 h-auto mb-2 rounded"
                       />
                       <span className="whitespace-nowrap">{pkg} Package</span>
                     </button>
@@ -542,9 +539,12 @@ const MealBox = () => {
                   {selectedMealType} for {selectedPackage}
                 </h1>
                 <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Breakfast Menu Items */}
                   {selectedMealType === "breakfast" &&
-                    (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
-                      packageData.breakfast[selectedPackage].map((item) => (
+        (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
+          packageData.breakfast[selectedPackage]
+            .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+            .map((item) => (
                         <div
                           key={item.id}
                           className="p-4 border rounded-xl border-orange-200 bg-white"
@@ -625,13 +625,12 @@ const MealBox = () => {
                       </div>
                     ))}
 
+                  {/* Non-Breakfast Menu Items */}
                   {selectedMealType !== "breakfast" &&
-                    (packageData?.[selectedMealType]?.[selectedPackage]?.[
-                      isVeg ? "veg" : "nonVeg"
-                    ]?.length > 0 ? (
-                      packageData[selectedMealType][selectedPackage][
-                        isVeg ? "veg" : "nonVeg"
-                      ].map((item) => (
+        (packageData?.[selectedMealType]?.[selectedPackage]?.[isVeg ? "veg" : "nonVeg"]?.length > 0 ? (
+          packageData[selectedMealType][selectedPackage][isVeg ? "veg" : "nonVeg"]
+            .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+            .map((item) => (
                         <div
                           key={item.id}
                           className={`p-4 border rounded-xl bg-white ${
@@ -742,9 +741,9 @@ const MealBox = () => {
               </>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-600 text-lg">
-                  Please select a package to view available items
-                </p>
+                {/* <p className="text-gray-600 text-lg">
+      Please select a package to view available items
+    </p> */}
               </div>
             )}
           </div>
