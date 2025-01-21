@@ -180,7 +180,6 @@ const AuthSystem = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('phone', formData.phone);
       formDataToSend.append('otp', formData.otp);
-  
       const response = await fetch(`${API_BASE_URL}/verify-otp.php`, {
         method: 'POST',
         body: formDataToSend,
@@ -198,7 +197,7 @@ const AuthSystem = () => {
           signupFormData.append('name', formData.name);
           signupFormData.append('phone', formData.phone);
           signupFormData.append('address', formData.address);
-
+  
           const signupResponse = await fetch(`${API_BASE_URL}/signup.php`, {
             method: 'POST',
             body: signupFormData,
@@ -238,7 +237,15 @@ const AuthSystem = () => {
           if (userDetails.success) {
             // Store complete user information in context
             login(userDetails.user);
-            window.location.href = '/';
+            
+            // Check if there was a checkout redirect
+            const checkoutRedirect = localStorage.getItem('checkoutRedirect');
+            if (checkoutRedirect) {
+              localStorage.removeItem('checkoutRedirect'); // Clean up
+              window.location.href = checkoutRedirect;
+            } else {
+              window.location.href = '/';
+            }
           } else {
             setError('Failed to fetch user details. Please try again.');
           }

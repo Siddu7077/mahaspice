@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Coffee, Sun, Moon, Plus, Minus, Trash2, X } from "lucide-react";
 import CheckOutform from "./CheckOutform";
 import ScrollToTop from "./ScrollToTop";
+import { useAuth } from './AuthSystem';
 
 // Keeping the existing helper functions
 const transformApiData = (apiData) => {
@@ -295,11 +296,29 @@ const MealBox = () => {
   //   return Math.round(calculateCartTotal() * 0.18);
   // };
 
+  const { user } = useAuth();
+
   const handleCheckout = () => {
+  
     if (Object.keys(cart).length === 0) {
       alert("Your cart is empty!");
       return;
     }
+  
+    if (!user) {
+      // Store current path for redirect after login
+      const currentPath = window.location.pathname;
+      localStorage.setItem('checkoutRedirect', currentPath);
+      
+      if (confirm("Please login before going to Checkout")) {
+        window.location.href = '/login';
+      } else {
+        return;
+      }
+    }
+    
+  
+    // If we get here, cart is not empty and user is logged in
     setShowCheckout(true);
   };
 
