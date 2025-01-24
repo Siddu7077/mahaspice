@@ -8,22 +8,30 @@ import { useAuth } from "./AuthSystem";
 
 // Keeping the existing helper functions
 const transformApiData = (apiData) => {
+  // Filter superfast items first
+  const superfastItems = apiData.filter(item => item.is_superfast === "No");
+  
+  // Get unique CP types from filtered items
   const cpTypes = [
-    ...new Set(apiData.map((item) => item.cp_type.toUpperCase())),
+    ...new Set(superfastItems.map((item) => item.cp_type.toUpperCase())),
   ];
+
+  // Initialize the transformed data structure
   const transformed = {
     breakfast: {},
     lunch: {},
     dinner: {},
   };
 
+  // Initialize the structure for each CP type
   cpTypes.forEach((cpType) => {
     transformed.breakfast[cpType] = [];
     transformed.lunch[cpType] = { veg: [], nonVeg: [] };
     transformed.dinner[cpType] = { veg: [], nonVeg: [] };
   });
 
-  apiData.forEach((item) => {
+  // Transform only the superfast items
+  superfastItems.forEach((item) => {
     const mealTime = item.meal_time.toLowerCase();
     const cpType = item.cp_type.toUpperCase();
     const isVeg = item.veg_non_veg === "Veg";
@@ -35,9 +43,11 @@ const transformApiData = (apiData) => {
       items: item.description.split(","),
       price: `₹${item.price}`,
       rating: 4.5,
-      time: item.is_superfast === "Yes" ? "30 mins" : "45 mins",
+      time: "30 mins", // Since we're only including superfast items
+      isSuperfast: true
     };
 
+    // Sort into appropriate category
     if (mealTime === "breakfast") {
       transformed.breakfast[cpType].push(transformedItem);
     } else {
