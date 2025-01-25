@@ -85,7 +85,7 @@ const SuperfastMeal = () => {
   const [selectedPackage, setSelectedPackage] = useState("");
   const [isVeg, setIsVeg] = useState(true);
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("mealCart");
+    const savedCart = localStorage.getItem("superFastMeal");
     return savedCart ? JSON.parse(savedCart) : {};
   });
   const [showCheckout, setShowCheckout] = useState(false);
@@ -157,11 +157,11 @@ const SuperfastMeal = () => {
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("mealCart", JSON.stringify(cart));
+    localStorage.setItem("superFastMeal", JSON.stringify(cart));
   }, [cart]);
 
   const [quantityInputs, setQuantityInputs] = useState(() => {
-    const savedCart = JSON.parse(localStorage.getItem("mealCart") || "{}");
+    const savedCart = JSON.parse(localStorage.getItem("superFastMeal") || "{}");
     return Object.keys(savedCart).reduce(
       (acc, itemId) => ({
         ...acc,

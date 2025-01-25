@@ -18,16 +18,27 @@ const Platinum = () => {
   const [showAlert, setShowAlert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [crpbPrices, setCrpbPrices] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        
+        // Fetch CRPB prices first
+        const crpbResponse = await axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php');
+        const platinumPackage = crpbResponse.data.find(pkg => pkg.name === "Platinum");
+        if (platinumPackage) {
+          setCrpbPrices({
+            vegPrice: parseFloat(platinumPackage.veg_price),
+            nonvegPrice: parseFloat(platinumPackage.nonveg_price)
+          });
+        }
+
         const itemsResponse = await axios.get('https://mahaspice.desoftimp.com/ms3/getsf_items.php');
         const categoriesResponse = await axios.get('https://mahaspice.desoftimp.com/ms3/getsf_categories.php');
 
         if (itemsResponse.data.success) {
-          // Filter items with type 'platinum'
           const platinumItems = itemsResponse.data.items.filter(item => {
             const category = categoriesResponse.data.categories.find(cat => cat.id === item.category_id);
             return category && category.type === 'platinum';
@@ -66,6 +77,7 @@ const Platinum = () => {
 
     fetchData();
   }, []);
+
   
 
   const handleMenuPreferenceChange = (preference) => {
@@ -154,9 +166,12 @@ const Platinum = () => {
   };
 
   const calculateTotal = () => {
-    // Placeholder calculation - adjust as per your pricing logic
-    const basePrice = 800; // Base price per plate
-    const extraItemPrice = selectedItems.length * 100; // Example extra item pricing
+    if (!crpbPrices) return 0;
+
+    const basePrice = menuPreference === "veg" 
+      ? crpbPrices.vegPrice 
+      : crpbPrices.nonvegPrice;
+    const extraItemPrice = selectedItems.length * 100;
     const deliveryCharge = 500;
     return (basePrice * guestCount) + extraItemPrice + deliveryCharge;
   };
@@ -166,16 +181,18 @@ const Platinum = () => {
 
   return (
     <div className="min-h-screen bg-aliceBlue grid grid-cols-3 gap-1">
-      <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
-        {/* Header */}
-        <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex gap-6 items-center">
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-              <h1 className="text-3xl font-bold text-gray-800">Platinum Menu</h1>
-              <span className="text-gray-600">Base Price:</span>
-              <span className="text-2xl font-bold text-blue-600">₹800</span>
-              <span className="text-gray-600">per plate</span>
-            </div>
+    {/* Header section */}
+    <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
+      <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex gap-6 items-center">
+          <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
+            <h1 className="text-3xl font-bold text-gray-800">Platinum Menu</h1>
+            <span className="text-gray-600">Base Price:</span>
+            <span className="text-2xl font-bold text-blue-600">
+              ₹{crpbPrices ? (menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice) : 'Loading...'}
+            </span>
+            <span className="text-gray-600">per plate</span>
+          </div>
 
             <div className="flex gap-2">
               <button
@@ -401,11 +418,13 @@ const Platinum = () => {
 
           <div className="border-t pt-4 mb-6">
             <div className="space-y-2">
-              <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-gray-600">
                 <span>
-                  Plate Cost (₹1000 × {guestCount})
+                  Plate Cost (₹{crpbPrices ? (menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice) : 'Loading...'} × {guestCount})
                 </span>
-                <span>₹{(1000 * guestCount).toFixed(2)}</span>
+                <span>
+                  ₹{crpbPrices ? (crpbPrices[menuPreference + 'Price'] * guestCount).toFixed(2) : 'Loading...'}
+                </span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Extra Items</span>

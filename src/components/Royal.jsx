@@ -18,39 +18,26 @@ const Royal = () => {
   const [showAlert, setShowAlert] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pricingData, setPricingData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [itemsResponse, categoriesResponse] = await Promise.all([
+        const [itemsResponse, categoriesResponse, pricingResponse] = await Promise.all([
           axios.get('https://mahaspice.desoftimp.com/ms3/getsf_items.php'),
-          axios.get('https://mahaspice.desoftimp.com/ms3/getsf_categories.php')
+          axios.get('https://mahaspice.desoftimp.com/ms3/getsf_categories.php'),
+          axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php')
         ]);
 
-        console.log('Full Items Response:', itemsResponse.data);
-        console.log('Full Categories Response:', categoriesResponse.data);
-
-        if (!itemsResponse.data || !itemsResponse.data.items) {
-          throw new Error('No items data received');
-        }
-
-        if (!categoriesResponse.data || !categoriesResponse.data.categories) {
-          throw new Error('No categories data received');
-        }
-
-        // Find Royal categories first
+        // Existing items and categories processing...
         const royalCategories = categoriesResponse.data.categories.filter(
           cat => cat.type.toLowerCase() === 'royal'
         );
 
-        // Filter items based on Royal categories
         const royalItems = itemsResponse.data.items.filter(item => 
           royalCategories.some(cat => cat.id === item.category_id)
         );
-
-        console.log('Royal Categories:', royalCategories);
-        console.log('Royal Items:', royalItems);
 
         const mappedItems = royalItems.map(item => ({
           id: item.id,
@@ -69,6 +56,13 @@ const Royal = () => {
 
         setItems(mappedItems);
         setCategories(mappedCategories);
+
+        // Process pricing data
+        if (pricingResponse.data) {
+          const royalPricing = pricingResponse.data.find(item => item.name === "Royal");
+          setPricingData(royalPricing);
+        }
+
         setError(null);
       } catch (err) {
         console.error("Comprehensive Error:", err);
@@ -168,11 +162,34 @@ const Royal = () => {
   };
 
   const calculateTotal = () => {
-    // Placeholder calculation - adjust as per your pricing logic
-    const basePrice = 600; // Base price per plate
+    if (!pricingData) return 0;
+
+    const basePrice = menuPreference === 'veg' 
+      ? parseFloat(pricingData.veg_price) 
+      : parseFloat(pricingData.nonveg_price);
+    
     const extraItemPrice = selectedItems.length * 100; // Example extra item pricing
     const deliveryCharge = 500;
+    
     return (basePrice * guestCount) + extraItemPrice + deliveryCharge;
+  };
+
+  // Update the header to show dynamic pricing
+  const renderPriceHeader = () => {
+    if (!pricingData) return null;
+
+    return (
+      <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
+        <h1 className="text-3xl font-bold text-gray-800">Royal Menu</h1>
+        <span className="text-gray-600">Base Price:</span>
+        <span className="text-2xl font-bold text-blue-600">
+          ₹{menuPreference === 'veg' 
+            ? pricingData.veg_price 
+            : pricingData.nonveg_price}
+        </span>
+        <span className="text-gray-600">per plate</span>
+      </div>
+    );
   };
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
@@ -180,41 +197,36 @@ const Royal = () => {
 
   return (
     <div className="min-h-screen bg-aliceBlue grid grid-cols-3 gap-1">
-      <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
-        {/* Header */}
-        <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex gap-6 items-center">
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-              <h1 className="text-3xl font-bold text-gray-800">Royal Menu</h1>
-              <span className="text-gray-600">Base Price:</span>
-              <span className="text-2xl font-bold text-blue-600">₹600</span>
-              <span className="text-gray-600">per plate</span>
-            </div>
+    <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
+      {/* Header */}
+      <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div className="flex gap-6 items-center">
+          {renderPriceHeader()}
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleMenuPreferenceChange("veg")}
-                className={`px-4 py-2 rounded-lg ${
-                  menuPreference === "veg"
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                Veg
-              </button>
-              <button
-                onClick={() => handleMenuPreferenceChange("nonveg")}
-                className={`px-4 py-2 rounded-lg ${
-                  menuPreference === "nonveg"
-                    ? "bg-red-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                Non-Veg
-              </button>
-            </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleMenuPreferenceChange("veg")}
+              className={`px-4 py-2 rounded-lg ${
+                menuPreference === "veg"
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Veg
+            </button>
+            <button
+              onClick={() => handleMenuPreferenceChange("nonveg")}
+              className={`px-4 py-2 rounded-lg ${
+                menuPreference === "nonveg"
+                  ? "bg-red-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              Non-Veg
+            </button>
           </div>
         </div>
+      </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
           {getSortedCategories().map((category) => {
@@ -415,11 +427,19 @@ const Royal = () => {
 
           <div className="border-t pt-4 mb-6">
             <div className="space-y-2">
-              <div className="flex justify-between text-gray-600">
+            <div className="flex justify-between text-gray-600">
                 <span>
-                  Plate Cost (₹1000 × {guestCount})
+                  Plate Cost (₹{menuPreference === 'veg' 
+                    ? pricingData?.veg_price 
+                    : pricingData?.nonveg_price} × {guestCount})
                 </span>
-                <span>₹{(1000 * guestCount).toFixed(2)}</span>
+                <span>
+                  ₹{pricingData 
+                    ? (parseFloat(menuPreference === 'veg' 
+                        ? pricingData.veg_price 
+                        : pricingData.nonveg_price) * guestCount).toFixed(2)
+                    : '0.00'}
+                </span>
               </div>
               <div className="flex justify-between text-gray-600">
                 <span>Extra Items</span>
@@ -437,13 +457,6 @@ const Royal = () => {
           </div>
 
           <div className="space-y-3">
-            <button
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            >
-              <ShoppingCart size={20} />
-              Add to Cart
-            </button>
-
             <button
               className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
             >

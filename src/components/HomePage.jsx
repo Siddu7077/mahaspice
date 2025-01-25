@@ -20,7 +20,7 @@ const HomePage = () => {
   return (
     <div className="bg-aliceBlue text-black font-sans">
       <ScrollToTop />
-      <SocialIcons />
+      {/* <SocialIcons /> */}
       <CateringCarousel />
       <SectionTwo/>
       <SectionThree/>
