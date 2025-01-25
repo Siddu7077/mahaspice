@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import SuperFastMeal from './SuperFastMeal'; // Import the specific component
+import SuperFastMeal from './SuperfastMeal'; // Import the specific component
 import Classic from './Classic';
 import Royal from './Royal';
 import Platinum from './Platinum';
