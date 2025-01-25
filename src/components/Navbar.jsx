@@ -62,6 +62,7 @@ import ProfilePage from "./ProfilePage";
 import UserDropdown from "./UserDropdown";
 import DesignMenu from "./DesignMenu";
 import SuperfastMeal from "./SuperfastMeal";
+import Developers from "./Developers";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -74,6 +75,7 @@ const Navbar = () => {
   const routing = useRoutes([
     { path: "/", element: <HomePage /> },
     { path: "/superfast", element: <Superfast /> },
+    { path: "/developers", element: <Developers /> },
     { path: "/about", element: <About /> },
     { path: "/contact", element: <ContactForm /> },
     { path: "/feedback", element: <FeedbackForm /> },

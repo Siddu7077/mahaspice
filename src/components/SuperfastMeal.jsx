@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Coffee, Sun, Moon, Plus, Minus, Trash2, X } from "lucide-react";
-import CheckOutform from "./CheckOutform";
+import SuperfastCheckOutform from "./SuperfastMealCheckOut";
 import ScrollToTop from "./ScrollToTop";
 import { useAuth } from "./AuthSystem";
-import SuperfastCheckOutform from "./SuperfastMealCheckOut";
+
 
 // Keeping the existing helper functions
 const transformApiData = (apiData) => {
@@ -100,7 +100,7 @@ const SuperfastMeal = () => {
     return calculateCartTotal() - calculateDiscount() + calculateGST();
   };
 
-  const serviceType = window.location.pathname === "/box" ? "box_genie" : "";
+  const serviceType = window.location.pathname === "/superfast" ? "superfast" : "";
 
   useEffect(() => {
     // Fetch GST data
