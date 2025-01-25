@@ -18,7 +18,7 @@ const Superfast = () => {
       'Classic': Classic,
       'Royal': Royal,
       'Platinum': Platinum,
-      // Add more mappings as needed
+    
     };
 
     return componentMap[serviceName] || null;

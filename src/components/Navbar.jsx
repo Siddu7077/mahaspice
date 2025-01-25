@@ -89,6 +89,7 @@ const Navbar = () => {
     { path: "/terms-conditions", element: <TermsConditions /> },
     { path: "/return-policy", element: <ReturnPolicy /> },
     { path: "/checkoutform", element: <CheckOutform /> },
+    
     {
       path: "/events/:eventType/:serviceType/Menu/:categoryName/order",
       element: <MenuOrder />,

@@ -47,6 +47,7 @@ const App = () => {
         <Layout>
           <Routes>
             <Route path="/developers" element={<Developers />} />
+            
             {/* Add other routes here */}
           </Routes>
         </Layout>
