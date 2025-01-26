@@ -21,47 +21,71 @@ const Platinum = () => {
   const [crpbPrices, setCrpbPrices] = useState(null);
 
   useEffect(() => {
+    const storedSelectedItems = localStorage.getItem("selectedPlatinumItems");
+    const storedMenuPreference = localStorage.getItem("platinumMenuPreference");
+
+    if (storedSelectedItems) {
+      setSelectedItems(JSON.parse(storedSelectedItems));
+    }
+    if (storedMenuPreference) {
+      setMenuPreference(storedMenuPreference);
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch CRPB prices first
-        const crpbResponse = await axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php');
-        const platinumPackage = crpbResponse.data.find(pkg => pkg.name === "Platinum");
+        const crpbResponse = await axios.get(
+          "https://mahaspice.desoftimp.com/ms3/getcrpb.php"
+        );
+        const platinumPackage = crpbResponse.data.find(
+          (pkg) => pkg.name === "Platinum"
+        );
         if (platinumPackage) {
           setCrpbPrices({
             vegPrice: parseFloat(platinumPackage.veg_price),
-            nonvegPrice: parseFloat(platinumPackage.nonveg_price)
+            nonvegPrice: parseFloat(platinumPackage.nonveg_price),
           });
         }
 
-        const itemsResponse = await axios.get('https://mahaspice.desoftimp.com/ms3/getsf_items.php');
-        const categoriesResponse = await axios.get('https://mahaspice.desoftimp.com/ms3/getsf_categories.php');
+        const itemsResponse = await axios.get(
+          "https://mahaspice.desoftimp.com/ms3/getsf_items.php"
+        );
+        const categoriesResponse = await axios.get(
+          "https://mahaspice.desoftimp.com/ms3/getsf_categories.php"
+        );
 
         if (itemsResponse.data.success) {
-          const platinumItems = itemsResponse.data.items.filter(item => {
-            const category = categoriesResponse.data.categories.find(cat => cat.id === item.category_id);
-            return category && category.type === 'platinum';
+          const platinumItems = itemsResponse.data.items.filter((item) => {
+            const category = categoriesResponse.data.categories.find(
+              (cat) => cat.id === item.category_id
+            );
+            return category && category.type === "platinum";
           });
 
-          const mappedItems = platinumItems.map(item => ({
+          const mappedItems = platinumItems.map((item) => ({
             ...item,
             id: item.id,
             name: item.item_name,
-            is_veg: item.is_veg === 'veg' ? '1' : '0',
+            is_veg: item.is_veg === "veg" ? "1" : "0",
             category_id: item.category_id,
-            price: item.item_price
+            price: parseFloat(item.item_price) || 0,
           }));
           setItems(mappedItems);
         }
 
         if (categoriesResponse.data.success) {
-          const platinumCategories = categoriesResponse.data.categories.filter(cat => cat.type === 'platinum');
-          const mappedCategories = platinumCategories.map(cat => ({
+          const platinumCategories = categoriesResponse.data.categories.filter(
+            (cat) => cat.type === "platinum"
+          );
+          const mappedCategories = platinumCategories.map((cat) => ({
             ...cat,
             name: cat.category,
             id: cat.id,
-            position: cat.position
+            position: cat.position,
           }));
           setCategories(mappedCategories);
         }
@@ -78,7 +102,13 @@ const Platinum = () => {
     fetchData();
   }, []);
 
-  
+  useEffect(() => {
+    localStorage.setItem(
+      "selectedPlatinumItems",
+      JSON.stringify(selectedItems)
+    );
+    localStorage.setItem("platinumMenuPreference", menuPreference);
+  }, [selectedItems, menuPreference]);
 
   const handleMenuPreferenceChange = (preference) => {
     setMenuPreference(preference);
@@ -86,19 +116,23 @@ const Platinum = () => {
   };
 
   const getSortedCategories = () => {
-    const filteredItems = items.filter(item => 
+    const filteredItems = items.filter((item) =>
       menuPreference === "nonveg" ? true : item.is_veg === "1"
     );
-    
+
     const uniqueCategories = [
-      ...new Set(filteredItems.map((item) => 
-        categories.find(cat => cat.id === item.category_id)?.name || "Uncategorized"
-      ))
+      ...new Set(
+        filteredItems.map(
+          (item) =>
+            categories.find((cat) => cat.id === item.category_id)?.name ||
+            "Uncategorized"
+        )
+      ),
     ];
 
     return uniqueCategories.sort((a, b) => {
-      const catA = categories.find(cat => cat.name === a);
-      const catB = categories.find(cat => cat.name === b);
+      const catA = categories.find((cat) => cat.name === a);
+      const catB = categories.find((cat) => cat.name === b);
       const posA = catA ? parseInt(catA.position) || 0 : 0;
       const posB = catB ? parseInt(catB.position) || 0 : 0;
       return posA - posB;
@@ -110,7 +144,7 @@ const Platinum = () => {
     if (value === "" || /^\d+$/.test(value)) {
       setInputValue(value);
       const numValue = parseInt(value);
-      if (!isNaN(numValue) && numValue >= 10) {
+      if (!isNaN(numValue) && numValue >= 10 && numValue <= 100) {
         setGuestCount(numValue);
       }
     }
@@ -121,16 +155,34 @@ const Platinum = () => {
     if (isNaN(numValue) || numValue < 10) {
       setInputValue("10");
       setGuestCount(10);
+    } else if (numValue > 100) {
+      setInputValue("100");
+      setGuestCount(100);
     }
   };
 
+  const handleIncrementGuests = () => {
+    if (guestCount < 100) {
+      const newGuestCount = guestCount + 1;
+      setGuestCount(newGuestCount);
+      setInputValue(newGuestCount.toString());
+    }
+  };
 
+  const handleDecrementGuests = () => {
+    if (guestCount > 10) {
+      const newGuestCount = guestCount - 1;
+      setGuestCount(newGuestCount);
+      setInputValue(newGuestCount.toString());
+    }
+  };
 
   const handleItemSelectWithConfirmation = (item) => {
-    const maxSelectionPerCategory = 3; // Adjust as needed
+    const maxSelectionPerCategory = 3;
     const categoryItems = selectedItems.filter(
-      selected => categories.find(cat => cat.id === selected.category_id)?.name === 
-                  categories.find(cat => cat.id === item.category_id)?.name
+      (selected) =>
+        categories.find((cat) => cat.id === selected.category_id)?.name ===
+        categories.find((cat) => cat.id === item.category_id)?.name
     );
 
     if (selectedItems.some((selected) => selected.id === item.id)) {
@@ -168,12 +220,22 @@ const Platinum = () => {
   const calculateTotal = () => {
     if (!crpbPrices) return 0;
 
-    const basePrice = menuPreference === "veg" 
-      ? crpbPrices.vegPrice 
-      : crpbPrices.nonvegPrice;
-    const extraItemPrice = selectedItems.length * 100;
+    // Calculate base price with per-guest discount
+    const basePrice =
+      menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice;
+
+    // Discount calculation: 1 Rs off per 10 guests
+    const guestDiscount = Math.floor(guestCount / 10);
+    const adjustedBasePrice = basePrice - guestDiscount;
+
+    // Calculate total from individual item prices
+    const itemPrices = selectedItems.reduce(
+      (total, item) => total + (item.price || 0),
+      0
+    );
     const deliveryCharge = 500;
-    return (basePrice * guestCount) + extraItemPrice + deliveryCharge;
+
+    return adjustedBasePrice * guestCount + deliveryCharge;
   };
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
@@ -181,18 +243,25 @@ const Platinum = () => {
 
   return (
     <div className="min-h-screen bg-aliceBlue grid grid-cols-3 gap-1">
-    {/* Header section */}
-    <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
-      <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
-        <div className="flex gap-6 items-center">
-          <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-            <h1 className="text-3xl font-bold text-gray-800">Platinum Menu</h1>
-            <span className="text-gray-600">Base Price:</span>
-            <span className="text-2xl font-bold text-blue-600">
-              ₹{crpbPrices ? (menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice) : 'Loading...'}
-            </span>
-            <span className="text-gray-600">per plate</span>
-          </div>
+      {/* Header section */}
+      <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
+        <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="flex gap-6 items-center">
+            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
+              <h1 className="text-3xl font-bold text-gray-800">
+                Platinum Menu
+              </h1>
+              <span className="text-gray-600">Base Price:</span>
+              <span className="text-2xl font-bold text-blue-600">
+                ₹
+                {crpbPrices
+                  ? menuPreference === "veg"
+                    ? crpbPrices.vegPrice
+                    : crpbPrices.nonvegPrice
+                  : "Loading..."}
+              </span>
+              <span className="text-gray-600">per plate</span>
+            </div>
 
             <div className="flex gap-2">
               <button
@@ -222,7 +291,9 @@ const Platinum = () => {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
           {getSortedCategories().map((category) => {
             const selectedCount = selectedItems.filter(
-              item => categories.find(cat => cat.id === item.category_id)?.name === category
+              (item) =>
+                categories.find((cat) => cat.id === item.category_id)?.name ===
+                category
             ).length;
             const maxSelectionPerCategory = 3; // Adjust as needed
 
@@ -252,7 +323,8 @@ const Platinum = () => {
                   {items
                     .filter(
                       (item) =>
-                        categories.find(cat => cat.id === item.category_id)?.name === category &&
+                        categories.find((cat) => cat.id === item.category_id)
+                          ?.name === category &&
                         (menuPreference === "nonveg" || item.is_veg === "1")
                     )
                     .map((item) => (
@@ -267,7 +339,9 @@ const Platinum = () => {
                               checked={selectedItems.some(
                                 (selected) => selected.id === item.id
                               )}
-                              onChange={() => handleItemSelectWithConfirmation(item)}
+                              onChange={() =>
+                                handleItemSelectWithConfirmation(item)
+                              }
                               className="hidden"
                             />
                             <div
@@ -367,7 +441,7 @@ const Platinum = () => {
           <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <span className="text-gray-600">Guests:</span>
             <button
-              onClick={() => setGuestCount(Math.max(10, guestCount - 5))}
+              onClick={handleDecrementGuests}
               className="p-2 rounded hover:bg-gray-200 transition-colors"
             >
               <Minus size={16} />
@@ -378,10 +452,10 @@ const Platinum = () => {
               onChange={handleInputChange}
               onBlur={handleInputBlur}
               className="w-16 text-center font-bold bg-white border rounded-md py-1 px-2 focus:outline-none"
-              maxLength={4}
+              maxLength={3}
             />
             <button
-              onClick={() => setGuestCount(guestCount + 5)}
+              onClick={handleIncrementGuests}
               className="p-2 rounded hover:bg-gray-200 transition-colors"
             >
               <Plus size={16} />
@@ -392,7 +466,9 @@ const Platinum = () => {
             <h3 className="font-bold">Selected Items</h3>
             {Object.entries(
               selectedItems.reduce((acc, item) => {
-                const categoryName = categories.find(cat => cat.id === item.category_id)?.name || "Uncategorized";
+                const categoryName =
+                  categories.find((cat) => cat.id === item.category_id)?.name ||
+                  "Uncategorized";
                 if (!acc[categoryName]) acc[categoryName] = [];
                 acc[categoryName].push(item);
                 return acc;
@@ -418,22 +494,33 @@ const Platinum = () => {
 
           <div className="border-t pt-4 mb-6">
             <div className="space-y-2">
-            <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600">
                 <span>
-                  Plate Cost (₹{crpbPrices ? (menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice) : 'Loading...'} × {guestCount})
+                  Plate Cost (₹
+                  {crpbPrices
+                    ? menuPreference === "veg"
+                      ? crpbPrices.vegPrice
+                      : crpbPrices.nonvegPrice
+                    : "Loading..."}{" "}
+                  × {guestCount})
                 </span>
                 <span>
-                  ₹{crpbPrices ? (crpbPrices[menuPreference + 'Price'] * guestCount).toFixed(2) : 'Loading...'}
+                  ₹
+                  {crpbPrices
+                    ? (
+                        crpbPrices[menuPreference + "Price"] * guestCount
+                      ).toFixed(2)
+                    : "Loading..."}
                 </span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              {/* <div className="flex justify-between text-gray-600">
                 <span>Extra Items</span>
                 <span>₹{(selectedItems.length * 100).toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
+              </div> */}
+              {/* <div className="flex justify-between text-gray-600">
                 <span>Delivery Charge</span>
                 <span>₹500</span>
-              </div>
+              </div> */}
               <div className="flex justify-between text-xl font-bold pt-2 border-t">
                 <span>Total</span>
                 <span>₹{calculateTotal().toFixed(2)}</span>
@@ -442,16 +529,7 @@ const Platinum = () => {
           </div>
 
           <div className="space-y-3">
-            <button
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            >
-              <ShoppingCart size={20} />
-              Add to Cart
-            </button>
-
-            <button
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
-            >
+            <button className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors">
               <CreditCard size={20} />
               Proceed to Pay
             </button>

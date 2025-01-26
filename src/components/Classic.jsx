@@ -458,13 +458,6 @@ const Classic = () => {
 
           <div className="space-y-3">
             <button
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            >
-              <ShoppingCart size={20} />
-              Add to Cart
-            </button>
-
-            <button
               className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
             >
               <CreditCard size={20} />
