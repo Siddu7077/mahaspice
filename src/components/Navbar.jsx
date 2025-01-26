@@ -63,6 +63,9 @@ import UserDropdown from "./UserDropdown";
 import DesignMenu from "./DesignMenu";
 import SuperfastMeal from "./SuperfastMeal";
 import Developers from "./Developers";
+import NavbarOffers from "./NavbarOffers";
+import Navigation from "./NavItems";
+import Offers from "./Offers";
 
 const Navbar = () => {
   const [isNavExpanded, setIsNavExpanded] = useState(true);
@@ -89,6 +92,7 @@ const Navbar = () => {
     { path: "/terms-conditions", element: <TermsConditions /> },
     { path: "/return-policy", element: <ReturnPolicy /> },
     { path: "/checkoutform", element: <CheckOutform /> },
+    { path: "/offers", element: <Offers /> },
     
     {
       path: "/events/:eventType/:serviceType/Menu/:categoryName/order",
@@ -119,23 +123,7 @@ const Navbar = () => {
     setIsNavExpanded(!isNavExpanded);
   };
 
-  const navItems = [
-    { icon: <Home />, label: "Home", key: "home", path: "/" },
-    { icon: <Users />, label: "About", key: "about", path: "/about" },
-    {
-      icon: <FaServicestack />,
-      label: "Services",
-      key: "services",
-      path: "/services",
-    },
-    {
-      icon: <MdContactMail />,
-      label: "Contact",
-      key: "contact",
-      path: "/contact",
-    },
-    { icon: <GiMeal />, label: "Custom Order", key: "customorder", path: "/" },
-  ];
+
 
   const dropdownConfig = [
     {
@@ -168,7 +156,7 @@ const Navbar = () => {
       {/* Left Sidebar */}
       <div
         className={`${
-          isNavExpanded ? " w-64" : " w-48"
+          isNavExpanded ? " w-52" : " w-52"
         } h-full transition-all duration-300 bg-white border-r border-gray-100`}
       >
         <div className="p-4 flex items-center justify-between">
@@ -181,11 +169,11 @@ const Navbar = () => {
             <img
               src={logo}
               alt="Logo"
-              className={`${isNavExpanded ? "hidden" : "block"} w-48`}
+              className={`${isNavExpanded ? "hidden" : "block"} w-64`}
             />
           </Link>
         </div>
-        <nav className="mt-4">
+        {/* <nav className="mt-4">
           <div className="mb-4">
             {navItems.map((item) => (
               <Link
@@ -214,8 +202,9 @@ const Navbar = () => {
               </Link>
             ))}
           </div>
-        </nav>
-        <div className="p-4 flex flex-col items-left justify-between">
+// is expanded func
+        </nav> 
+          <div className="p-4 flex flex-col items-left justify-between">
           <h1 className="text-lg font-bold">Offers</h1>
           <Link to="/">
             <img
@@ -226,10 +215,16 @@ const Navbar = () => {
             <img
               src="https://img.freepik.com/free-vector/sale-promotion-ad-poster-design-template_53876-57700.jpg"
               alt="Logo"
-              className={`${isNavExpanded ? "hidden" : "block"} h-30 w-32`}
+              className={`${isNavExpanded ? "hidden" : "block"} h-30 w-40`}
             />
           </Link>
-        </div>
+        </div> 
+        */}
+        
+        <Navigation/>
+
+      
+        <NavbarOffers/>
       </div>
 
       {/* Main Content Area */}

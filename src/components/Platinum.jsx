@@ -219,24 +219,55 @@ const Platinum = () => {
 
   const calculateTotal = () => {
     if (!crpbPrices) return 0;
-
-    // Calculate base price with per-guest discount
+  
+    // Determine base price based on menu preference
     const basePrice =
       menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice;
-
+  
     // Discount calculation: 1 Rs off per 10 guests
     const guestDiscount = Math.floor(guestCount / 10);
     const adjustedBasePrice = basePrice - guestDiscount;
-
+  
     // Calculate total from individual item prices
     const itemPrices = selectedItems.reduce(
       (total, item) => total + (item.price || 0),
       0
     );
-    const deliveryCharge = 500;
-
-    return adjustedBasePrice * guestCount + deliveryCharge;
+    // const deliveryCharge = 500;
+  
+    // Subtotal before tax
+    const subTotalValue = adjustedBasePrice * guestCount;
+  
+    // GST calculation (18%)
+    const gst = subTotalValue * 0.18;
+  
+    // Final total with GST
+    return subTotalValue + gst;
   };
+  
+  const calculateSubtotal = () => {
+    if (!crpbPrices) return 0;
+  
+    // Determine base price based on menu preference
+    const basePrice =
+      menuPreference === "veg" ? crpbPrices.vegPrice : crpbPrices.nonvegPrice;
+  
+    // Discount calculation: 1 Rs off per 10 guests
+    const guestDiscount = Math.floor(guestCount / 10);
+    const adjustedBasePrice = basePrice - guestDiscount;
+  
+    // Calculate total from individual item prices
+    const itemPrices = selectedItems.reduce(
+      (total, item) => total + (item.price || 0),
+      0
+    );
+    // const deliveryCharge = 500;
+  
+    // Subtotal before tax
+    return adjustedBasePrice * guestCount;
+  };
+  
+  
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
@@ -517,10 +548,10 @@ const Platinum = () => {
                 <span>Extra Items</span>
                 <span>₹{(selectedItems.length * 100).toFixed(2)}</span>
               </div> */}
-              {/* <div className="flex justify-between text-gray-600">
-                <span>Delivery Charge</span>
-                <span>₹500</span>
-              </div> */}
+              <div className="flex justify-between text-gray-600">
+                <span>GST: </span>
+                <span>₹{calculateSubtotal()*0.18.toFixed(2)}</span>
+              </div>
               <div className="flex justify-between text-xl font-bold pt-2 border-t">
                 <span>Total</span>
                 <span>₹{calculateTotal().toFixed(2)}</span>
