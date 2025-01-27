@@ -29,7 +29,7 @@ import { FaServicestack } from "react-icons/fa";
 import { MdContactMail } from "react-icons/md";
 import { BiMessageDetail } from "react-icons/bi";
 import { GiMeal } from "react-icons/gi";
-import logo from "../assets/logo-main.png";
+import logo from "../assets/logo.png";
 import user from "../assets/user.png";
 
 // Import all your components
