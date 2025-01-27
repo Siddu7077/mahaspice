@@ -8,8 +8,9 @@ const Superfast = () => {
   // Mapping service name to their respective components
   const getServiceComponent = (serviceName) => {
     const componentMap = {
-      'Superfast Home Delivery': <SuperFastDelbox />,
+    
       'Superfast Box Genie': <SuperFastMeal />,
+      'Superfast Home Delivery': <SuperFastDelbox />,
       'Event Caterers': (
         <div className="text-center">
           <img
@@ -37,8 +38,9 @@ const Superfast = () => {
 
   // List of services
   const services = [
-    { name: 'Superfast Home Delivery', img: 'https://mahaspice.desoftimp.com/ms3/uploads/services/home-delivery_1737194693.jpg' },
     { name: 'Superfast Box Genie', img: 'https://mahaspice.desoftimp.com/ms3/uploads/crpb/67971b14db2cb_boxgenie-1.jpg' },
+    { name: 'Superfast Home Delivery', img: 'https://mahaspice.desoftimp.com/ms3/uploads/services/home-delivery_1737194693.jpg' },
+  
     { name: 'Event Caterers', img: 'https://mahaspice.desoftimp.com/ms3/uploads/sectionThree/6767117788497_1734807927.webp?1737961268374' },
   ];
 
@@ -55,7 +57,7 @@ const Superfast = () => {
             <img
               src={service.img}
               alt={service.name}
-              className="w-full h-44 object-fill rounded-lg "
+              className="w-full h-52 object-fill rounded-lg "
             />
             {/* <p className="text-lg font-semibold">{service.name}</p> */}
           </div>
