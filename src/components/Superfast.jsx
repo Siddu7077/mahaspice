@@ -57,7 +57,7 @@ const Superfast = () => {
             <img
               src={service.img}
               alt={service.name}
-              className="w-full h-52 object-fill rounded-lg "
+              className="w-full h-60 object-fill rounded-lg "
             />
             {/* <p className="text-lg font-semibold">{service.name}</p> */}
           </div>
