@@ -1,83 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import SuperFastMeal from './SuperfastMeal'; // Import the specific component
-import Classic from './Classic';
-import Royal from './Royal';
-import Platinum from './Platinum';
+import React, { useState } from 'react';
+import SuperFastMeal from './SuperfastMeal';
+import SuperFastDelbox from './SuperfastDelbox';
 
 const Superfast = () => {
-  const [crpbData, setCRPBData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
 
-  // Service component mapping function
+  // Mapping service name to their respective components
   const getServiceComponent = (serviceName) => {
     const componentMap = {
-      'Box Genie': SuperFastMeal,
-      'Classic': Classic,
-      'Royal': Royal,
-      'Platinum': Platinum,
-    
+      'Superfast Home Delivery': <SuperFastDelbox />,
+      'Superfast Box Genie': <SuperFastMeal />,
+      'Event Caterers': (
+        <div className="text-center">
+          <img
+            src="https://mahaspice.desoftimp.com/ms3/uploads/sectionThree/6767117788497_1734807927.webp?1737961268374"
+            alt="Event Caterers"
+            className="w-full max-w-lg mx-auto rounded-lg shadow"
+          />
+          <p className="mt-4 text-lg font-semibold">Event Caterers</p>
+          <p className="text-gray-600">
+            We provide exceptional catering services for all types of events.
+          </p>
+          <p className="text-gray-600">
+            Comming Soon...
+          </p>
+        </div>
+      ),
     };
 
     return componentMap[serviceName] || null;
   };
 
-  useEffect(() => {
-    const fetchCRPB = async () => {
-      try {
-        const response = await axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php');
-        // Sort the data by the 'position' field in ascending order
-        const sortedData = response.data.sort((a, b) => a.position - b.position);
-        setCRPBData(sortedData);
-        setLoading(false);
-      } catch (err) {
-        setError(err);
-        setLoading(false);
-      }
-    };
-
-    fetchCRPB();
-  }, []);
-
   const handleServiceSelect = (serviceName) => {
     setSelectedService(serviceName);
   };
 
-  if (loading) return <div>Loading ...</div>;
-  if (error) return <div>Error loading </div>;
-
-  // Render selected service component if one is selected
-  const SelectedServiceComponent = selectedService 
-    ? getServiceComponent(selectedService) 
-    : null;
+  // List of services
+  const services = [
+    { name: 'Superfast Home Delivery', img: 'https://mahaspice.desoftimp.com/ms3/uploads/services/home-delivery_1737194693.jpg' },
+    { name: 'Superfast Box Genie', img: 'https://mahaspice.desoftimp.com/ms3/uploads/crpb/67971b14db2cb_boxgenie-1.jpg' },
+    { name: 'Event Caterers', img: 'https://mahaspice.desoftimp.com/ms3/uploads/sectionThree/6767117788497_1734807927.webp?1737961268374' },
+  ];
 
   return (
-    <div>
-      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mr-9">
-        {crpbData.map((crpb, index) => (
-          <div 
-            key={index} 
-            onClick={() => handleServiceSelect(crpb.name)}
-            className="border rounded-lg shadow hover:shadow-lg transition p-4 cursor-pointer"
+    <div className="p-4">
+      {/* Service cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {services.map((service, index) => (
+          <div
+            key={index}
+            onClick={() => handleServiceSelect(service.name)}
+            className="border rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center"
           >
             <img
-              src={`https://mahaspice.desoftimp.com/ms3/${crpb.img_address}`}
-              alt={crpb.name}
-              className="w-full h-40 object-full rounded-md mb-4"
+              src={service.img}
+              alt={service.name}
+              className="w-full h-44 object-fill rounded-lg "
             />
-            <h3 className="font-bold text-lg text-center">{crpb.name}</h3>
+            {/* <p className="text-lg font-semibold">{service.name}</p> */}
           </div>
         ))}
       </div>
 
-      {/* Render the selected service component */}
-      {SelectedServiceComponent && (
-        <div className="mt-8">
-          <SelectedServiceComponent />
-        </div>
-      )}
+    
+      <div className="mt-6">
+        {selectedService && getServiceComponent(selectedService)}
+      </div>
     </div>
   );
 };
