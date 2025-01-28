@@ -1,75 +1,95 @@
-import React, { useState } from 'react';
-import SuperFastMeal from './SuperfastMeal';
-import SuperFastDelbox from './SuperfastDelbox';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight } from 'lucide-react';
+import SuperfastMeal from './SuperfastMeal';
+import SuperfastDeliveryMenu from './SuperfastDelbox';
 
-const Superfast = () => {
+const DynamicServices = () => {
   const [selectedService, setSelectedService] = useState(null);
+  const [sections, setSections] = useState([]);
 
-  // Mapping service name to their respective components
-  const getServiceComponent = (serviceName) => {
-    const componentMap = {
-    
-      'Superfast Box Genie': <SuperFastMeal />,
-      'Superfast Home Delivery': <SuperFastDelbox />,
-      'Event Caterers': (
-        <div className="text-center">
-          <img
-            src="https://mahaspice.desoftimp.com/ms3/uploads/sectionThree/6767117788497_1734807927.webp?1737961268374"
-            alt="Event Caterers"
-            className="w-full max-w-lg mx-auto rounded-lg shadow"
-          />
-          <p className="mt-4 text-lg font-semibold">Event Caterers</p>
-          <p className="text-gray-600">
-            We provide exceptional catering services for all types of events.
-          </p>
-          <p className="text-gray-600">
-            Comming Soon...
-          </p>
-        </div>
-      ),
+  useEffect(() => {
+    fetchSections();
+  }, []);
+
+  const fetchSections = async () => {
+    try {
+      const response = await fetch('https://mahaspice.desoftimp.com/ms3/get_sections.php');
+      const data = await response.json();
+      if (data.success) {
+        setSections(data.sections.sort((a, b) => a.position - b.position));
+      }
+    } catch (err) {
+      console.error('Failed to fetch sections:', err);
+    }
+  };
+
+  const ServiceContent = ({ service }) => {
+    const serviceComponents = {
+      'Box Genie': <SuperfastMeal />,
+      'Home Delivery': <SuperfastDeliveryMenu />
     };
 
-    return componentMap[serviceName] || null;
+    return serviceComponents[service.title] || (
+      <div className="bg-white rounded-lg p-8 text-center">
+        <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
+        <p className="text-gray-600 mb-4">{service.description}</p>
+        <div className="text-xl text-blue-600 font-semibold">Coming Soon...</div>
+      </div>
+    );
   };
-
-  const handleServiceSelect = (serviceName) => {
-    setSelectedService(serviceName);
-  };
-
-  // List of services
-  const services = [
-    { name: 'Superfast Box Genie', img: 'https://mahaspice.desoftimp.com/ms3/uploads/crpb/67971b14db2cb_boxgenie-1.jpg' },
-    { name: 'Superfast Home Delivery', img: 'https://mahaspice.desoftimp.com/ms3/uploads/services/home-delivery_1737194693.jpg' },
-  
-    { name: 'Event Caterers', img: 'https://mahaspice.desoftimp.com/ms3/uploads/sectionThree/6767117788497_1734807927.webp?1737961268374' },
-  ];
 
   return (
-    <div className="p-4">
-      {/* Service cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {services.map((service, index) => (
-          <div
-            key={index}
-            onClick={() => handleServiceSelect(service.name)}
-            className="border rounded-lg shadow hover:shadow-lg transition cursor-pointer text-center"
-          >
-            <img
-              src={service.img}
-              alt={service.name}
-              className="w-full h-60 object-fill rounded-lg "
-            />
-            {/* <p className="text-lg font-semibold">{service.name}</p> */}
-          </div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {sections.map((section) => (
+         <div
+  key={section.id}
+  className="group bg-white shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl h-[450px] flex flex-col"
+  onClick={() => setSelectedService(section)}
+>
+  {/* Image container with fixed height */}
+  <div className="relative flex-shrink-0 h-2/4">
+    <img
+      src={`https://mahaspice.desoftimp.com/ms3/${section.img_address}`}
+      alt={section.title}
+      className="w-full h-full object-cover"
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+  </div>
+
+  {/* Content container with scrollable text */}
+  <div className="p-4 flex-grow overflow-y-auto">
+    <h3 className="text-black text-lg font-bold mb-2">{section.title}</h3>
+    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+      {section.sub_description}
+    </p>
+
+    {/* Bullet points in vertical layout */}
+    {section.bullet_points && (
+      <div className="text-xs text-gray-500 space-y-2">
+        {section.bullet_points.split('\n').map((point, i) => (
+          point && (
+            <div key={i} className="flex items-start">
+              <ChevronRight className="w-4 h-4 text-gray-400 mr-2 flex-shrink-0" />
+              <span className="line-clamp-2">{point}</span>
+            </div>
+          )
+        ))}
+      </div>
+    )}
+  </div>
+</div>
+
         ))}
       </div>
 
-    
-      <div className="mt-6">
-        {selectedService && getServiceComponent(selectedService)}
-      </div>
+      {selectedService && (
+        <div className="mt-8">
+          <ServiceContent service={selectedService} />
+        </div>
+      )}
     </div>
   );
 };
 
-export default Superfast;
+export default DynamicServices;
