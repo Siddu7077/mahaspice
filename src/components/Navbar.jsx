@@ -152,24 +152,18 @@ const Navbar = () => {
     setOpenDropdown(null);
   };
 
+  
+
   return (
     <div className="flex h-screen bg-white text-black">
       <ScrollToTop />
       
-      {/* Left Sidebar - Only visible on md and larger screens */}
+      {/* Left Sidebar - Hidden on mobile */}
       <div className={`${isNavExpanded ? "w-52" : "w-52"} h-full transition-all duration-300 bg-white border-r border-gray-100 hidden md:block`}>
         <div className="p-4 flex items-center justify-between">
           <Link to="/">
-            <img
-              src={logo}
-              alt="Logo"
-              className={`${isNavExpanded ? "block" : "hidden"} w-64`}
-            />
-            <img
-              src={logo}
-              alt="Logo"
-              className={`${isNavExpanded ? "hidden" : "block"} w-64`}
-            />
+            <img src={logo} alt="Logo" className={`${isNavExpanded ? "block" : "hidden"} w-64`} />
+            <img src={logo} alt="Logo" className={`${isNavExpanded ? "hidden" : "block"} w-64`} />
           </Link>
         </div>
         <Navigation />
@@ -191,20 +185,17 @@ const Navbar = () => {
 
         {/* Top Navigation Bar */}
         <header className="flex items-center justify-between p-2 bg-white text-black shadow-md">
-          {/* Mobile Logo - Only visible on small screens */}
-          <div className="flex md:hidden">
+          {/* Mobile Logo */}
+          <div className="md:hidden">
             <Link to="/">
               <img src={logo} alt="Logo" className="h-8" />
             </Link>
           </div>
 
-          {/* Desktop Navigation - Hidden on mobile */}
+          {/* Desktop Menu Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={toggleNavbar}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <Menu className="w-6 h-6 text-green-500" />
+            <button onClick={toggleNavbar} className="p-2 hover:bg-gray-100 rounded-full">
+              <AiOutlineMenu className="w-6 h-6 text-green-500" />
             </button>
           </div>
 
@@ -217,19 +208,16 @@ const Navbar = () => {
                 className="w-full px-4 py-2 bg-white border border-gray-300 rounded-l-full outline-none text-gray-800"
               />
               <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
-                <Search className="h-5 w-5 text-gray-600" />
+                <AiOutlineSearch className="h-5 w-5 text-gray-600" />
               </button>
             </div>
           </div>
 
           {/* Right Side Items */}
           <div className="flex items-center space-x-4">
-            {/* Phone number - Hidden on mobile */}
             <div className="hidden md:flex items-center" onClick={handleCall}>
               <Phone size={20} strokeWidth={2} className="relative top-1/2 right-1 text-green-600 cursor-pointer" />
-              <h2 className="text-xl text-green-600 cursor-pointer">
-                040-2222 8888 / 969779 8888
-              </h2>
+              <h2 className="text-xl text-green-600 cursor-pointer">040-2222 8888 / 969779 8888</h2>
             </div>
             <Link to="/cart">
               <ShoppingCart className="text-black w-6 h-6 hover:text-green-500" />
@@ -238,18 +226,108 @@ const Navbar = () => {
           </div>
         </header>
 
-        {/* Categories Navigation - Hidden on mobile */}
-        <div className="relative w-full bg-white border-t border-gray-100 hidden md:block">
-          {/* Keep your existing categories navigation code */}
-          {/* ... */}
+        {/* Categories Navigation - Scrollable on mobile */}
+        <div className="sticky top-0 w-full bg-white border-t border-gray-100 z-30">
+          <div className="max-w-7xl h-10 mx-auto px-4">
+            <div className="flex items-center lg:text-sm justify-between">
+              <Link
+                to="/superfast"
+                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                  selectedComponent === "Superfast" ? "bg-green-600 text-white" : "text-black"
+                }`}
+              >
+                Superfast Delivery
+              </Link>
+
+              <Link
+                to="/box"
+                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                  selectedComponent === "Box Genie" ? "bg-green-600 text-white" : "text-black"
+                }`}
+              >
+                Box Genie
+              </Link>
+
+              <Link
+                to="/delivery"
+                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                  selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : "text-black"
+                }`}
+              >
+                Home Delivery
+              </Link>
+
+              {dropdownConfig.map((category) => (
+                <div
+                  key={category.key}
+                  className="relative group"
+                  onMouseEnter={() => setOpenDropdown(category.key)}
+                  onMouseLeave={() => setOpenDropdown(null)}
+                >
+                  <div
+                    className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                      selectedComponent === category.key ? "bg-green-600 text-white" : "text-black"
+                    }`}
+                  >
+                    {category.icon}
+                    <span>{category.label}</span>
+                    <FaChevronDown className="ml-1 w-3 h-3" />
+                  </div>
+
+                  {/* Dropdown Menu - Absolute positioning relative to parent */}
+                  <div
+                    className={`absolute left-0 w-60 bg-white shadow-lg rounded-md border z-50 transition-all duration-150 ${
+                      openDropdown === category.key
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2 pointer-events-none"
+                    }`}
+                    style={{
+                      top: "calc(100% + 0.5rem)", // Positions dropdown right below the parent
+                    }}
+                  >
+                    {/* Optional dropdown arrow */}
+                    {/* <div 
+                      className="absolute -top-3 left-4 w-4 h-4 bg-white transform rotate-45 border-t border-l border-gray-200"
+                      style={{ marginLeft: '0.5rem' }}
+                    ></div> */}
+                    
+                    <div className="relative bottom-4 bg-white rounded-md py-1"> {/* Ensures content is above arrow */}
+                      {category.items.map((item, index) => (
+                        <Link
+                          key={index}
+                          to={`/events`}
+                          className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
+                          onClick={() => {
+                            setSelectedComponent(item);
+                            setOpenDropdown(null);
+                          }}
+                        >
+                          {item}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              <Link
+                to="events/personalized-menu"
+                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                  selectedComponent === "Catering" ? "bg-green-600 text-white" : "text-black"
+                }`}
+              >
+                Design Your Own Menu
+              </Link>
+            </div>
+          </div>
         </div>
 
-        {/* Content Area - Add bottom padding on mobile */}
-        <div className="flex-1 overflow-y-auto bg-aliceBlue pb-16 md:pb-0">
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto bg-aliceBlue pb-16 md:pb-0 relative z-10">
           {routing}
         </div>
 
-        {/* Mobile Bottom Navigation - Only visible on small screens */}
+        {/* Mobile Bottom Navigation */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
           <div className="grid grid-cols-5 gap-1 px-2 py-2">
             <Link to="/" className="flex flex-col items-center justify-center p-2">
@@ -290,10 +368,7 @@ const Navbar = () => {
               <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
                 <Search className="h-5 w-5 text-gray-600" />
               </button>
-              <button 
-                onClick={() => setIsSearchVisible(false)}
-                className="ml-2 p-2"
-              >
+              <button onClick={() => setIsSearchVisible(false)} className="ml-2 p-2">
                 <X className="w-6 h-6 text-gray-600" />
               </button>
             </div>
