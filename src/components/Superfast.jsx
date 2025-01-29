@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import SuperfastMeal from './SuperfastMeal';
 import SuperfastDeliveryMenu from './SuperfastDelbox';
+import CategoryDetail from './CategoryDetail';
 
 const DynamicServices = () => {
   const [selectedService, setSelectedService] = useState(null);

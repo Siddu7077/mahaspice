@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import SuperFastMeal from './SuperfastMeal'; // Import the specific component
-import Classic from './Classic';
+
 import Royal from './Royal';
 import Platinum from './Platinum';
 
@@ -14,8 +13,8 @@ const Superfast = () => {
   // Service component mapping function
   const getServiceComponent = (serviceName) => {
     const componentMap = {
-      'Box Genie': SuperFastMeal,
-      'Classic': Classic,
+      
+      
       'Royal': Royal,
       'Platinum': Platinum,
     
