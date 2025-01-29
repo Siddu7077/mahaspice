@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useRoutes } from "react-router-dom";
+import { Link, useRoutes, useNavigate } from "react-router-dom";
 import {
   Home,
   Users,
@@ -16,7 +16,8 @@ import {
   ShoppingCart,
   Phone,
   Package,
-  Truck,Calendar
+  Truck,
+  Calendar,
 } from "lucide-react";
 
 import {
@@ -70,6 +71,7 @@ import Navigation from "./NavItems";
 import Offers from "./Offers";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [isNavExpanded, setIsNavExpanded] = useState(true);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [selectedComponent, setSelectedComponent] = useState(null);
@@ -95,7 +97,7 @@ const Navbar = () => {
     { path: "/return-policy", element: <ReturnPolicy /> },
     { path: "/checkoutform", element: <CheckOutform /> },
     { path: "/offers", element: <Offers /> },
-    
+
     {
       path: "/events/:eventType/:serviceType/Menu/:categoryName/order",
       element: <MenuOrder />,
@@ -125,26 +127,28 @@ const Navbar = () => {
     setIsNavExpanded(!isNavExpanded);
   };
 
-
-
   const dropdownConfig = [
     {
       key: "wedding-events",
       // icon: <FaRing size={16} className="mr-2" />,
       label: "Wedding Events",
       items: eventCategories["wedding-events"],
+      path: "/events/wedding-catering"
     },
     {
       key: "corporate-events",
       // icon: <FaBuilding size={16} className="mr-2" />,
       label: "Corporate Events",
       items: eventCategories["corporate-events"],
+      path: "/events/corporate-events"
+
     },
     {
       key: "event-catering",
       // icon: <FaUtensils size={16} className="mr-2" />,
       label: "Event Catering",
       items: eventCategories["event-catering"],
+      path: "/events/event-caterers"
     },
   ];
   const handleDropdownClick = (item) => {
@@ -152,18 +156,34 @@ const Navbar = () => {
     setOpenDropdown(null);
   };
 
-  
+  const handleCategoryClick = (category) => {
+    if (category.path) {
+      navigate(category.path);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-white text-black">
       <ScrollToTop />
-      
+
       {/* Left Sidebar - Hidden on mobile */}
-      <div className={`${isNavExpanded ? "w-52" : "w-52"} h-full transition-all duration-300 bg-white border-r border-gray-100 hidden md:block`}>
+      <div
+        className={`${
+          isNavExpanded ? "w-52" : "w-52"
+        } h-full transition-all duration-300 bg-white border-r border-gray-100 hidden md:block`}
+      >
         <div className="p-4 flex items-center justify-between">
           <Link to="/">
-            <img src={logo} alt="Logo" className={`${isNavExpanded ? "block" : "hidden"} w-64`} />
-            <img src={logo} alt="Logo" className={`${isNavExpanded ? "hidden" : "block"} w-64`} />
+            <img
+              src={logo}
+              alt="Logo"
+              className={`${isNavExpanded ? "block" : "hidden"} w-64`}
+            />
+            <img
+              src={logo}
+              alt="Logo"
+              className={`${isNavExpanded ? "hidden" : "block"} w-64`}
+            />
           </Link>
         </div>
         <Navigation />
@@ -177,7 +197,8 @@ const Navbar = () => {
           <div className="py-2 relative">
             <div className="animate-bounceText whitespace-nowrap font-roboto absolute left-0 w-full">
               <span className="inline-block text-green-600 font-medium">
-                🚧 This page is currently under construction. We appreciate your patience as we work to improve your experience. 🚧
+                🚧 This page is currently under construction. We appreciate your
+                patience as we work to improve your experience. 🚧
               </span>
             </div>
           </div>
@@ -194,7 +215,10 @@ const Navbar = () => {
 
           {/* Desktop Menu Button */}
           <div className="hidden md:flex items-center space-x-4">
-            <button onClick={toggleNavbar} className="p-2 hover:bg-gray-100 rounded-full">
+            <button
+              onClick={toggleNavbar}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
               <AiOutlineMenu className="w-6 h-6 text-green-500" />
             </button>
           </div>
@@ -216,8 +240,14 @@ const Navbar = () => {
           {/* Right Side Items */}
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex items-center" onClick={handleCall}>
-              <Phone size={20} strokeWidth={2} className="relative top-1/2 right-1 text-green-600 cursor-pointer" />
-              <h2 className="text-xl text-green-600 cursor-pointer">040-2222 8888 / 969779 8888</h2>
+              <Phone
+                size={20}
+                strokeWidth={2}
+                className="relative top-1/2 right-1 text-green-600 cursor-pointer"
+              />
+              <h2 className="text-xl text-green-600 cursor-pointer">
+                040-2222 8888 / 969779 8888
+              </h2>
             </div>
             <Link to="/cart">
               <ShoppingCart className="text-black w-6 h-6 hover:text-green-500" />
@@ -233,7 +263,9 @@ const Navbar = () => {
               <Link
                 to="/superfast"
                 className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
-                  selectedComponent === "Superfast" ? "bg-green-600 text-white" : "text-black"
+                  selectedComponent === "Superfast"
+                    ? "bg-green-600 text-white"
+                    : "text-black"
                 }`}
               >
                 Superfast Delivery
@@ -242,7 +274,9 @@ const Navbar = () => {
               <Link
                 to="/box"
                 className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
-                  selectedComponent === "Box Genie" ? "bg-green-600 text-white" : "text-black"
+                  selectedComponent === "Box Genie"
+                    ? "bg-green-600 text-white"
+                    : "text-black"
                 }`}
               >
                 Box Genie
@@ -251,7 +285,9 @@ const Navbar = () => {
               <Link
                 to="/delivery"
                 className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
-                  selectedComponent === "Home Delivery" ? "bg-green-600 text-white" : "text-black"
+                  selectedComponent === "Home Delivery"
+                    ? "bg-green-600 text-white"
+                    : "text-black"
                 }`}
               >
                 Home Delivery
@@ -265,8 +301,11 @@ const Navbar = () => {
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
                   <div
+                    onClick={() => handleCategoryClick(category)}
                     className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
-                      selectedComponent === category.key ? "bg-green-600 text-white" : "text-black"
+                      selectedComponent === category.key
+                        ? "bg-green-600 text-white"
+                        : "text-black"
                     }`}
                   >
                     {category.icon}
@@ -274,7 +313,6 @@ const Navbar = () => {
                     <FaChevronDown className="ml-1 w-3 h-3" />
                   </div>
 
-                  {/* Dropdown Menu - Absolute positioning relative to parent */}
                   <div
                     className={`absolute left-0 w-60 bg-white shadow-lg rounded-md border z-50 transition-all duration-150 ${
                       openDropdown === category.key
@@ -282,16 +320,10 @@ const Navbar = () => {
                         : "opacity-0 invisible -translate-y-2 pointer-events-none"
                     }`}
                     style={{
-                      top: "calc(100% + 0.5rem)", // Positions dropdown right below the parent
+                      top: "calc(100% + 0.5rem)",
                     }}
                   >
-                    {/* Optional dropdown arrow */}
-                    {/* <div 
-                      className="absolute -top-3 left-4 w-4 h-4 bg-white transform rotate-45 border-t border-l border-gray-200"
-                      style={{ marginLeft: '0.5rem' }}
-                    ></div> */}
-                    
-                    <div className="relative bottom-4 bg-white rounded-md py-1"> {/* Ensures content is above arrow */}
+                    <div className="relative bottom-4 bg-white rounded-md py-1">
                       {category.items.map((item, index) => (
                         <Link
                           key={index}
@@ -313,7 +345,9 @@ const Navbar = () => {
               <Link
                 to="events/personalized-menu"
                 className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
-                  selectedComponent === "Catering" ? "bg-green-600 text-white" : "text-black"
+                  selectedComponent === "Catering"
+                    ? "bg-green-600 text-white"
+                    : "text-black"
                 }`}
               >
                 Design Your Own Menu
@@ -330,23 +364,35 @@ const Navbar = () => {
         {/* Mobile Bottom Navigation */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
           <div className="grid grid-cols-5 gap-1 px-2 py-2">
-            <Link to="/" className="flex flex-col items-center justify-center p-2">
+            <Link
+              to="/"
+              className="flex flex-col items-center justify-center p-2"
+            >
               <Home className="w-6 h-6 text-green-600" />
               <span className="text-xs mt-1">Home</span>
             </Link>
-            <Link to="/box" className="flex flex-col items-center justify-center p-2">
+            <Link
+              to="/box"
+              className="flex flex-col items-center justify-center p-2"
+            >
               <Package className="w-6 h-6 text-green-600" />
               <span className="text-xs mt-1">Box</span>
             </Link>
-            <Link to="/delivery" className="flex flex-col items-center justify-center p-2">
+            <Link
+              to="/delivery"
+              className="flex flex-col items-center justify-center p-2"
+            >
               <Truck className="w-6 h-6 text-green-600" />
               <span className="text-xs mt-1">Delivery</span>
             </Link>
-            <Link to="/events" className="flex flex-col items-center justify-center p-2">
+            <Link
+              to="/events"
+              className="flex flex-col items-center justify-center p-2"
+            >
               <Calendar className="w-6 h-6 text-green-600" />
               <span className="text-xs mt-1">Events</span>
             </Link>
-            <button 
+            <button
               onClick={() => setIsSearchVisible(!isSearchVisible)}
               className="flex flex-col items-center justify-center p-2"
             >
@@ -368,7 +414,10 @@ const Navbar = () => {
               <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
                 <Search className="h-5 w-5 text-gray-600" />
               </button>
-              <button onClick={() => setIsSearchVisible(false)} className="ml-2 p-2">
+              <button
+                onClick={() => setIsSearchVisible(false)}
+                className="ml-2 p-2"
+              >
                 <X className="w-6 h-6 text-gray-600" />
               </button>
             </div>
