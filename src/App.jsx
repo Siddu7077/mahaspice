@@ -6,17 +6,19 @@ import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./components/AuthSystem";
 import LoadingScreen from "./components/LoadingScreen";
 import Developers from "./components/Developers";
-
+import {EventProvider} from "./components/EventContext"
 // Create a layout component to handle navbar visibility
 const Layout = ({ children }) => {
   const location = useLocation();
   const showNavbar = location.pathname !== '/developers';
 
   return (
+    <EventProvider>
     <div className="flex flex-col min-h-screen">
       {showNavbar && <Navbar />}
       {children}
     </div>
+    </EventProvider>
   );
 };
 
@@ -45,11 +47,13 @@ const App = () => {
         {isLoading && <LoadingScreen />}
         <ScrollToTop />
         <Layout>
+        
           <Routes>
             <Route path="/developers" element={<Developers />} />
             
             {/* Add other routes here */}
           </Routes>
+          
         </Layout>
         <Footer />
       </BrowserRouter>

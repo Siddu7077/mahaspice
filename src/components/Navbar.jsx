@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useRoutes, useNavigate } from "react-router-dom";
+import { useEvents } from "./EventContext";
 import {
   Home,
   Users,
@@ -19,7 +20,6 @@ import {
   Truck,
   Calendar,
 } from "lucide-react";
-
 import {
   FaRing,
   FaBuilding,
@@ -77,6 +77,7 @@ const Navbar = () => {
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const { eventCategories, dropdownConfig, isLoading, error } = useEvents();
 
   // Define routes
   const routing = useRoutes([
@@ -104,7 +105,7 @@ const Navbar = () => {
     },
     { path: "/events/:eventType", element: <EventsPage /> },
     { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },
-    
+
     { path: "/superfast", element: <MealOrderForm /> },
     { path: "/login", element: <AuthSystem /> },
     { path: "/profile", element: <ProfilePage /> },
@@ -128,30 +129,30 @@ const Navbar = () => {
     setIsNavExpanded(!isNavExpanded);
   };
 
-  const dropdownConfig = [
-    {
-      key: "wedding-events",
-      // icon: <FaRing size={16} className="mr-2" />,
-      label: "Wedding Events",
-      items: eventCategories["wedding-events"],
-      path: "/events/wedding-catering"
-    },
-    {
-      key: "corporate-events",
-      // icon: <FaBuilding size={16} className="mr-2" />,
-      label: "Corporate Events",
-      items: eventCategories["corporate-events"],
-      path: "/events/corporate-events"
+  // const dropdownConfig = [
+  //   {
+  //     key: "wedding-events",
+  //     // icon: <FaRing size={16} className="mr-2" />,
+  //     label: "Wedding Events",
+  //     items: eventCategories["wedding-events"],
+  //     path: "/events/wedding-catering"
+  //   },
+  //   {
+  //     key: "corporate-events",
+  //     // icon: <FaBuilding size={16} className="mr-2" />,
+  //     label: "Corporate Events",
+  //     items: eventCategories["corporate-events"],
+  //     path: "/events/corporate-events"
 
-    },
-    {
-      key: "event-catering",
-      // icon: <FaUtensils size={16} className="mr-2" />,
-      label: "Event Catering",
-      items: eventCategories["event-catering"],
-      path: "/events/event-caterers"
-    },
-  ];
+  //   },
+  //   {
+  //     key: "event-catering",
+  //     // icon: <FaUtensils size={16} className="mr-2" />,
+  //     label: "Event Catering",
+  //     items: eventCategories["event-catering"],
+  //     path: "/events/event-caterers"
+  //   },
+  // ];
   const handleDropdownClick = (item) => {
     setSelectedComponent(item);
     setOpenDropdown(null);
@@ -324,20 +325,34 @@ const Navbar = () => {
                       top: "calc(100% + 0.5rem)",
                     }}
                   >
-                    <div className="relative bottom-4 bg-white rounded-md py-1">
-                      {category.items.map((item, index) => (
-                        <Link
-                          key={index}
-                          to={`/events`}
-                          className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
-                          onClick={() => {
-                            setSelectedComponent(item);
-                            setOpenDropdown(null);
-                          }}
-                        >
-                          {item}
-                        </Link>
-                      ))}
+                    <div className="relative bottom-3 max-h-64 overflow-auto bg-white rounded-md py-1">
+                      {category.items.map((item, index) => {
+                        // Function to create URL-friendly slugs
+                        const createUrlSlug = (text) => {
+                          return text
+                            .toLowerCase()
+                            .replace(/\s+/g, "-") // Replace spaces with hyphens
+                            .replace(/[^\w-]+/g, ""); // Remove special characters
+                        };
+
+                        // Construct the URL path
+                        const itemSlug = createUrlSlug(item);
+                        const fullPath = `${category.path}/${itemSlug}/Menu`;
+
+                        return (
+                          <Link
+                            key={index}
+                            to={fullPath}
+                            className="block px-4 py-2 hover:bg-green-50 text-gray-800 transition-colors duration-150"
+                            onClick={() => {
+                              setSelectedComponent(item);
+                              setOpenDropdown(null);
+                            }}
+                          >
+                            {item}
+                          </Link>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -364,7 +379,7 @@ const Navbar = () => {
 
         {/* Mobile Bottom Navigation */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
-          <div className="grid grid-cols-5 gap-1 px-2 py-2">
+          <div className="grid grid-cols-4 gap-1 px-2 py-2">
             <Link
               to="/"
               className="flex flex-col items-center justify-center p-2"
@@ -393,37 +408,8 @@ const Navbar = () => {
               <Calendar className="w-6 h-6 text-green-600" />
               <span className="text-xs mt-1">Events</span>
             </Link>
-            <button
-              onClick={() => setIsSearchVisible(!isSearchVisible)}
-              className="flex flex-col items-center justify-center p-2"
-            >
-              <Search className="w-6 h-6 text-green-600" />
-              <span className="text-xs mt-1">Search</span>
-            </button>
           </div>
         </div>
-
-        {/* Mobile Search Overlay */}
-        {isSearchVisible && (
-          <div className="md:hidden fixed top-0 left-0 right-0 bg-white p-4 shadow-md z-50">
-            <div className="flex items-center">
-              <input
-                type="text"
-                placeholder="Search"
-                className="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-l-full outline-none text-gray-800"
-              />
-              <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
-                <Search className="h-5 w-5 text-gray-600" />
-              </button>
-              <button
-                onClick={() => setIsSearchVisible(false)}
-                className="ml-2 p-2"
-              >
-                <X className="w-6 h-6 text-gray-600" />
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

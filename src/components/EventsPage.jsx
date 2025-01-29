@@ -90,9 +90,10 @@ const EventsPage = () => {
         {eventData.mainTitle}
       </h1>
       <p className="text-gray-700 mb-8">{eventData.mainDescription}</p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {eventData.services.map((service, index) => (
           <div
+            onClick={() => handleOrderNow(service)}
             key={index}
             className="border rounded-lg shadow-md overflow-hidden bg-white cursor-pointer"
           >
@@ -109,7 +110,7 @@ const EventsPage = () => {
               <h3 className="text-lg font-bold text-green-700 mb-2">
                 {service.title}
               </h3>
-              <p className="text-gray-600 mb-2">{service.description}</p>
+              {/* <p className="text-gray-600 mb-2">{service.description}</p>
               <p className="text-gray-800 font-semibold mb-4">
                 Starting Price: ₹{service.startingPrice.toLocaleString()}
               </p>
@@ -117,13 +118,13 @@ const EventsPage = () => {
                 {service.highlights.map((highlight, idx) => (
                   <li key={idx}>{highlight}</li>
                 ))}
-              </ul>
+              </ul> */}
               <div className="text-center">
                 <button
                   onClick={() => handleOrderNow(service)}
-                  className="mt-3 w-1/3 bg-black text-white py-2 rounded-md hover:bg-black transition"
+                  className="mt-3 w-100 p-3 bg-green-700 text-white py-2 rounded-md hover:bg-black transition"
                 >
-                  Order Now
+                  Choose your package
                 </button>
               </div>
             </div>

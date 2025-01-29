@@ -23,35 +23,24 @@ const MenuPage = () => {
             const pricingData = await pricingResponse.json();
 
             if (categoriesData.status === "success" && pricingData.success) {
-                // Clean and format serviceType
                 const formattedServiceType = serviceType
                     .split('-')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
                     .join(' ')
-                    .trim(); // Remove any extra spaces
-
-                console.log('Original Service Type:', serviceType);
-                console.log('Formatted Service Type:', formattedServiceType);
-
-                // Get available GSCDs for the current service type
-                const availableGscds = pricingData.data
-                    .filter(price => {
-                        console.log('Comparing:', {
-                            'API category': price.event_category,
-                            'Formatted service type': formattedServiceType
-                        });
-                        return price.event_category.toLowerCase() === formattedServiceType.toLowerCase();
-                    })
-                    .map(price => price.gscd);
-
-                console.log('Available GSCDs:', availableGscds);
-
-                // Filter categories to only show those that match available GSCDs
-                const filteredCategories = categoriesData.data.filter(category => 
-                    availableGscds.includes(category.menu_type)
+                    .trim();
+                
+                const availableGscds = pricingData.data.filter(price => 
+                    price.event_category.toLowerCase() === formattedServiceType.toLowerCase()
                 );
-
-                console.log('Filtered Categories:', filteredCategories);
+                
+                const filteredCategories = categoriesData.data
+                    .filter(category => availableGscds.some(price => price.gscd === category.menu_type))
+                    .map(category => ({
+                        ...category,
+                        veg_price: availableGscds.find(price => price.gscd === category.menu_type)?.veg_price || "N/A",
+                        nonveg_price: availableGscds.find(price => price.gscd === category.menu_type)?.nonveg_price || "N/A"
+                    }));
+                
                 setCategories(filteredCategories);
                 setPricingData(pricingData.data);
             } else {
@@ -74,13 +63,6 @@ const MenuPage = () => {
             return `https://mahaspice.desoftimp.com/ms3/${imageUrl}`;
         }
         return imageUrl;
-    };
-
-    const getDisplayServiceType = () => {
-        return serviceType
-            .split('-')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ');
     };
 
     if (loading) {
@@ -111,7 +93,7 @@ const MenuPage = () => {
         <div className="bg-white py-10 h-screen px-5">
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-                    Available Menu Categories for {getDisplayServiceType()}
+                    Available Menu Categories for {serviceType.replace(/-/g, ' ')}
                 </h1>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -131,10 +113,12 @@ const MenuPage = () => {
                             </div>
 
                             <div className="p-4">
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                                <h3 className="text-xl font-semibold text-gray-900 mb-1">
                                     {category.menu_type}
                                 </h3>
-                                <div className="flex items-center justify-between">
+                                <p className="text-gray-700 text-sm">Veg Price: ₹{category.veg_price}</p>
+                                <p className="text-gray-700 text-sm mb-3">Non-Veg Price: ₹{category.nonveg_price}</p>
+                                <div className="flex items-center justify-between mt-2">
                                     <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors duration-300">
                                         View Items
                                     </span>
@@ -159,20 +143,7 @@ const MenuPage = () => {
 
                 {categories.length === 0 && (
                     <div className="text-center text-gray-500 mt-8 p-8 bg-gray-50 rounded-lg">
-                        <svg
-                            className="mx-auto h-12 w-12 text-gray-400 mb-4"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01"
-                            />
-                        </svg>
-                        <p className="text-xl">No menu categories available for {getDisplayServiceType()}</p>
+                        <p className="text-xl">No menu categories available</p>
                         <p className="text-sm mt-2">Please check back later</p>
                     </div>
                 )}
