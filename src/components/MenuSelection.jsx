@@ -22,6 +22,8 @@ const MenuSelection = () => {
   const [pricingData, setPricingData] = useState(null);
   const [inputValue, setInputValue] = useState(guestCount.toString());
 
+  
+
   const handleMenuPreferenceChange = (preference) => {
     setMenuPreference(preference);
     setSelectedItems([]);
@@ -146,10 +148,11 @@ const MenuSelection = () => {
 
   const getFilteredItems = () => {
     return menuData.filter((item) => {
-      const itemEventCategories = item.event_categories
+      // Safely handle null/undefined values for event_categories and event_names
+      const itemEventCategories = (item.event_categories || "")
         .split(",")
         .map((cat) => cat.trim().toLowerCase());
-      const itemEventNames = item.event_names
+      const itemEventNames = (item.event_names || "")
         .split(",")
         .map((name) => name.trim().toLowerCase());
       const currentEventType = eventType.toLowerCase();

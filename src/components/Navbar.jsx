@@ -104,6 +104,7 @@ const Navbar = () => {
     },
     { path: "/events/:eventType", element: <EventsPage /> },
     { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },
+    
     { path: "/superfast", element: <MealOrderForm /> },
     { path: "/login", element: <AuthSystem /> },
     { path: "/profile", element: <ProfilePage /> },

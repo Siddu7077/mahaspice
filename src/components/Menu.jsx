@@ -11,7 +11,7 @@ const MenuPage = () => {
 
     useEffect(() => {
         fetchData();
-    }, [serviceType]);  // Changed dependency to serviceType
+    }, [serviceType]);
 
     const fetchData = async () => {
         try {
@@ -23,21 +23,35 @@ const MenuPage = () => {
             const pricingData = await pricingResponse.json();
 
             if (categoriesData.status === "success" && pricingData.success) {
-                // Format serviceType to match the data format (removing 'event-' prefix if exists)
-                const formattedServiceType = serviceType.replace('event-', '').toLowerCase();
+                // Clean and format serviceType
+                const formattedServiceType = serviceType
+                    .split('-')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+                    .join(' ')
+                    .trim(); // Remove any extra spaces
+
+                console.log('Original Service Type:', serviceType);
+                console.log('Formatted Service Type:', formattedServiceType);
 
                 // Get available GSCDs for the current service type
                 const availableGscds = pricingData.data
-                    .filter(price => price.event_category.toLowerCase() === formattedServiceType)
+                    .filter(price => {
+                        console.log('Comparing:', {
+                            'API category': price.event_category,
+                            'Formatted service type': formattedServiceType
+                        });
+                        return price.event_category.toLowerCase() === formattedServiceType.toLowerCase();
+                    })
                     .map(price => price.gscd);
+
+                console.log('Available GSCDs:', availableGscds);
 
                 // Filter categories to only show those that match available GSCDs
                 const filteredCategories = categoriesData.data.filter(category => 
-                    availableGscds.some(gscd => 
-                        gscd.toLowerCase() === category.menu_type.toLowerCase()
-                    )
+                    availableGscds.includes(category.menu_type)
                 );
 
+                console.log('Filtered Categories:', filteredCategories);
                 setCategories(filteredCategories);
                 setPricingData(pricingData.data);
             } else {
@@ -52,14 +66,7 @@ const MenuPage = () => {
     };
 
     const handleCategoryClick = (categoryName) => {
-        const urlFriendlyName = categoryName
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-            .join(' ')
-            .replace(/\s+/g, '-')
-            .replace(/[^a-zA-Z0-9-]/g, '');
-
-        navigate(`/events/${eventType}/${serviceType}/Menu/${urlFriendlyName}`);
+        navigate(`/events/${eventType}/${serviceType}/Menu/${categoryName}`);
     };
 
     const getImageUrl = (imageUrl) => {
@@ -69,10 +76,8 @@ const MenuPage = () => {
         return imageUrl;
     };
 
-    // Format display name for service type
     const getDisplayServiceType = () => {
         return serviceType
-            .replace('event-', '')
             .split('-')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
             .join(' ');
