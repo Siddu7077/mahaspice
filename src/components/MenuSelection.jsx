@@ -21,7 +21,9 @@ const MenuSelection = () => {
   const [showAlert, setShowAlert] = useState(null);
   const [pricingData, setPricingData] = useState(null);
   const [inputValue, setInputValue] = useState(guestCount.toString());
-
+  const currentEventType = eventType.toLowerCase(); // "wedding-catering"
+  const currentServiceType = serviceType.toLowerCase(); // "haldi-ceremony"
+  const currentMenuType = menuType.replace(/-/g, " "); // "Silver Menu"
   
 
   const handleMenuPreferenceChange = (preference) => {
@@ -81,6 +83,8 @@ const MenuSelection = () => {
         if (pricingJson.success && Array.isArray(pricingJson.data)) {
           setPricingData(pricingJson.data);
         }
+        console.log('Menu Data:', menuJson.data);
+      console.log('Category Data:', categoryJson);
         setError(null);
       } catch (err) {
         setError("Failed to load menu data. Please try again later.");
@@ -148,33 +152,44 @@ const MenuSelection = () => {
 
   const getFilteredItems = () => {
     return menuData.filter((item) => {
-      // Safely handle null/undefined values for event_categories and event_names
-      const itemEventCategories = (item.event_categories || "")
-        .split(",")
-        .map((cat) => cat.trim().toLowerCase());
-      const itemEventNames = (item.event_names || "")
-        .split(",")
-        .map((name) => name.trim().toLowerCase());
-      const currentEventType = eventType.toLowerCase();
-      const currentServiceType = serviceType.toLowerCase();
-      const currentMenuType = menuType.replace(/-/g, " ");
-
-      const matchesEvent =
-        itemEventCategories.some(
-          (cat) => cat === currentEventType || cat === currentServiceType
-        ) ||
-        itemEventNames.some(
-          (name) =>
-            name.toLowerCase() === currentEventType ||
-            name.toLowerCase() === currentServiceType
-        );
-      const matchesMenu = item.menu_type === currentMenuType;
-      const matchesPreference =
-        menuPreference === "nonveg" ? true : item.is_veg === "1";
-
+      // Normalize the strings for comparison by converting to lowercase and replacing spaces/hyphens
+      const normalizeString = (str) => str.toLowerCase().replace(/[-\s]+/g, ' ').trim();
+      
+      // Get event categories and names from the item
+      const itemEventCategories = (item.event_categories || '')
+        .split(',')
+        .map(normalizeString);
+      
+      const itemEventNames = (item.event_names || '')
+        .split(',')
+        .map(normalizeString);
+  
+      // Normalize the current types
+      const normalizedEventType = normalizeString(eventType);
+      const normalizedServiceType = normalizeString(serviceType);
+      const normalizedMenuType = normalizeString(menuType);
+      const normalizedItemMenuType = normalizeString(item.menu_type);
+  
+      // Check if the item matches any of the event categories or names
+      const matchesEvent = 
+        itemEventCategories.some(cat => normalizeString(cat) === normalizedServiceType) ||
+        itemEventNames.some(name => normalizeString(name) === normalizedEventType);
+  
+      // Check if menu type matches
+      const matchesMenu = normalizedItemMenuType === normalizedMenuType;
+  
+      // Check if the item matches the veg/non-veg preference
+      const matchesPreference = menuPreference === "nonveg" ? true : item.is_veg === "1";
+  
       return matchesEvent && matchesMenu && matchesPreference;
     });
   };
+  useEffect(() => {
+    console.log('Event Type:', eventType);
+    console.log('Service Type:', serviceType);
+    console.log('Menu Type:', menuType);
+    console.log('Filtered Items:', getFilteredItems());
+  }, [menuData, eventType, serviceType, menuType]);
 
   const getSortedCategories = () => {
     const filteredItems = getFilteredItems();
@@ -597,13 +612,7 @@ const MenuSelection = () => {
           </div>
 
           <div className="space-y-3">
-            <button
-              onClick={() => handleActionButton("cart")}
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
-            >
-              <ShoppingCart size={20} />
-              Add to Cart
-            </button>
+         
 
             <button
               onClick={() => handleActionButton("pay")}
