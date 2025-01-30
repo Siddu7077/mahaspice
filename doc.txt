@@ -1,0 +1,80 @@
+Frontend Technologies
+
+1. React.js
+
+A popular JavaScript library for building user interfaces with a component-based architecture.
+
+2. Vite
+
+A next-generation frontend build tool that provides fast development and optimized production builds.
+
+3. Lucide
+
+An open-source icon toolkit for beautifully crafted and customizable icons.
+
+4. Framer Motion
+
+A powerful library for creating animations and motion effects in React applications.
+
+5. TailwindCSS
+
+A utility-first CSS framework for creating fast and responsive designs with minimal effort.
+
+6. @headlessui/react
+
+Accessible and completely unstyled UI components designed to integrate seamlessly with TailwindCSS.
+
+7. @react-pdf/renderer
+
+A library for generating dynamic PDF documents in React.
+
+8. Axios
+
+A promise-based HTTP client for making API requests.
+
+9. Lodash
+
+A utility library offering various functions for data manipulation.
+
+10. @heroicons/react
+
+A set of beautifully crafted SVG icons for React applications.
+
+11. Swiper
+
+A modern and responsive touch slider for building carousels.
+
+12. Recharts
+
+A charting library for React, ideal for creating data visualizations.
+
+13. PostCSS
+
+A tool for transforming CSS with plugins to enable modern CSS features.
+
+Backend Technologies
+
+1. PHP
+
+A server-side scripting language used to handle backend operations and dynamic content generation.
+
+2. MySQL
+
+A robust relational database management system used for storing and managing project data.
+
+Additional Services
+
+1. Bulk SMS Sender
+
+Used to send SMS notifications to users for various updates and alerts.
+
+2. Razorpay
+
+A payment gateway solution integrated for secure online transactions.
+
+Cross-Platform App Development
+
+1. React Native
+
+A framework for building mobile applications for iOS and Android using a single codebase.
+
