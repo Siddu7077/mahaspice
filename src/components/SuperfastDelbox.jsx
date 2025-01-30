@@ -6,8 +6,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   const [menuData, setMenuData] = useState([]);
   const [menuType, setMenuType] = useState("veg");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedItems, setSelectedItems] = useState(() => {
-    const savedItems = localStorage.getItem('selectedItems');
+  const [superselecteditems, setSuperselecteditems] = useState(() => {
+    const savedItems = localStorage.getItem('superselecteditems');
     return savedItems ? JSON.parse(savedItems) : [];
   });
 
@@ -27,8 +27,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
   // Save selected items to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('selectedItems', JSON.stringify(selectedItems));
-  }, [selectedItems]);
+    localStorage.setItem('superselecteditems', JSON.stringify(superselecteditems));
+  }, [superselecteditems]);
 
   // Save guest count to localStorage whenever it changes
   useEffect(() => {
@@ -41,7 +41,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       try {
         setLoading(true);
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/getHomeItems.php"
+          "https://mahaspice.desoftimp.com/ms3/getSupHomeItems.php"
         );
         const data = await response.json();
         const processedMenuItems = data.items || [];
@@ -77,7 +77,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   };
 
   const updateDefaultQuantities = (newGuestCount) => {
-    setSelectedItems((prevItems) =>
+    setSuperselecteditems((prevItems) =>
       prevItems.map((item) => ({
         ...item,
         quantity: Math.ceil(newGuestCount),
@@ -86,7 +86,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   };
 
   const handleItemQuantity = (itemId, change) => {
-    setSelectedItems((prevItems) =>
+    setSuperselecteditems((prevItems) =>
       prevItems.map((item) =>
         item.id === itemId
           ? { ...item, quantity: Math.max(1, item.quantity + change) }
@@ -101,7 +101,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
   const handleAddItem = (item) => {
     const defaultQuantity = Math.ceil(guestCount);
-    setSelectedItems((prevItems) => {
+    setSuperselecteditems((prevItems) => {
       if (prevItems.some((i) => i.id === item.id)) {
         return prevItems.filter((i) => i.id !== item.id);
       }
@@ -110,7 +110,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   };
 
   const calculateTotals = React.useMemo(() => {
-    const subtotal = selectedItems.reduce(
+    const subtotal = superselecteditems.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
@@ -118,9 +118,9 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     const deliveryCharge = 500;
     const total = subtotal + tax + deliveryCharge;
     return { subtotal, tax, total, deliveryCharge };
-  }, [selectedItems]);
+  }, [superselecteditems]);
 
-  const isItemSelected = (itemId) => selectedItems.some((item) => item.id === itemId);
+  const isItemSelected = (itemId) => superselecteditems.some((item) => item.id === itemId);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -128,7 +128,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   if (isCheckout) {
     return (
       <SuperfastDelboxCheckout
-        selectedItems={selectedItems}
+        superselecteditems={superselecteditems}
         totals={calculateTotals}
         guestCount={guestCount}
         formData={formData}  // Pass the complete form data to checkout
@@ -240,7 +240,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                   className="bg-white rounded-lg shadow p-4 flex flex-col"
                 >
                   <img
-                    src={`https://mahaspice.desoftimp.com/ms3/uploads/homeCategory/${item.image_path}`}
+                    src={`https://mahaspice.desoftimp.com/ms3/uploads/sup/homeCategory/${item.image_path}`}
                     alt={item.title}
                     className="w-full h-48 object-cover rounded-lg"
                     onError={(e) => {
@@ -261,7 +261,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                             <Minus size={16} />
                           </button>
                           <span className="min-w-[40px] text-center">
-                            {selectedItems.find((i) => i.id === item.id)?.quantity || 0}
+                            {superselecteditems.find((i) => i.id === item.id)?.quantity || 0}
                           </span>
                           <button
                             onClick={() => handleItemQuantity(item.id, 1)}
@@ -297,10 +297,10 @@ const SuperfastDeliveryMenu = ({ formData }) => {
           <h2 className="text-xl font-bold mb-4">Order Summary</h2>
 
           <div className="space-y-4 max-h-[50vh] overflow-y-auto">
-            {selectedItems.length === 0 ? (
+            {superselecteditems.length === 0 ? (
               <p className="text-gray-500">No items selected.</p>
             ) : (
-              selectedItems.map((item) => (
+              superselecteditems.map((item) => (
                 <div
                   key={item.id}
                   className="flex justify-between items-center py-2 border-b"
@@ -338,7 +338,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
           <button
             className="mt-6 w-full bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled={selectedItems.length === 0}
+            disabled={superselecteditems.length === 0}
             onClick={handleCheckout}
           >
             <ShoppingCart size={20} />

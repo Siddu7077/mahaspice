@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Users } from 'lucide-react';
 
-const SuperfastDelboxCheckout = ({ selectedItems, totals, onBack, guestCount, formData: initialFormData }) => {
+const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCount, formData: initialFormData }) => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [minDate, setMinDate] = useState('');
     const [minTime, setMinTime] = useState('');
@@ -81,7 +81,7 @@ const SuperfastDelboxCheckout = ({ selectedItems, totals, onBack, guestCount, fo
         setTimeout(() => {
             console.log('Redirecting to PhonePe...', {
                 orderDetails: {
-                    items: selectedItems,
+                    items: superselecteditems,
                     totals,
                     delivery: formData
                 }
@@ -116,7 +116,7 @@ const SuperfastDelboxCheckout = ({ selectedItems, totals, onBack, guestCount, fo
         );
     };
 
-    if (!selectedItems || selectedItems.length === 0) {
+    if (!superselecteditems || superselecteditems.length === 0) {
         return (
             <div className="min-h-screen bg-gray-100 p-4 md:p-8">
                 <div className="max-w-6xl mx-auto">
@@ -282,7 +282,7 @@ const SuperfastDelboxCheckout = ({ selectedItems, totals, onBack, guestCount, fo
                         <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
 
                         <div className="max-h-[40vh] overflow-y-auto mb-6 pr-2">
-                            {selectedItems.map((item) => (
+                            {superselecteditems.map((item) => (
                                 <div key={item.id} className="flex justify-between items-center py-3 border-b">
                                     <div className="flex-1">
                                         <p className="font-medium">{item.title}</p>
