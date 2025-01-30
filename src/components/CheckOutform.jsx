@@ -43,6 +43,65 @@ const CheckOutform = ({
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [locations, setLocations] = useState([]);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [dateError, setDateError] = useState("");
+
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/dateblocking.php"
+        );
+        const data = await response.json();
+
+        // Filter only the mealbox blocked dates
+        const mealboxBlockedDates = data.filter(
+          (item) => item.for === "Mealbox"
+        );
+        setBlockedDates(mealboxBlockedDates);
+      } catch (error) {
+        console.error("Error fetching blocked dates:", error);
+      }
+    };
+
+    fetchBlockedDates();
+  }, []);
+
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split("T")[0];
+
+    if (selectedDate === today && isPastFourPM()) {
+      setDateError(
+        "We cannot deliver orders today after 4 PM IST. Please select another date."
+      );
+      setFormData((prev) => ({
+        ...prev,
+        deliveryDate: selectedDate,
+        deliveryTime: "",
+      }));
+      return;
+    }
+
+    // Check if the selected date is blocked
+    const blockedDate = blockedDates.find((date) => date.date === selectedDate);
+    if (blockedDate) {
+      setDateError(blockedDate.reason);
+      setFormData((prev) => ({
+        ...prev,
+        deliveryDate: selectedDate,
+        deliveryTime: "",
+      }));
+      return;
+    }
+
+    setDateError("");
+    setFormData((prev) => ({
+      ...prev,
+      deliveryDate: selectedDate,
+      deliveryTime: "",
+    }));
+  };
 
   const isPastFourPM = () => {
     const now = new Date();
@@ -105,25 +164,6 @@ const CheckOutform = ({
       const currentTotalMinutes = currentHour * 60 + currentMinutes;
       return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19; // 19 is 7 PM
     });
-  };
-
-  const handleDateChange = (e) => {
-    const selectedDate = e.target.value;
-    const today = new Date().toISOString().split("T")[0];
-
-    if (selectedDate === today && isPastFourPM()) {
-      alert(
-        "We cannot deliver orders today after 4 PM IST. Please select another date."
-      );
-      return;
-    }
-
-    // Clear selected time when date changes
-    setFormData((prev) => ({
-      ...prev,
-      deliveryDate: selectedDate,
-      deliveryTime: "",
-    }));
   };
 
   // Time slots
@@ -536,7 +576,7 @@ const CheckOutform = ({
               </div>
 
               {/* Add Date Picker */}
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Delivery Date*
                 </label>
@@ -556,9 +596,35 @@ const CheckOutform = ({
                     {errors.deliveryDate}
                   </p>
                 )}
-              </div>
+              </div> */}
 
               {/* Modified Time Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Date*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <Calendar className="ml-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="deliveryDate"
+                    value={formData.deliveryDate}
+                    onChange={handleDateChange}
+                    min={getMinDate()}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  />
+                </div>
+                {dateError && (
+                  <p className="text-red-500 text-sm mt-1">{dateError}</p>
+                )}
+                {errors.deliveryDate && !dateError && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.deliveryDate}
+                  </p>
+                )}
+              </div>
+
+              {/* Modify the time dropdown section */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Delivery Time*
@@ -569,11 +635,14 @@ const CheckOutform = ({
                     name="deliveryTime"
                     value={formData.deliveryTime}
                     onChange={handleChange}
-                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
-                    disabled={!formData.deliveryDate}
+                    className={`w-full p-3 border-0 focus:ring-0 focus:outline-none ${
+                      dateError ? "bg-gray-100 cursor-not-allowed" : ""
+                    }`}
+                    disabled={!formData.deliveryDate || dateError}
                   >
                     <option value="">Select delivery time</option>
                     {formData.deliveryDate &&
+                      !dateError &&
                       getAvailableTimeSlots().map((time) => (
                         <option key={time} value={time}>
                           {time}
@@ -581,12 +650,13 @@ const CheckOutform = ({
                       ))}
                   </select>
                 </div>
-                {errors.deliveryTime && (
+                {errors.deliveryTime && !dateError && (
                   <p className="text-red-500 text-sm mt-1">
                     {errors.deliveryTime}
                   </p>
                 )}
                 {formData.deliveryDate &&
+                  !dateError &&
                   getAvailableTimeSlots().length === 0 && (
                     <p className="text-red-500 text-sm mt-1">
                       No available delivery slots for today. Please select
