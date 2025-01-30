@@ -29,13 +29,19 @@ const Classic = () => {
         const categoriesData = await categoriesResponse.json();
         const pricingData = await pricingResponse.json();
 
-        setMenuData(itemsData);
-        if (categoriesData.success) {
-          const filteredCategories = categoriesData.categories.filter(
-            cat => cat.type.toLowerCase() === 'classic'
-          );
-          setCategoryData(filteredCategories);
-        }
+        // Filter categories for classic type only
+        const classicCategories = categoriesData.categories.filter(
+          cat => cat.type.toLowerCase() === 'classic'
+        );
+        
+        // Filter menu items to only include those in classic categories
+        const classicCategoryNames = classicCategories.map(cat => cat.category.toLowerCase());
+        const classicItems = itemsData.filter(item => 
+          classicCategoryNames.includes(item.category_name.toLowerCase())
+        );
+
+        setMenuData(classicItems);
+        setCategoryData(classicCategories);
         setPricingData(pricingData);
         setError(null);
       } catch (err) {
@@ -101,8 +107,12 @@ const Classic = () => {
   };
 
   const getSortedCategories = () => {
+    // Only get categories that are of type 'classic'
+    const classicCategories = categoryData.map(cat => cat.category);
     const filteredItems = getFilteredItems();
-    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))];
+    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))]
+      .filter(category => classicCategories.includes(category));
+
     return uniqueCategories.sort((a, b) => {
       const categoryA = categoryData.find(cat => cat.category === a);
       const categoryB = categoryData.find(cat => cat.category === b);

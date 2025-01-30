@@ -29,13 +29,19 @@ const Platinum = () => {
         const categoriesData = await categoriesResponse.json();
         const pricingData = await pricingResponse.json();
 
-        setMenuData(itemsData);
-        if (categoriesData.success) {
-          const filteredCategories = categoriesData.categories.filter(
-            cat => cat.type.toLowerCase() === 'Platinum'
-          );
-          setCategoryData(filteredCategories);
-        }
+        // Filter categories for platinum type only
+        const platinumCategories = categoriesData.categories.filter(
+          cat => cat.type.toLowerCase() === 'platinum'
+        );
+        
+        // Filter menu items to only include those in platinum categories
+        const platinumCategoryNames = platinumCategories.map(cat => cat.category.toLowerCase());
+        const platinumItems = itemsData.filter(item => 
+          platinumCategoryNames.includes(item.category_name.toLowerCase())
+        );
+
+        setMenuData(platinumItems);
+        setCategoryData(platinumCategories);
         setPricingData(pricingData);
         setError(null);
       } catch (err) {
@@ -48,7 +54,11 @@ const Platinum = () => {
     fetchData();
   }, []);
 
-  const handleMenuPreferenceChange = (preference) => {
+  // ... Rest of the component code is identical to Platinum.jsx but with "platinum" instead of "Platinum" ...
+  // (For brevity, I'm not repeating all the identical functions, but they would be exactly the same 
+  // except for using 'platinum' in the pricing calculations)
+
+const handleMenuPreferenceChange = (preference) => {
     setMenuPreference(preference);
     setSelectedItems([]);
   };
@@ -76,7 +86,7 @@ const Platinum = () => {
     if (!pricingData) return 0;
     
     const PlatinumPricing = pricingData.find(
-      price => price.crpb_name.toLowerCase() === 'Platinum'
+      price => price.crpb_name.toLowerCase() === 'platinum'
     );
 
     if (!PlatinumPricing) return 0;
@@ -101,8 +111,12 @@ const Platinum = () => {
   };
 
   const getSortedCategories = () => {
+    // Only get categories that are of type 'Platinum'
+    const PlatinumCategories = categoryData.map(cat => cat.category);
     const filteredItems = getFilteredItems();
-    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))];
+    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))]
+      .filter(category => PlatinumCategories.includes(category));
+
     return uniqueCategories.sort((a, b) => {
       const categoryA = categoryData.find(cat => cat.category === a);
       const categoryB = categoryData.find(cat => cat.category === b);
@@ -142,7 +156,7 @@ const Platinum = () => {
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
-  return (
+ return (
     <div className="min-h-screen bg-gray-50 grid grid-cols-3 gap-1">
       <div className="col-span-2 p-6">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">

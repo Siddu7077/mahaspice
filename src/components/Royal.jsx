@@ -29,13 +29,19 @@ const Royal = () => {
         const categoriesData = await categoriesResponse.json();
         const pricingData = await pricingResponse.json();
 
-        setMenuData(itemsData);
-        if (categoriesData.success) {
-          const filteredCategories = categoriesData.categories.filter(
-            cat => cat.type.toLowerCase() === 'Royal'
-          );
-          setCategoryData(filteredCategories);
-        }
+        // Filter categories for royal type only
+        const royalCategories = categoriesData.categories.filter(
+          cat => cat.type.toLowerCase() === 'royal'
+        );
+        
+        // Filter menu items to only include those in royal categories
+        const royalCategoryNames = royalCategories.map(cat => cat.category.toLowerCase());
+        const royalItems = itemsData.filter(item => 
+          royalCategoryNames.includes(item.category_name.toLowerCase())
+        );
+
+        setMenuData(royalItems);
+        setCategoryData(royalCategories);
         setPricingData(pricingData);
         setError(null);
       } catch (err) {
@@ -75,15 +81,15 @@ const Royal = () => {
   const calculatePlatePrice = () => {
     if (!pricingData) return 0;
     
-    const RoyalPricing = pricingData.find(
-      price => price.crpb_name.toLowerCase() === 'Royal'
+    const royalPricing = pricingData.find(
+      price => price.crpb_name.toLowerCase() === 'royal'
     );
 
-    if (!RoyalPricing) return 0;
+    if (!royalPricing) return 0;
 
     const basePrice = menuPreference === "veg" 
-      ? parseFloat(RoyalPricing.veg_price)
-      : parseFloat(RoyalPricing.non_veg_price);
+      ? parseFloat(royalPricing.veg_price)
+      : parseFloat(royalPricing.non_veg_price);
 
     return basePrice;
   };
@@ -101,8 +107,12 @@ const Royal = () => {
   };
 
   const getSortedCategories = () => {
+    // Only get categories that are of type 'royal'
+    const royalCategories = categoryData.map(cat => cat.category);
     const filteredItems = getFilteredItems();
-    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))];
+    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))]
+      .filter(category => royalCategories.includes(category));
+
     return uniqueCategories.sort((a, b) => {
       const categoryA = categoryData.find(cat => cat.category === a);
       const categoryB = categoryData.find(cat => cat.category === b);
@@ -251,7 +261,8 @@ const Royal = () => {
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
-              className="w-16 text-center font-bold bg-white border rounded-md py-1 px-2"
+              className="w-16 text-center font-bold bg-white border rounded-md py-1 px-2 focus:outline-none"
+              maxLength={4}
             />
             <button
               onClick={() => setGuestCount(guestCount + 5)}
