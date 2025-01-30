@@ -10,7 +10,7 @@ export default {
         aliceBlue: '#f8f8f8',
       },
       fontFamily: {
-        roboto: ['Roboto', 'sans-serif'],
+        roboto: ['Roboto'],
       },
       keyframes: {
         bounceText: {
