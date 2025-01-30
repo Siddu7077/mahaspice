@@ -34,7 +34,7 @@ const DynamicServices = () => {
   const fetchEvents = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}get_events.php`);
+      const response = await fetch(`${BASE_URL}get_sup_events.php`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -60,143 +60,87 @@ const DynamicServices = () => {
   const getEventDataForService = (serviceTitle) => {
     console.log('Looking for events matching:', serviceTitle);
     return events.filter(event => {
-      const matches = event.event_name === serviceTitle;
-      console.log(`Comparing "${event.event_name}" with "${serviceTitle}": ${matches}`);
+      const matches = event.event_title === serviceTitle;
+      console.log(`Comparing "${event.event_title}" with "${serviceTitle}": ${matches}`);
       return matches;
     });
   };
 
   const ServiceContent = ({ service }) => {
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  
-  const serviceComponents = {
-    'Box Genie': <SuperfastMeal />,
-    'Home Delivery': <SuperfastDeliveryMenu />
-  };
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
-  if (serviceComponents[service.title]) {
-    return serviceComponents[service.title];
-  }
+    const serviceComponents = {
+      'Box Genie': <SuperfastMeal />,
+      'Home Delivery': <SuperfastDeliveryMenu />
+    };
 
-  const matchingEvents = getEventDataForService(service.title);
+    if (serviceComponents[service.title]) {
+      return serviceComponents[service.title];
+    }
 
-  if (selectedCategory) {
+    const matchingEvents = getEventDataForService(service.title);
+
+    if (selectedCategory) {
+      return (
+        <CategoryDetail 
+          category={selectedCategory} 
+          onBack={() => setSelectedCategory(null)} 
+        />
+      );
+    }
+
     return (
-      <CategoryDetail 
-        category={selectedCategory} 
-        onBack={() => setSelectedCategory(null)} 
-      />
-    );
-  }
-
-  return (
-    <div className="bg-white rounded-lg p-8 text-center">
-      <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
-      <p className="text-gray-600 mb-4">{service.description}</p>
-      
-      {loading ? (
-        <div className="text-xl text-blue-600 font-semibold">Loading...</div>
-      ) : error ? (
-        <div className="text-xl text-red-600 font-semibold">{error}</div>
-      ) : matchingEvents.length > 0 ? (
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-3">Available Categories</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {matchingEvents.map((event, index) => (
-              <div 
-                key={index}
-                className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => setSelectedCategory(event)}
-              >
-                {event.event_file_path && (
-                  <div className="h-48 overflow-hidden">
-                    <img
-                      src={`${BASE_URL}${event.event_file_path}`}
-                      alt={event.event_category}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <div className="p-4">
-                  <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    {event.event_category}
-                  </span>
-                  <div className="mt-2 text-sm text-gray-600">
-                    <div>Veg Price: ₹{event.event_veg_price}</div>
-                    <div>Non-Veg Price: ₹{event.event_nonveg_price}</div>
+      <div className="bg-white rounded-lg p-8 text-center">
+        <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
+        <p className="text-gray-600 mb-4">{service.description}</p>
+        
+        {loading ? (
+          <div className="text-xl text-blue-600 font-semibold">Loading...</div>
+        ) : error ? (
+          <div className="text-xl text-red-600 font-semibold">{error}</div>
+        ) : matchingEvents.length > 0 ? (
+          <div className="mt-6">
+            <h3 className="text-xl font-semibold mb-3">Available Events</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {matchingEvents.map((event) => (
+                <div 
+                  key={event.id}
+                  className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => setSelectedCategory(event)}
+                >
+                  {event.img_address && (
+                    <div className="h-48 overflow-hidden">
+                      <img
+                        src={`${BASE_URL}${event.img_address}`}
+                        alt={event.event_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                      {event.event_name}
+                    </h4>
+                    <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                      {event.event_title}
+                    </span>
+                    {event.description && (
+                      <p className="mt-2 text-sm text-gray-600">
+                        {event.description}
+                      </p>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      ) : (
-        <div className="text-xl text-blue-600 font-semibold">Coming Soon...</div>
-      )}
-    </div>
-  );
-};
-  // const ServiceContent = ({ service }) => {
-  //   const serviceComponents = {
-  //     'Box Genie': <SuperfastMeal />,
-  //     'Home Delivery': <SuperfastDeliveryMenu />
-  //   };
+        ) : (
+          <div className="text-xl text-blue-600 font-semibold">Coming Soon...</div>
+        )}
+      </div>
+    );
+  };
 
-  //   if (serviceComponents[service.title]) {
-  //     return serviceComponents[service.title];
-  //   }
-
-  //   const matchingEvents = getEventDataForService(service.title);
-  //   console.log('Found matching events:', matchingEvents);
-
-  //   return (
-  //     <div className="bg-white rounded-lg p-8 text-center">
-  //       <h2 className="text-3xl font-bold mb-4">{service.title}</h2>
-  //       <p className="text-gray-600 mb-4">{service.description}</p>
-        
-  //       {loading ? (
-  //         <div className="text-xl text-blue-600 font-semibold">Loading...</div>
-  //       ) : error ? (
-  //         <div className="text-xl text-red-600 font-semibold">{error}</div>
-  //       ) : matchingEvents.length > 0 ? (
-  //         <div className="mt-6">
-  //           <h3 className="text-xl font-semibold mb-3">Available Categories</h3>
-  //           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  //             {matchingEvents.map((event, index) => (
-  //               <div 
-  //                 key={index}
-  //                 className="bg-white rounded-lg shadow-md overflow-hidden"
-  //               >
-  //                 {event.event_file_path && (
-  //                   <div className="h-48 overflow-hidden">
-  //                     <img
-  //                       src={`${BASE_URL}${event.event_file_path}`}
-  //                       alt={event.event_category}
-  //                       className="w-full h-full object-cover"
-  //                     />
-  //                   </div>
-  //                 )}
-  //                 <div className="p-4">
-  //                   <span className="px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-  //                     {event.event_category}
-  //                   </span>
-  //                   <div className="mt-2 text-sm text-gray-600">
-  //                     <div>Veg Price: ₹{event.event_veg_price}</div>
-  //                     <div>Non-Veg Price: ₹{event.event_nonveg_price}</div>
-  //                   </div>
-  //                 </div>
-  //               </div>
-  //             ))}
-  //           </div>
-  //         </div>
-  //       ) : (
-  //         <div className="text-xl text-blue-600 font-semibold">Coming Soon...</div>
-  //       )}
-  //     </div>
-  //   );
-  // };
-
-  // Rest of the component remains the same...
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">

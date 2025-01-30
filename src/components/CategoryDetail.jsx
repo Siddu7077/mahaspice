@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import Royal from './Royal';
 import Platinum from './Platinum';
+import Classic from './Classic';
 
 const Superfast = () => {
   const [crpbData, setCRPBData] = useState([]);
@@ -14,7 +15,7 @@ const Superfast = () => {
   const getServiceComponent = (serviceName) => {
     const componentMap = {
       
-      
+      'classic': Classic,
       'Royal': Royal,
       'Platinum': Platinum,
     
