@@ -1,26 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-
 import Royal from './Royal';
 import Platinum from './Platinum';
 import Classic from './Classic';
 
-const Superfast = () => {
+const Superfast = ({ eventName }) => { // Added eventName prop
   const [crpbData, setCRPBData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
 
-  // Service component mapping function
   const getServiceComponent = (serviceName) => {
     const componentMap = {
-      
       'classic': Classic,
       'Royal': Royal,
       'Platinum': Platinum,
-    
     };
-
     return componentMap[serviceName] || null;
   };
 
@@ -28,7 +23,6 @@ const Superfast = () => {
     const fetchCRPB = async () => {
       try {
         const response = await axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php');
-        // Sort the data by the 'position' field in ascending order
         const sortedData = response.data.sort((a, b) => a.position - b.position);
         setCRPBData(sortedData);
         setLoading(false);
@@ -37,7 +31,6 @@ const Superfast = () => {
         setLoading(false);
       }
     };
-
     fetchCRPB();
   }, []);
 
@@ -48,17 +41,24 @@ const Superfast = () => {
   if (loading) return <div>Loading ...</div>;
   if (error) return <div>Error loading </div>;
 
-  // Render selected service component if one is selected
-  const SelectedServiceComponent = selectedService 
-    ? getServiceComponent(selectedService) 
+  const SelectedServiceComponent = selectedService
+    ? getServiceComponent(selectedService)
     : null;
 
   return (
-    <div>
-      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mr-9">
+    <div className="p-4">
+      {/* Added Event Name Display */}
+      {eventName && (
+        <div className="mb-6">
+          <h2 className="text-3xl font-bold text-green-700 mb-2">Available packages for {eventName}</h2>
+          <div className="w-2/6 h-1 bg-green-700 rounded"></div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mr-9">
         {crpbData.map((crpb, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             onClick={() => handleServiceSelect(crpb.name)}
             className="border rounded-lg shadow hover:shadow-lg transition p-4 cursor-pointer"
           >
@@ -72,10 +72,9 @@ const Superfast = () => {
         ))}
       </div>
 
-      {/* Render the selected service component */}
       {SelectedServiceComponent && (
         <div className="mt-8">
-          <SelectedServiceComponent />
+          <SelectedServiceComponent eventName={eventName} />
         </div>
       )}
     </div>

@@ -107,7 +107,7 @@ const EventsPage = () => {
               }}
             />
             <div className="p-4">
-              <h3 className="text-lg font-bold text-green-700 mb-2">
+              <h3 className="text-lg font-bold text-black mb-2">
                 {service.title}
               </h3>
               {/* <p className="text-gray-600 mb-2">{service.description}</p>
@@ -122,7 +122,7 @@ const EventsPage = () => {
               <div className="text-center">
                 <button
                   onClick={() => handleOrderNow(service)}
-                  className="mt-3 w-100 p-3 bg-green-700 text-white py-2 rounded-md hover:bg-black transition"
+                  className="mt-3 w-full p-3 bg-green-700 text-white rounded-md hover:bg-green-600 transition"
                 >
                   Choose your package
                 </button>

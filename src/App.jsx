@@ -53,9 +53,10 @@ const App = () => {
             
             {/* Add other routes here */}
           </Routes>
+            {/* <Footer /> */}
           
         </Layout>
-        <Footer />
+        
       </BrowserRouter>
     </AuthProvider>
   );
