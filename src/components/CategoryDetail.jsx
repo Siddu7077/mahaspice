@@ -55,7 +55,7 @@ const Superfast = ({ eventName }) => { // Added eventName prop
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mr-9">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mr-9">
         {crpbData.map((crpb, index) => (
           <div
             key={index}
@@ -65,7 +65,7 @@ const Superfast = ({ eventName }) => { // Added eventName prop
             <img
               src={`https://mahaspice.desoftimp.com/ms3/${crpb.img_address}`}
               alt={crpb.name}
-              className="w-full h-40 object-full rounded-md mb-4"
+              className="w-full h-56 object-full rounded-md mb-4"
             />
             {/* <h3 className="font-bold text-lg text-center">{crpb.name}</h3> */}
           </div>
