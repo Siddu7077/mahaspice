@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Minus, ShoppingCart, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import SuperfastDelboxCheckout from "./SuperfastDelboxCheckout";
 
 const SuperfastDeliveryMenu = ({ formData }) => {
+  const navigate = useNavigate();
   const [menuData, setMenuData] = useState([]);
   const [menuType, setMenuType] = useState("veg");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [showGuestLimitAlert, setShowGuestLimitAlert] = useState(false);
+  const [itemBeingModified, setItemBeingModified] = useState(null);
   const [superselecteditems, setSuperselecteditems] = useState(() => {
     const savedItems = localStorage.getItem('superselecteditems');
     return savedItems ? JSON.parse(savedItems) : [];
@@ -24,7 +28,6 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   const [loading, setLoading] = useState(true);
   const [isCheckout, setIsCheckout] = useState(false);
   const [error, setError] = useState(null);
-
   // Save selected items to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('superselecteditems', JSON.stringify(superselecteditems));
@@ -72,8 +75,26 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
   const handleGuestCountChange = (increment) => {
     const newCount = Math.max(10, guestCount + increment);
-    setGuestCount(newCount);
-    updateDefaultQuantities(newCount);
+    if (newCount > 50) {
+      setShowGuestLimitAlert(true);
+    } else {
+      setGuestCount(newCount);
+      updateDefaultQuantities(newCount);
+    }
+  };
+
+  const handleGuestInputChange = (e) => {
+    const value = parseInt(e.target.value) || 10;
+    const newCount = Math.max(10, value);
+    if (newCount > 50) {
+      setShowGuestLimitAlert(true);
+    } else {
+      setGuestCount(newCount);
+      updateDefaultQuantities(newCount);
+    }
+  };
+  const handleContinueToDelivery = () => {
+    navigate('/delivery');
   };
 
   const updateDefaultQuantities = (newGuestCount) => {
@@ -87,20 +108,29 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
   const handleItemQuantity = (itemId, change) => {
     setSuperselecteditems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
+      prevItems.map((item) => {
+        if (item.id === itemId) {
+          const newQuantity = Math.max(1, item.quantity + change);
+          if (newQuantity > 50) {
+            setItemBeingModified(item);
+            setShowGuestLimitAlert(true);
+            return item; // Keep existing quantity
+          }
+          return { ...item, quantity: newQuantity };
+        }
+        return item;
+      })
     );
-  };
-
-  const handleCheckout = () => {
-    setIsCheckout(true);
   };
 
   const handleAddItem = (item) => {
     const defaultQuantity = Math.ceil(guestCount);
+    if (defaultQuantity > 50) {
+      setItemBeingModified(item);
+      setShowGuestLimitAlert(true);
+      return;
+    }
+    
     setSuperselecteditems((prevItems) => {
       if (prevItems.some((i) => i.id === item.id)) {
         return prevItems.filter((i) => i.id !== item.id);
@@ -108,6 +138,11 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       return [...prevItems, { ...item, quantity: defaultQuantity }];
     });
   };
+  const handleCheckout = () => {
+    setIsCheckout(true);
+  };
+
+  
 
   const calculateTotals = React.useMemo(() => {
     const subtotal = superselecteditems.reduce(
@@ -121,6 +156,42 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   }, [superselecteditems]);
 
   const isItemSelected = (itemId) => superselecteditems.some((item) => item.id === itemId);
+
+  const AlertDialog = () => {
+    if (!showGuestLimitAlert) return null;
+
+    const itemText = itemBeingModified 
+      ? `quantity for ${itemBeingModified.title}`
+      : 'guest count';
+      
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+          <h3 className="text-lg font-semibold mb-4">Guest Limit Exceeded</h3>
+          <p className="text-gray-600 mb-6">
+            We can only accommodate up to 50 guests in superfast home delivery. If you'd like to add more than 50 guests, we recommend switching to regular home delivery. Please note that delivery times may vary based on the number of guests and the delivery location.
+          </p>
+
+          <div className="flex gap-4 justify-end">
+            <button
+              onClick={() => setShowGuestLimitAlert(false)}
+              className="px-4 py-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleContinueToDelivery}
+              className="px-4 py-2 text-white bg-green-500 rounded-lg hover:bg-green-600 transition-colors"
+            >
+              Yes, continue
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -139,6 +210,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
+      <AlertDialog />
       {/* Controls Section */}
       <div className="bg-white p-4 shadow">
         <div className="flex flex-wrap justify-between items-center">
@@ -169,8 +241,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                 <button
                   onClick={() => setMenuType("veg")}
                   className={`px-6 py-2 rounded-md transition-all ${menuType === "veg"
-                      ? "bg-green-500 text-white shadow-md"
-                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                    ? "bg-green-500 text-white shadow-md"
+                    : "bg-transparent text-gray-700 hover:bg-gray-200"
                     }`}
                 >
                   Veg
@@ -178,8 +250,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                 <button
                   onClick={() => setMenuType("non-veg")}
                   className={`px-6 py-2 rounded-md transition-all ${menuType === "non-veg"
-                      ? "bg-red-500 text-white shadow-md"
-                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                    ? "bg-red-500 text-white shadow-md"
+                    : "bg-transparent text-gray-700 hover:bg-gray-200"
                     }`}
                 >
                   Non-Veg
@@ -201,11 +273,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                   <input
                     type="number"
                     value={guestCount}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value) || 10;
-                      setGuestCount(Math.max(10, value));
-                      updateDefaultQuantities(Math.max(10, value));
-                    }}
+                    onChange={handleGuestInputChange}
+
                     className="w-16 text-center bg-transparent border-none focus:outline-none font-semibold"
                     min="10"
                   />

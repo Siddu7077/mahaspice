@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Coffee, Sun, Moon, Plus, Minus, Trash2, X } from "lucide-react";
+import { Coffee, Sun, Moon, Plus, Minus, Trash2, X, AlertCircle } from "lucide-react";
 import SuperfastCheckOutform from "./SuperfastMealCheckOut";
 import ScrollToTop from "./ScrollToTop";
 import { useAuth } from "./AuthSystem";
@@ -9,60 +9,60 @@ import { useAuth } from "./AuthSystem";
 
 // Keeping the existing helper functions
 const transformApiData = (apiData) => {
-    // Filter superfast items first
-    const superfastItems = apiData.filter(item => item.is_superfast === "Yes");
-    
-    // Get unique CP types from filtered items
-    const cpTypes = [
-      ...new Set(superfastItems.map((item) => item.cp_type.toUpperCase())),
-    ];
-  
-    // Initialize the transformed data structure
-    const transformed = {
-      breakfast: {},
-      lunch: {},
-      dinner: {},
-    };
-  
-    // Initialize the structure for each CP type
-    cpTypes.forEach((cpType) => {
-      transformed.breakfast[cpType] = [];
-      transformed.lunch[cpType] = { veg: [], nonVeg: [] };
-      transformed.dinner[cpType] = { veg: [], nonVeg: [] };
-    });
-  
-    // Transform only the superfast items
-    superfastItems.forEach((item) => {
-      const mealTime = item.meal_time.toLowerCase();
-      const cpType = item.cp_type.toUpperCase();
-      const isVeg = item.veg_non_veg === "Veg";
-  
-      const transformedItem = {
-        id: item.id.toString(),
-        name: item.cp_name,
-        image: `https://mahaspice.desoftimp.com/ms3${item.image_address}`,
-        items: item.description.split(","),
-        price: `₹${item.price}`,
-        rating: 4.5,
-        time: "30 mins", // Since we're only including superfast items
-        isSuperfast: true
-      };
-  
-      // Sort into appropriate category
-      if (mealTime === "breakfast") {
-        transformed.breakfast[cpType].push(transformedItem);
-      } else {
-        if (isVeg) {
-          transformed[mealTime][cpType].veg.push(transformedItem);
-        } else {
-          transformed[mealTime][cpType].nonVeg.push(transformedItem);
-        }
-      }
-    });
-  
-    return { data: transformed, cpTypes };
+  // Filter superfast items first
+  const superfastItems = apiData.filter(item => item.is_superfast === "Yes");
+
+  // Get unique CP types from filtered items
+  const cpTypes = [
+    ...new Set(superfastItems.map((item) => item.cp_type.toUpperCase())),
+  ];
+
+  // Initialize the transformed data structure
+  const transformed = {
+    breakfast: {},
+    lunch: {},
+    dinner: {},
   };
-  
+
+  // Initialize the structure for each CP type
+  cpTypes.forEach((cpType) => {
+    transformed.breakfast[cpType] = [];
+    transformed.lunch[cpType] = { veg: [], nonVeg: [] };
+    transformed.dinner[cpType] = { veg: [], nonVeg: [] };
+  });
+
+  // Transform only the superfast items
+  superfastItems.forEach((item) => {
+    const mealTime = item.meal_time.toLowerCase();
+    const cpType = item.cp_type.toUpperCase();
+    const isVeg = item.veg_non_veg === "Veg";
+
+    const transformedItem = {
+      id: item.id.toString(),
+      name: item.cp_name,
+      image: `https://mahaspice.desoftimp.com/ms3${item.image_address}`,
+      items: item.description.split(","),
+      price: `₹${item.price}`,
+      rating: 4.5,
+      time: "30 mins", // Since we're only including superfast items
+      isSuperfast: true
+    };
+
+    // Sort into appropriate category
+    if (mealTime === "breakfast") {
+      transformed.breakfast[cpType].push(transformedItem);
+    } else {
+      if (isVeg) {
+        transformed[mealTime][cpType].veg.push(transformedItem);
+      } else {
+        transformed[mealTime][cpType].nonVeg.push(transformedItem);
+      }
+    }
+  });
+
+  return { data: transformed, cpTypes };
+};
+
 //   export default transformApiData;
 
 const getPackageImage = (cpType) => {
@@ -94,6 +94,8 @@ const SuperfastMeal = () => {
   const [error, setError] = useState("");
   const [gstPercentage, setGstPercentage] = useState(18);
   const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [showGuestLimitPopup, setShowGuestLimitPopup] = useState(false);
+  const [pendingQuantityUpdate, setPendingQuantityUpdate] = useState(null);
 
   // Add missing getFinalTotal function
   const getFinalTotal = () => {
@@ -171,17 +173,29 @@ const SuperfastMeal = () => {
     );
   });
 
+  const calculateTotalGuests = (currentCart, pendingItemId = null, pendingQuantity = 0) => {
+    return Object.entries(currentCart).reduce((total, [itemId, itemData]) => {
+      if (itemId === pendingItemId) {
+        return total + pendingQuantity;
+      }
+      return total + itemData.quantity;
+    }, 0);
+  };
+
   const handleQuantityChange = (itemId, value) => {
     const newValue = value.replace(/[^0-9]/g, "");
     setQuantityInputs((prev) => ({ ...prev, [itemId]: newValue }));
 
     if (newValue !== "") {
       const numValue = parseInt(newValue, 10);
-      if (numValue >= 10 || numValue === 0) {
-        // Allow 0 or minimum 10
+      if (numValue >= 10) {
+        const totalGuests = calculateTotalGuests(cart, itemId, numValue);
+        if (totalGuests > 50) {
+          setShowGuestLimitPopup(true);
+          setPendingQuantityUpdate({ itemId, quantity: numValue });
+          return;
+        }
         updateQuantity(itemId, numValue);
-      } else if (numValue > 0) {
-        updateQuantity(itemId, 10); // Set to minimum if below 10
       }
     }
   };
@@ -249,6 +263,16 @@ const SuperfastMeal = () => {
   };
 
   const addToCart = (item) => {
+    // Calculate total guests including the new item
+    const totalGuests = calculateTotalGuests(cart) + 10; // Adding minimum quantity of 10
+
+    if (totalGuests > 50) {
+      setShowGuestLimitPopup(true);
+      setPendingQuantityUpdate({ itemId: item.id, quantity: 10, isNewItem: true });
+      return;
+    }
+
+
     setCart((prevCart) => {
       const currentItem = prevCart[item.id] || { quantity: 0, details: item };
       return {
@@ -267,16 +291,25 @@ const SuperfastMeal = () => {
     }));
   };
 
+
   const updateQuantity = (itemId, newQuantity) => {
     // Ensure minimum quantity of 10
     if (newQuantity > 0 && newQuantity < 10) {
       newQuantity = 10;
     }
 
+    const totalGuests = calculateTotalGuests(cart, itemId, newQuantity);
+
+    // If total would exceed 50, show popup
+    if (totalGuests > 50) {
+      setShowGuestLimitPopup(true);
+      setPendingQuantityUpdate({ itemId, quantity: newQuantity });
+      return;
+    }
+
     setCart((prevCart) => {
       if (newQuantity === 0) {
         const { [itemId]: removedItem, ...restCart } = prevCart;
-        // Also update quantityInputs when removing item
         setQuantityInputs((prev) => {
           const { [itemId]: removed, ...rest } = prev;
           return rest;
@@ -297,6 +330,21 @@ const SuperfastMeal = () => {
     }));
   };
 
+
+
+
+const handleGuestLimitCancel = () => {
+  if (pendingQuantityUpdate) {
+    const { itemId } = pendingQuantityUpdate;
+    // Reset the quantity to 50 for the pending item
+    updateQuantity(itemId, 50);
+  }
+  setShowGuestLimitPopup(false); // Close the popup
+  setPendingQuantityUpdate(null); // Clear the pending update
+};
+
+
+
   const calculateCartTotal = () => {
     return Object.entries(cart).reduce((total, [itemId, itemData]) => {
       const itemPrice = parseFloat(itemData.details.price.replace("₹", ""));
@@ -304,9 +352,11 @@ const SuperfastMeal = () => {
     }, 0);
   };
 
-  // const calculateGST = () => {
-  //   return Math.round(calculateCartTotal() * 0.18);
-  // };
+
+
+  const handleRedirectToBox = () => {
+    navigate('/box');
+  };
 
   const { user } = useAuth();
 
@@ -332,6 +382,7 @@ const SuperfastMeal = () => {
     setShowCheckout(true);
   };
 
+  
   const handleApplyCoupon = () => {
     setError("");
     const coupon = availableCoupons.find(
@@ -415,6 +466,38 @@ const SuperfastMeal = () => {
     <div className="min-h-screen bg-gray-50">
       <ScrollToTop />
 
+      {/* Guest Limit Popup */}
+      {showGuestLimitPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-start mb-4">
+              <AlertCircle className="w-6 h-6 text-orange-500 mr-3 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Guest Limit Exceeded</h3>
+                <p className="text-gray-600 mb-6">
+                  We can only accommodate up to 50 guests with Superfast Box Genie. If you'd like to add more than 50 guests, we recommend switching to regular Box Genie. Please note that delivery times may vary based on the number of guests and the delivery location.
+                </p>
+
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleGuestLimitCancel}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRedirectToBox}
+                className="px-4 py-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+              >
+                Yes, continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header with Meal Type Selection */}
       <div className="sticky top-0 z-20 bg-white shadow-sm flex items-center justify-center">
         <div className="flex justify-center gap-4 p-4">
@@ -423,11 +506,10 @@ const SuperfastMeal = () => {
               setSelectedMealType("breakfast");
               // setSelectedPackage(getAvailablePackages()[0]);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedMealType === "breakfast"
-                ? "bg-orange-100 text-orange-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${selectedMealType === "breakfast"
+              ? "bg-orange-100 text-orange-600"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             <Coffee className="w-5 h-5" />
             Breakfast
@@ -437,11 +519,10 @@ const SuperfastMeal = () => {
               setSelectedMealType("lunch");
               // setSelectedPackage(getAvailablePackages()[0]);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedMealType === "lunch"
-                ? "bg-orange-100 text-orange-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${selectedMealType === "lunch"
+              ? "bg-orange-100 text-orange-600"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             <Sun className="w-5 h-5" />
             Lunch
@@ -451,11 +532,10 @@ const SuperfastMeal = () => {
               setSelectedMealType("dinner");
               // setSelectedPackage(getAvailablePackages()[0]);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedMealType === "dinner"
-                ? "bg-orange-100 text-orange-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${selectedMealType === "dinner"
+              ? "bg-orange-100 text-orange-600"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             <Moon className="w-5 h-5" />
             Dinner
@@ -482,20 +562,18 @@ const SuperfastMeal = () => {
                 onClick={() => setIsVeg(!isVeg)}
               >
                 <div
-                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
-                    isVeg
-                      ? "text-white font-semibold"
-                      : "text-gray-700 font-medium"
-                  }`}
+                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${isVeg
+                    ? "text-white font-semibold"
+                    : "text-gray-700 font-medium"
+                    }`}
                 >
                   Veg
                 </div>
                 <div
-                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
-                    !isVeg
-                      ? "text-white font-semibold"
-                      : "text-gray-700 font-medium"
-                  }`}
+                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${!isVeg
+                    ? "text-white font-semibold"
+                    : "text-gray-700 font-medium"
+                    }`}
                 >
                   NonVeg
                 </div>
@@ -524,11 +602,10 @@ const SuperfastMeal = () => {
                     <button
                       key={pkg}
                       onClick={() => setSelectedPackage(pkg)}
-                      className={`flex flex-col items-center justify-between p-4 rounded-xl border-2 min-w-fit transition-all ${
-                        selectedPackage === pkg
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200 hover:border-green-200"
-                      }`}
+                      className={`flex flex-col items-center justify-between p-4 rounded-xl border-2 min-w-fit transition-all ${selectedPackage === pkg
+                        ? "border-green-500 bg-green-50"
+                        : "border-gray-200 hover:border-green-200"
+                        }`}
                     >
                       <img
                         src={getPackageImage(pkg)}
@@ -609,6 +686,8 @@ const SuperfastMeal = () => {
                                     onBlur={() => handleBlur(item.id)}
                                     className="w-16 text-center border rounded"
                                     min="10"
+                                    
+
                                     step="1"
                                   />
                                   <button
@@ -652,9 +731,8 @@ const SuperfastMeal = () => {
                         .map((item) => (
                           <div
                             key={item.id}
-                            className={`p-4 border rounded-xl bg-white ${
-                              isVeg ? "border-green-200" : "border-red-200"
-                            }`}
+                            className={`p-4 border rounded-xl bg-white ${isVeg ? "border-green-200" : "border-red-200"
+                              }`}
                           >
                             <img
                               src={item.image}
@@ -662,9 +740,8 @@ const SuperfastMeal = () => {
                               className="w-full h-48 object-cover rounded-lg mb-4"
                             />
                             <h3
-                              className={`font-semibold mb-2 ${
-                                isVeg ? "text-green-700" : "text-red-700"
-                              }`}
+                              className={`font-semibold mb-2 ${isVeg ? "text-green-700" : "text-red-700"
+                                }`}
                             >
                               {item.name}
                             </h3>
@@ -674,16 +751,14 @@ const SuperfastMeal = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <div
-                                  className={`border-2 ${
-                                    isVeg
-                                      ? "border-green-500"
-                                      : "border-red-500"
-                                  } p-1 rounded`}
+                                  className={`border-2 ${isVeg
+                                    ? "border-green-500"
+                                    : "border-red-500"
+                                    } p-1 rounded`}
                                 >
                                   <div
-                                    className={`w-3 h-3 rounded-full ${
-                                      isVeg ? "bg-green-500" : "bg-red-500"
-                                    }`}
+                                    className={`w-3 h-3 rounded-full ${isVeg ? "bg-green-500" : "bg-red-500"
+                                      }`}
                                   ></div>
                                 </div>
                                 <span className="font-semibold">
@@ -694,48 +769,28 @@ const SuperfastMeal = () => {
                                 <div className="flex items-center gap-2">
                                   <button
                                     onClick={() => {
-                                      const newQuantity =
-                                        cart[item.id].quantity - 1;
+                                      const newQuantity = cart[item.id].quantity - 1;
                                       updateQuantity(
                                         item.id,
-                                        newQuantity < 10 && newQuantity !== 0
-                                          ? 10
-                                          : newQuantity
+                                        newQuantity < 10 && newQuantity !== 0 ? 10 : newQuantity
                                       );
                                     }}
-                                    className={`${
-                                      isVeg ? "bg-green-500" : "bg-red-500"
-                                    } text-white rounded-full p-1`}
+                                    className="bg-orange-500 text-white rounded-full p-1"
                                   >
                                     <Minus size={16} />
                                   </button>
                                   <input
                                     type="number"
-                                    value={
-                                      quantityInputs[item.id] ||
-                                      cart[item.id].quantity
-                                    }
-                                    onChange={(e) =>
-                                      handleQuantityChange(
-                                        item.id,
-                                        e.target.value
-                                      )
-                                    }
+                                    value={quantityInputs[item.id] || cart[item.id].quantity}
+                                    onChange={(e) => handleQuantityChange(item.id, e.target.value)}
                                     onBlur={() => handleBlur(item.id)}
                                     className="w-16 text-center border rounded"
                                     min="10"
                                     step="1"
                                   />
                                   <button
-                                    onClick={() =>
-                                      updateQuantity(
-                                        item.id,
-                                        cart[item.id].quantity + 1
-                                      )
-                                    }
-                                    className={`${
-                                      isVeg ? "bg-green-500" : "bg-red-500"
-                                    } text-white rounded-full p-1`}
+                                    onClick={() => updateQuantity(item.id, cart[item.id].quantity + 1)}
+                                    className="bg-orange-500 text-white rounded-full p-1"
                                   >
                                     <Plus size={16} />
                                   </button>
@@ -743,9 +798,8 @@ const SuperfastMeal = () => {
                               ) : (
                                 <button
                                   onClick={() => addToCart(item)}
-                                  className={`px-4 py-2 ${
-                                    isVeg ? "bg-green-500" : "bg-red-500"
-                                  } text-white rounded-lg`}
+                                  className={`px-4 py-2 ${isVeg ? "bg-green-500" : "bg-red-500"
+                                    } text-white rounded-lg`}
                                 >
                                   Add
                                 </button>

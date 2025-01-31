@@ -264,18 +264,18 @@ const Navbar = () => {
             <div className="flex items-center lg:text-sm justify-between">
               <Link
                 to="/superfast"
-                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
                   selectedComponent === "Superfast"
                     ? "bg-green-600 text-white"
                     : "text-black"
                 }`}
-              >
+              > 
                 Superfast Delivery
               </Link>
 
               <Link
                 to="/box"
-                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
                   selectedComponent === "Box Genie"
                     ? "bg-green-600 text-white"
                     : "text-black"
@@ -286,7 +286,7 @@ const Navbar = () => {
 
               <Link
                 to="/delivery"
-                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
                   selectedComponent === "Home Delivery"
                     ? "bg-green-600 text-white"
                     : "text-black"
@@ -304,7 +304,7 @@ const Navbar = () => {
                 >
                   <div
                     onClick={() => handleCategoryClick(category)}
-                    className={`flex items-center px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                    className={`flex items-center px-3 py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
                       selectedComponent === category.key
                         ? "bg-green-600 text-white"
                         : "text-black"
@@ -360,7 +360,7 @@ const Navbar = () => {
 
               <Link
                 to="events/personalized-menu"
-                className={`px-3 py-1.5 rounded-lg cursor-pointer whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
                   selectedComponent === "Catering"
                     ? "bg-green-600 text-white"
                     : "text-black"
