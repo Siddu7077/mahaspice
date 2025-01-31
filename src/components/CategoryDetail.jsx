@@ -67,7 +67,7 @@ const Superfast = ({ eventName }) => { // Added eventName prop
               alt={crpb.name}
               className="w-full h-40 object-full rounded-md mb-4"
             />
-            <h3 className="font-bold text-lg text-center">{crpb.name}</h3>
+            {/* <h3 className="font-bold text-lg text-center">{crpb.name}</h3> */}
           </div>
         ))}
       </div>

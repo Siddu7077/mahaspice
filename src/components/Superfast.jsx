@@ -94,7 +94,9 @@ const DynamicServices = () => {
 
     return (
       <div className="bg-white rounded-lg p-8 text-left">
-        <h2 className="text-3xl font-bold mb-4 text-green-600">{service.title}</h2>
+        <h2 className="text-3xl font-bold mb-4 text-green-600">
+          {service.title}
+        </h2>
         <p className="text-gray-700 mb-8">{service.description}</p>
 
         {loading ? (
@@ -150,7 +152,6 @@ const DynamicServices = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-    
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {sections.map((section) => (
           <div
@@ -175,8 +176,14 @@ const DynamicServices = () => {
                 <h3 className="text-black text-lg font-bold mb-2">
                   {section.title}
                 </h3>
-                <p className="text-gray-600 text-sm">
-                  {section.sub_description}
+                <p className="text-gray-600 text-sm whitespace-pre-line">
+                  {section.sub_description.split(">").map((line, index) => (
+                    <React.Fragment key={index}>
+                      {index > 0 && ">"}
+                      {line.trim()}
+                      <br />
+                    </React.Fragment>
+                  ))}
                 </p>
               </div>
 
