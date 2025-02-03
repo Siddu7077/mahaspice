@@ -269,7 +269,7 @@ const Navbar = () => {
                     ? "bg-green-600 text-white"
                     : "text-black"
                 }`}
-              > 
+              >
                 Superfast Delivery
               </Link>
 
@@ -286,7 +286,7 @@ const Navbar = () => {
 
               <Link
                 to="/delivery"
-                className={`px-3 py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
+                className={`px-3 sm:hidden lg:block md:block py-1.5 rounded-lg font-semibold cursor-pointer whitespace-nowrap ${
                   selectedComponent === "Home Delivery"
                     ? "bg-green-600 text-white"
                     : "text-black"
@@ -298,7 +298,7 @@ const Navbar = () => {
               {dropdownConfig.map((category) => (
                 <div
                   key={category.key}
-                  className="relative group"
+                  className="relative group sm:hidden lg:block md:block"
                   onMouseEnter={() => setOpenDropdown(category.key)}
                   onMouseLeave={() => setOpenDropdown(null)}
                 >
