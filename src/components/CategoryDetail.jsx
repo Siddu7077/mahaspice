@@ -57,14 +57,16 @@ const Superfast = ({ eventName }) => {
           <div
             key={index}
             onClick={() => handlePackageSelect(crpb.name)}
-            className="border rounded-lg shadow hover:shadow-lg transition p-4 cursor-pointer"
+            className={`border rounded-lg shadow-lg hover:shadow-2xl transition cursor-pointer ${
+              selectedPackage === crpb.name ? 'border-green-500 border-2' : ''
+            }`}
           >
             <img
               src={`https://mahaspice.desoftimp.com/ms3/${crpb.img_address}`}
               alt={crpb.name}
-              className="w-full h-56 object-full rounded-md mb-4"
+              className="w-full object-full rounded-md"
             />
-            <h3 className="font-bold text-lg text-center">{crpb.name}</h3>
+            {/* <h3 className="font-bold text-lg text-center">{crpb.name}</h3> */}
           </div>
         ))}
       </div>

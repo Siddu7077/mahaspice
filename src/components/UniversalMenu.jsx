@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Minus, ShoppingCart, CreditCard, AlertTriangle } from 'lucide-react';
 
 const UniversalMenu = ({ eventName, packageName }) => {
@@ -14,6 +14,16 @@ const UniversalMenu = ({ eventName, packageName }) => {
   const [inputValue, setInputValue] = useState(guestCount.toString());
 
   const baseUrl = 'https://mahaspice.desoftimp.com/ms3/';
+
+  // Create a ref to the component's root element
+  const componentRef = useRef(null);
+
+  // Scroll the component into view when it mounts or when eventName/packageName changes
+  useEffect(() => {
+    if (componentRef.current) {
+      componentRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [eventName, packageName]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -150,7 +160,7 @@ const UniversalMenu = ({ eventName, packageName }) => {
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 grid grid-cols-3 gap-1">
+    <div ref={componentRef} className="min-h-screen bg-gray-50 grid grid-cols-3 gap-1">
       <div className="col-span-2 p-6">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex gap-6 items-center">
