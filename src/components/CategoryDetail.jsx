@@ -1,53 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Royal from './Royal';
-import Platinum from './Platinum';
-import Classic from './Classic';
+import UniversalMenu from './UniversalMenu'; // Import the UniversalMenu component
 
-const Superfast = ({ eventName }) => { // Added eventName prop
+const Superfast = ({ eventName }) => {
   const [crpbData, setCRPBData] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([]);
+  const [pricing, setPricing] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedService, setSelectedService] = useState(null);
-
-  const getServiceComponent = (serviceName) => {
-    const componentMap = {
-      'classic': Classic,
-      'Royal': Royal,
-      'Platinum': Platinum,
-    };
-    return componentMap[serviceName] || null;
-  };
+  const [selectedPackage, setSelectedPackage] = useState(null);
 
   useEffect(() => {
-    const fetchCRPB = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php');
-        const sortedData = response.data.sort((a, b) => a.position - b.position);
-        setCRPBData(sortedData);
+        const [crpbResponse, categoriesResponse, itemsResponse, pricingResponse] = await Promise.all([
+          axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php'),
+          axios.get('https://mahaspice.desoftimp.com/ms3/getsf_categories.php'),
+          axios.get('https://mahaspice.desoftimp.com/ms3/getsf_items.php'),
+          axios.get('https://mahaspice.desoftimp.com/ms3/get_sup_event_pricing.php')
+        ]);
+
+        const sortedCRPBData = crpbResponse.data.sort((a, b) => a.position - b.position);
+        setCRPBData(sortedCRPBData);
+        setCategories(categoriesResponse.data.categories);
+        setItems(itemsResponse.data);
+        setPricing(pricingResponse.data);
         setLoading(false);
       } catch (err) {
         setError(err);
         setLoading(false);
       }
     };
-    fetchCRPB();
+
+    fetchData();
   }, []);
 
-  const handleServiceSelect = (serviceName) => {
-    setSelectedService(serviceName);
+  const handlePackageSelect = (packageName) => {
+    setSelectedPackage(packageName);
   };
 
   if (loading) return <div>Loading ...</div>;
-  if (error) return <div>Error loading </div>;
-
-  const SelectedServiceComponent = selectedService
-    ? getServiceComponent(selectedService)
-    : null;
+  if (error) return <div>Error loading</div>;
 
   return (
     <div className="p-4">
-      {/* Added Event Name Display */}
       {eventName && (
         <div className="mb-6">
           <h2 className="text-3xl font-bold text-green-700 mb-2">Available packages for {eventName}</h2>
@@ -55,11 +52,11 @@ const Superfast = ({ eventName }) => { // Added eventName prop
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mr-9">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6 mr-9">
         {crpbData.map((crpb, index) => (
           <div
             key={index}
-            onClick={() => handleServiceSelect(crpb.name)}
+            onClick={() => handlePackageSelect(crpb.name)}
             className="border rounded-lg shadow hover:shadow-lg transition p-4 cursor-pointer"
           >
             <img
@@ -67,14 +64,20 @@ const Superfast = ({ eventName }) => { // Added eventName prop
               alt={crpb.name}
               className="w-full h-56 object-full rounded-md mb-4"
             />
-            {/* <h3 className="font-bold text-lg text-center">{crpb.name}</h3> */}
+            <h3 className="font-bold text-lg text-center">{crpb.name}</h3>
           </div>
         ))}
       </div>
 
-      {SelectedServiceComponent && (
+      {selectedPackage && (
         <div className="mt-8">
-          <SelectedServiceComponent eventName={eventName} />
+          <UniversalMenu
+            eventName={eventName}
+            packageName={selectedPackage}
+            categories={categories}
+            items={items}
+            pricing={pricing}
+          />
         </div>
       )}
     </div>

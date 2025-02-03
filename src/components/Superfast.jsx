@@ -156,11 +156,11 @@ const DynamicServices = () => {
         {sections.map((section) => (
           <div
             key={section.id}
-            className="group bg-white shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl h-[320px] hover:h-[450px] flex flex-col cursor-pointer"
+            className="group bg-white shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl h-[300px] hover:h-[370px]  flex flex-col cursor-pointer"
             onClick={() => setSelectedService(section)}
           >
             {/* Image container */}
-            <div className="relative flex-shrink-0 h-48">
+            <div className="relative flex-shrink-0 h-60">
               <img
                 src={`${BASE_URL}${section.img_address}`}
                 alt={section.title}
@@ -176,6 +176,8 @@ const DynamicServices = () => {
                 <h3 className="text-black text-lg font-bold mb-2">
                   {section.title}
                 </h3>
+              </div>
+              {section.sub_description && (
                 <p className="text-gray-600 text-sm whitespace-pre-line">
                   {section.sub_description.split(">").map((line, index) => (
                     <React.Fragment key={index}>
@@ -185,10 +187,9 @@ const DynamicServices = () => {
                     </React.Fragment>
                   ))}
                 </p>
-              </div>
-
+                )}
               {/* Expandable bullet points */}
-              {section.bullet_points && (
+              {/* 
                 <div className="text-xs text-gray-500 space-y-2 mt-4 opacity-0 h-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-300">
                   {section.bullet_points.split("\n").map(
                     (point, i) =>
@@ -203,7 +204,7 @@ const DynamicServices = () => {
                       )
                   )}
                 </div>
-              )}
+               */}
             </div>
           </div>
         ))}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Minus, ShoppingCart, CreditCard, AlertTriangle } from 'lucide-react';
 
-const Platinum = () => {
+const UniversalMenu = ({ eventName, packageName }) => {
   const [menuData, setMenuData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -29,19 +29,19 @@ const Platinum = () => {
         const categoriesData = await categoriesResponse.json();
         const pricingData = await pricingResponse.json();
 
-        // Filter categories for platinum type only
-        const platinumCategories = categoriesData.categories.filter(
-          cat => cat.type.toLowerCase() === 'platinum'
-        );
-        
-        // Filter menu items to only include those in platinum categories
-        const platinumCategoryNames = platinumCategories.map(cat => cat.category.toLowerCase());
-        const platinumItems = itemsData.filter(item => 
-          platinumCategoryNames.includes(item.category_name.toLowerCase())
+        // Filter categories for the selected package and event
+        const filteredCategories = categoriesData.categories.filter(
+          cat => cat.type.toLowerCase() === packageName.toLowerCase() && cat.event_name === eventName
         );
 
-        setMenuData(platinumItems);
-        setCategoryData(platinumCategories);
+        // Filter menu items to only include those in the filtered categories
+        const filteredCategoryNames = filteredCategories.map(cat => cat.category.toLowerCase());
+        const filteredItems = itemsData.filter(item =>
+          filteredCategoryNames.includes(item.category_name.toLowerCase()) && item.event_name === eventName
+        );
+
+        setMenuData(filteredItems);
+        setCategoryData(filteredCategories);
         setPricingData(pricingData);
         setError(null);
       } catch (err) {
@@ -52,9 +52,9 @@ const Platinum = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [eventName, packageName]);
 
-const handleMenuPreferenceChange = (preference) => {
+  const handleMenuPreferenceChange = (preference) => {
     setMenuPreference(preference);
     setSelectedItems([]);
   };
@@ -80,16 +80,16 @@ const handleMenuPreferenceChange = (preference) => {
 
   const calculatePlatePrice = () => {
     if (!pricingData) return 0;
-    
-    const PlatinumPricing = pricingData.find(
-      price => price.crpb_name.toLowerCase() === 'platinum'
+
+    const packagePricing = pricingData.find(
+      price => price.crpb_name.toLowerCase() === packageName.toLowerCase() && price.event_name === eventName
     );
 
-    if (!PlatinumPricing) return 0;
+    if (!packagePricing) return 0;
 
-    const basePrice = menuPreference === "veg" 
-      ? parseFloat(PlatinumPricing.veg_price)
-      : parseFloat(PlatinumPricing.non_veg_price);
+    const basePrice = menuPreference === "veg"
+      ? parseFloat(packagePricing.veg_price)
+      : parseFloat(packagePricing.non_veg_price);
 
     return basePrice;
   };
@@ -107,11 +107,8 @@ const handleMenuPreferenceChange = (preference) => {
   };
 
   const getSortedCategories = () => {
-    // Only get categories that are of type 'Platinum'
-    const PlatinumCategories = categoryData.map(cat => cat.category);
     const filteredItems = getFilteredItems();
-    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))]
-      .filter(category => PlatinumCategories.includes(category));
+    const uniqueCategories = [...new Set(filteredItems.map(item => item.category_name))];
 
     return uniqueCategories.sort((a, b) => {
       const categoryA = categoryData.find(cat => cat.category === a);
@@ -137,14 +134,14 @@ const handleMenuPreferenceChange = (preference) => {
     } else {
       const categoryLimit = getCategoryLimit(item.category_name);
       const categoryItems = getItemsInCategory(item.category_name);
-      
+
       if (categoryItems.length >= categoryLimit) {
         setShowAlert({
           message: `You've reached the limit of ${categoryLimit} items for ${item.category_name}.`,
         });
         return;
       }
-      
+
       setSelectedItems([...selectedItems, item]);
     }
   };
@@ -152,13 +149,13 @@ const handleMenuPreferenceChange = (preference) => {
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
- return (
+  return (
     <div className="min-h-screen bg-gray-50 grid grid-cols-3 gap-1">
       <div className="col-span-2 p-6">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex gap-6 items-center">
             <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
-              <h1 className="text-3xl font-bold text-gray-800">Platinum Menu</h1>
+              <h1 className="text-3xl font-bold text-gray-800">{packageName} Menu</h1>
               <span className="text-gray-600">Base Price:</span>
               <span className="text-2xl font-bold text-blue-600">
                 ₹{calculatePlatePrice()}
@@ -217,7 +214,7 @@ const handleMenuPreferenceChange = (preference) => {
                   {getFilteredItems()
                     .filter(item => item.category_name === category)
                     .map(item => (
-                      <div key={item.id} 
+                      <div key={item.id}
                            className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors">
                         <label className="flex items-center flex-1 cursor-pointer">
                           <input
@@ -300,10 +297,6 @@ const handleMenuPreferenceChange = (preference) => {
           </div>
 
           <div className="space-y-3">
-            {/* <button className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors">
-              <ShoppingCart size={20} />
-              Add to Cart
-            </button> */}
             <button className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors">
               <CreditCard size={20} />
               Proceed to Pay
@@ -333,4 +326,4 @@ const handleMenuPreferenceChange = (preference) => {
   );
 };
 
-export default Platinum;
+export default UniversalMenu;
