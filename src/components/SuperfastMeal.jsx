@@ -333,15 +333,15 @@ const SuperfastMeal = () => {
 
 
 
-const handleGuestLimitCancel = () => {
-  if (pendingQuantityUpdate) {
-    const { itemId } = pendingQuantityUpdate;
-    // Reset the quantity to 50 for the pending item
-    updateQuantity(itemId, 50);
-  }
-  setShowGuestLimitPopup(false); // Close the popup
-  setPendingQuantityUpdate(null); // Clear the pending update
-};
+  const handleGuestLimitCancel = () => {
+    if (pendingQuantityUpdate) {
+      const { itemId } = pendingQuantityUpdate;
+      // Reset the quantity to 50 for the pending item
+      updateQuantity(itemId, 50);
+    }
+    setShowGuestLimitPopup(false); // Close the popup
+    setPendingQuantityUpdate(null); // Clear the pending update
+  };
 
 
 
@@ -382,7 +382,7 @@ const handleGuestLimitCancel = () => {
     setShowCheckout(true);
   };
 
-  
+
   const handleApplyCoupon = () => {
     setError("");
     const coupon = availableCoupons.find(
@@ -633,7 +633,11 @@ const handleGuestLimitCancel = () => {
                   {selectedMealType === "breakfast" &&
                     (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
                       packageData.breakfast[selectedPackage]
-                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .sort((a, b) => {
+                          const posA = parseInt(a.position || '0', 10);
+                          const posB = parseInt(b.position || '0', 10);
+                          return posA - posB;
+                        })
                         .map((item) => (
                           <div
                             key={item.id}
@@ -686,7 +690,7 @@ const handleGuestLimitCancel = () => {
                                     onBlur={() => handleBlur(item.id)}
                                     className="w-16 text-center border rounded"
                                     min="10"
-                                    
+
 
                                     step="1"
                                   />
@@ -727,7 +731,11 @@ const handleGuestLimitCancel = () => {
                       packageData[selectedMealType][selectedPackage][
                         isVeg ? "veg" : "nonVeg"
                       ]
-                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .sort((a, b) => {
+                          const posA = parseInt(a.position || '0', 10);
+                          const posB = parseInt(b.position || '0', 10);
+                          return posA - posB;
+                        })
                         .map((item) => (
                           <div
                             key={item.id}

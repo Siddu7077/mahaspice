@@ -6,15 +6,25 @@ import CheckOutform from "./CheckOutform";
 import ScrollToTop from "./ScrollToTop";
 import { useAuth } from "./AuthSystem";
 
-// Keeping the existing helper functions
 const transformApiData = (apiData) => {
   // Filter superfast items first
   const superfastItems = apiData.filter(item => item.is_superfast === "No");
-  
-  // Get unique CP types from filtered items
-  const cpTypes = [
-    ...new Set(superfastItems.map((item) => item.cp_type.toUpperCase())),
-  ];
+
+  // Get unique CP types with their positions, sorted by position
+  const cpTypes = superfastItems.reduce((uniqueTypes, item) => {
+    const type = item.cp_type.toUpperCase();
+    const position = parseInt(item.position || '0', 10);
+
+    if (!uniqueTypes.some(t => t.type === type)) {
+      uniqueTypes.push({
+        type,
+        position
+      });
+    }
+    return uniqueTypes;
+  }, [])
+    .sort((a, b) => a.position - b.position)
+    .map(t => t.type);
 
   // Initialize the transformed data structure
   const transformed = {
@@ -24,10 +34,10 @@ const transformApiData = (apiData) => {
   };
 
   // Initialize the structure for each CP type
-  cpTypes.forEach((cpType) => {
-    transformed.breakfast[cpType] = [];
-    transformed.lunch[cpType] = { veg: [], nonVeg: [] };
-    transformed.dinner[cpType] = { veg: [], nonVeg: [] };
+  cpTypes.forEach((type) => {
+    transformed.breakfast[type] = [];
+    transformed.lunch[type] = { veg: [], nonVeg: [] };
+    transformed.dinner[type] = { veg: [], nonVeg: [] };
   });
 
   // Transform only the superfast items
@@ -43,7 +53,7 @@ const transformApiData = (apiData) => {
       items: item.description.split(","),
       price: `₹${item.price}`,
       rating: 4.5,
-      time: "30 mins", // Since we're only including superfast items
+      time: "30 mins",
       isSuperfast: true
     };
 
@@ -59,11 +69,13 @@ const transformApiData = (apiData) => {
     }
   });
 
-  return { data: transformed, cpTypes };
+  return {
+    data: transformed,
+    cpTypes: cpTypes
+  };
 };
 
 const getPackageImage = (cpType) => {
-  const defaultImage = "https://new.caterninja.com/PackedMealBox/3cp.png";
   const packageImages = {
     "3CP": "https://new.caterninja.com/PackedMealBox/3cp.png",
     "4CP": "https://new.caterninja.com/PackedMealBox/3cp.png",
@@ -71,7 +83,7 @@ const getPackageImage = (cpType) => {
     "6CP": "https://new.caterninja.com/PackedMealBox/5cp.png",
     "8CP": "https://new.caterninja.com/PackedMealBox/8cp.png",
   };
-  return packageImages[cpType] || defaultImage;
+  return packageImages[cpType] || "https://new.caterninja.com/PackedMealBox/3cp.png";
 };
 
 const MealBox = () => {
@@ -229,21 +241,20 @@ const MealBox = () => {
   };
 
   const getAvailablePackages = () => {
-    if (!packageData) return [];
-    return Object.keys(packageData[selectedMealType])
-      .filter((pkg) => {
-        if (selectedMealType === "breakfast") {
-          return packageData[selectedMealType][pkg].length >= 0;
-        } else {
-          if (isVeg) {
-            return packageData[selectedMealType][pkg].veg.length >= 0;
-          } else {
-            return packageData[selectedMealType][pkg].nonVeg.length >= 0;
-          }
-        }
-      })
-      .sort((a, b) => a.localeCompare(b)); // Changed to sort in ascending order
+    if (!packageData || !cpTypes) return [];
+    return cpTypes.filter((pkg) => {
+      const mealData = packageData[selectedMealType][pkg];
+      if (!mealData) return false;
+
+      if (selectedMealType === "breakfast") {
+        return mealData.length > 0;
+      }
+      return isVeg ? mealData.veg.length > 0 : mealData.nonVeg.length > 0;
+    });
   };
+
+
+
 
   const addToCart = (item) => {
     setCart((prevCart) => {
@@ -420,11 +431,10 @@ const MealBox = () => {
               setSelectedMealType("breakfast");
               // setSelectedPackage(getAvailablePackages()[0]);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedMealType === "breakfast"
-                ? "bg-orange-100 text-orange-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${selectedMealType === "breakfast"
+              ? "bg-orange-100 text-orange-600"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             <Coffee className="w-5 h-5" />
             Breakfast
@@ -434,11 +444,10 @@ const MealBox = () => {
               setSelectedMealType("lunch");
               // setSelectedPackage(getAvailablePackages()[0]);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedMealType === "lunch"
-                ? "bg-orange-100 text-orange-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${selectedMealType === "lunch"
+              ? "bg-orange-100 text-orange-600"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             <Sun className="w-5 h-5" />
             Lunch
@@ -448,11 +457,10 @@ const MealBox = () => {
               setSelectedMealType("dinner");
               // setSelectedPackage(getAvailablePackages()[0]);
             }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-              selectedMealType === "dinner"
-                ? "bg-orange-100 text-orange-600"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${selectedMealType === "dinner"
+              ? "bg-orange-100 text-orange-600"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
           >
             <Moon className="w-5 h-5" />
             Dinner
@@ -479,20 +487,18 @@ const MealBox = () => {
                 onClick={() => setIsVeg(!isVeg)}
               >
                 <div
-                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
-                    isVeg
-                      ? "text-white font-semibold"
-                      : "text-gray-700 font-medium"
-                  }`}
+                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${isVeg
+                    ? "text-white font-semibold"
+                    : "text-gray-700 font-medium"
+                    }`}
                 >
                   Veg
                 </div>
                 <div
-                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${
-                    !isVeg
-                      ? "text-white font-semibold"
-                      : "text-gray-700 font-medium"
-                  }`}
+                  className={`flex-1 text-center py-2 px-4 text-sm rounded-full transition-colors ${!isVeg
+                    ? "text-white font-semibold"
+                    : "text-gray-700 font-medium"
+                    }`}
                 >
                   NonVeg
                 </div>
@@ -515,26 +521,23 @@ const MealBox = () => {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {availablePackages.length > 0 ? (
-                availablePackages
-                  .sort((a, b) => a.localeCompare(b)) // Sort in ascending order
-                  .map((pkg) => (
-                    <button
-                      key={pkg}
-                      onClick={() => setSelectedPackage(pkg)}
-                      className={`flex flex-col items-center justify-between p-4 rounded-xl border-2 min-w-fit transition-all ${
-                        selectedPackage === pkg
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200 hover:border-green-200"
+                availablePackages.map((pkg) => (
+                  <button
+                    key={pkg}
+                    onClick={() => setSelectedPackage(pkg)}
+                    className={`flex flex-col items-center justify-between p-4 rounded-xl border-2 min-w-fit transition-all ${selectedPackage === pkg
+                      ? "border-green-500 bg-green-50"
+                      : "border-gray-200 hover:border-green-200"
                       }`}
-                    >
-                      <img
-                        src={getPackageImage(pkg)}
-                        alt={`${pkg} Package`}
-                        className="w-44 h-auto mb-2 rounded"
-                      />
-                      <span className="whitespace-nowrap">{pkg} Package</span>
-                    </button>
-                  ))
+                  >
+                    <img
+                      src={getPackageImage(pkg)}
+                      alt={`${pkg} Package`}
+                      className="w-44 h-auto mb-2 rounded"
+                    />
+                    <span className="whitespace-nowrap">{pkg} Package</span>
+                  </button>
+                ))
               ) : (
                 <div className="w-full text-center py-4 bg-gray-100 rounded-lg text-gray-600">
                   No packages available for this selection
@@ -553,7 +556,11 @@ const MealBox = () => {
                   {selectedMealType === "breakfast" &&
                     (packageData?.breakfast?.[selectedPackage]?.length > 0 ? (
                       packageData.breakfast[selectedPackage]
-                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .sort((a, b) => {
+                          const posA = parseInt(a.position || '0', 10);
+                          const posB = parseInt(b.position || '0', 10);
+                          return posA - posB;
+                        })
                         .map((item) => (
                           <div
                             key={item.id}
@@ -645,13 +652,16 @@ const MealBox = () => {
                       packageData[selectedMealType][selectedPackage][
                         isVeg ? "veg" : "nonVeg"
                       ]
-                        .sort((a, b) => a.name.localeCompare(b.name)) // Sort alphabetically by name
+                        .sort((a, b) => {
+                          const posA = parseInt(a.position || '0', 10);
+                          const posB = parseInt(b.position || '0', 10);
+                          return posA - posB;
+                        })
                         .map((item) => (
                           <div
                             key={item.id}
-                            className={`p-4 border rounded-xl bg-white ${
-                              isVeg ? "border-green-200" : "border-red-200"
-                            }`}
+                            className={`p-4 border rounded-xl bg-white ${isVeg ? "border-green-200" : "border-red-200"
+                              }`}
                           >
                             <img
                               src={item.image}
@@ -659,9 +669,8 @@ const MealBox = () => {
                               className="w-full h-48 object-cover rounded-lg mb-4"
                             />
                             <h3
-                              className={`font-semibold mb-2 ${
-                                isVeg ? "text-green-700" : "text-red-700"
-                              }`}
+                              className={`font-semibold mb-2 ${isVeg ? "text-green-700" : "text-red-700"
+                                }`}
                             >
                               {item.name}
                             </h3>
@@ -671,16 +680,14 @@ const MealBox = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <div
-                                  className={`border-2 ${
-                                    isVeg
-                                      ? "border-green-500"
-                                      : "border-red-500"
-                                  } p-1 rounded`}
+                                  className={`border-2 ${isVeg
+                                    ? "border-green-500"
+                                    : "border-red-500"
+                                    } p-1 rounded`}
                                 >
                                   <div
-                                    className={`w-3 h-3 rounded-full ${
-                                      isVeg ? "bg-green-500" : "bg-red-500"
-                                    }`}
+                                    className={`w-3 h-3 rounded-full ${isVeg ? "bg-green-500" : "bg-red-500"
+                                      }`}
                                   ></div>
                                 </div>
                                 <span className="font-semibold">
@@ -700,9 +707,8 @@ const MealBox = () => {
                                           : newQuantity
                                       );
                                     }}
-                                    className={`${
-                                      isVeg ? "bg-green-500" : "bg-red-500"
-                                    } text-white rounded-full p-1`}
+                                    className={`${isVeg ? "bg-green-500" : "bg-red-500"
+                                      } text-white rounded-full p-1`}
                                   >
                                     <Minus size={16} />
                                   </button>
@@ -730,9 +736,8 @@ const MealBox = () => {
                                         cart[item.id].quantity + 1
                                       )
                                     }
-                                    className={`${
-                                      isVeg ? "bg-green-500" : "bg-red-500"
-                                    } text-white rounded-full p-1`}
+                                    className={`${isVeg ? "bg-green-500" : "bg-red-500"
+                                      } text-white rounded-full p-1`}
                                   >
                                     <Plus size={16} />
                                   </button>
@@ -740,9 +745,8 @@ const MealBox = () => {
                               ) : (
                                 <button
                                   onClick={() => addToCart(item)}
-                                  className={`px-4 py-2 ${
-                                    isVeg ? "bg-green-500" : "bg-red-500"
-                                  } text-white rounded-lg`}
+                                  className={`px-4 py-2 ${isVeg ? "bg-green-500" : "bg-red-500"
+                                    } text-white rounded-lg`}
                                 >
                                   Add
                                 </button>
