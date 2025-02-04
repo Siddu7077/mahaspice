@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Minus, ShoppingCart, CreditCard, AlertTriangle } from 'lucide-react';
+import SupOrder from './SupOrder';
+import { useNavigate } from 'react-router-dom';
 
 const UniversalMenu = ({ eventName, packageName }) => {
   const [menuData, setMenuData] = useState([]);
@@ -12,11 +14,14 @@ const UniversalMenu = ({ eventName, packageName }) => {
   const [showAlert, setShowAlert] = useState(null);
   const [pricingData, setPricingData] = useState(null);
   const [inputValue, setInputValue] = useState(guestCount.toString());
+  const navigate = useNavigate();
+    const [showOrder, setShowOrder] = useState(false);
 
   const baseUrl = 'https://mahaspice.desoftimp.com/ms3/';
 
   // Create a ref to the component's root element
   const componentRef = useRef(null);
+  
 
   // Scroll the component into view when it mounts or when eventName/packageName changes
   useEffect(() => {
@@ -50,6 +55,8 @@ const UniversalMenu = ({ eventName, packageName }) => {
           filteredCategoryNames.includes(item.category_name.toLowerCase()) && item.event_name === eventName
         );
 
+        
+
         setMenuData(filteredItems);
         setCategoryData(filteredCategories);
         setPricingData(pricingData);
@@ -63,6 +70,7 @@ const UniversalMenu = ({ eventName, packageName }) => {
     };
     fetchData();
   }, [eventName, packageName]);
+  
 
   const handleMenuPreferenceChange = (preference) => {
     setMenuPreference(preference);
@@ -155,6 +163,20 @@ const UniversalMenu = ({ eventName, packageName }) => {
       setSelectedItems([...selectedItems, item]);
     }
   };
+  const handleProceedToOrder = () => {
+    setShowOrder(true);
+  };
+
+  if (showOrder) {
+    return (
+      <SupOrder
+        selectedItems={selectedItems}
+        platePrice={calculatePlatePrice()}
+        guestCount={guestCount}
+        totalAmount={calculateTotal()}
+      />
+    );
+  }
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
@@ -307,10 +329,13 @@ const UniversalMenu = ({ eventName, packageName }) => {
           </div>
 
           <div className="space-y-3">
-            <button className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors">
-              <CreditCard size={20} />
-              Proceed to Pay
-            </button>
+            <button 
+        onClick={handleProceedToOrder}
+        className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
+      >
+        <CreditCard size={20} />
+        Proceed to Order
+      </button>
           </div>
         </div>
       </div>
