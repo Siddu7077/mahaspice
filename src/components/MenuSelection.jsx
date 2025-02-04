@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   CreditCard,
   AlertTriangle,
+  X,
 } from "lucide-react";
 
 const MenuSelection = () => {
@@ -24,13 +25,86 @@ const MenuSelection = () => {
   const currentEventType = eventType.toLowerCase(); // "wedding-catering"
   const currentServiceType = serviceType.toLowerCase(); // "haldi-ceremony"
   const currentMenuType = menuType.replace(/-/g, " "); // "Silver Menu"
+  const [showLiveCounterAlert, setShowLiveCounterAlert] = useState(false);
+
+  const slideInAnimation = {
+    animation: "slideIn 0.5s ease-out",
+  };
+
+  useEffect(() => {
+    console.log("Component mounted. Showing Live Counter Alert."); // Debugging log
+    setShowLiveCounterAlert(true);
+  }, []);
+
+  useEffect(() => {
+    const hasLiveCounter = menuData.some(
+      (item) => item.category_name.toLowerCase() === "live counter"
+    );
   
+    if (hasLiveCounter && !showLiveCounterAlert) {
+      setShowLiveCounterAlert(true);
+      const timer = setTimeout(() => {
+        setShowLiveCounterAlert(false);
+      }, 12000);
+      return () => clearTimeout(timer);
+    }
+  }, [menuData]);
+  
+
+  useEffect(() => {
+    let timeoutId;
+    if (showLiveCounterAlert) {
+      console.log("Setting timeout to hide Live Counter Alert"); // Debugging log
+      timeoutId = setTimeout(() => {
+        console.log("Hiding Live Counter Alert"); // Debugging log
+        setShowLiveCounterAlert(false);
+      }, 4000);
+    }
+    return () => clearTimeout(timeoutId);
+  }, [showLiveCounterAlert]);
+
+  const getSortedCategories = () => {
+    const filteredItems = getFilteredItems();
+    const uniqueCategories = [
+      ...new Set(filteredItems.map((item) => item.category_name)),
+    ];
+
+    return uniqueCategories.sort((a, b) => {
+      // Always put Live Counter at the end
+      if (a.toLowerCase() === "live counter") return 1;
+      if (b.toLowerCase() === "live counter") return -1;
+
+      const categoryA = categoryData.find((cat) => cat.category_name === a);
+      const categoryB = categoryData.find((cat) => cat.category_name === b);
+      const posA = categoryA ? parseInt(categoryA.position) || 0 : 0;
+      const posB = categoryB ? parseInt(categoryB.position) || 0 : 0;
+      return posA - posB;
+    });
+  };
+
+  const handleProceedToPay = () => {
+    const filteredItems = selectedItems.filter(
+      (item) => item.category_name.toLowerCase() !== "live counter"
+    );
+    const extraItems = filteredItems.filter((item) => item.isExtra);
+    const platePrice = calculatePlatePrice();
+
+    navigate(`/events/${eventType}/${serviceType}/Menu/${menuType}/order`, {
+      state: {
+        selectedItems: filteredItems,
+        extraItems,
+        platePrice,
+        guestCount,
+        totalAmount: calculateTotal(),
+      },
+    });
+  };
 
   const handleMenuPreferenceChange = (preference) => {
     setMenuPreference(preference);
     setSelectedItems([]);
   };
-  
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     if (value === "" || /^\d+$/.test(value)) {
@@ -83,8 +157,8 @@ const MenuSelection = () => {
         if (pricingJson.success && Array.isArray(pricingJson.data)) {
           setPricingData(pricingJson.data);
         }
-        console.log('Menu Data:', menuJson.data);
-      console.log('Category Data:', categoryJson);
+        // console.log("Menu Data:", menuJson.data);
+        // console.log("Category Data:", categoryJson);
         setError(null);
       } catch (err) {
         setError("Failed to load menu data. Please try again later.");
@@ -153,61 +227,75 @@ const MenuSelection = () => {
   const getFilteredItems = () => {
     return menuData.filter((item) => {
       // Normalize the strings for comparison by converting to lowercase and replacing spaces/hyphens
-      const normalizeString = (str) => str.toLowerCase().replace(/[-\s]+/g, ' ').trim();
-      
+      const normalizeString = (str) =>
+        str
+          .toLowerCase()
+          .replace(/[-\s]+/g, " ")
+          .trim();
+
       // Get event categories and names from the item
-      const itemEventCategories = (item.event_categories || '')
-        .split(',')
+      const itemEventCategories = (item.event_categories || "")
+        .split(",")
         .map(normalizeString);
-      
-      const itemEventNames = (item.event_names || '')
-        .split(',')
+
+      const itemEventNames = (item.event_names || "")
+        .split(",")
         .map(normalizeString);
-  
+
       // Normalize the current types
       const normalizedEventType = normalizeString(eventType);
       const normalizedServiceType = normalizeString(serviceType);
       const normalizedMenuType = normalizeString(menuType);
       const normalizedItemMenuType = normalizeString(item.menu_type);
-  
+
       // Check if the item matches any of the event categories or names
-      const matchesEvent = 
-        itemEventCategories.some(cat => normalizeString(cat) === normalizedServiceType) ||
-        itemEventNames.some(name => normalizeString(name) === normalizedEventType);
-  
+      const matchesEvent =
+        itemEventCategories.some(
+          (cat) => normalizeString(cat) === normalizedServiceType
+        ) ||
+        itemEventNames.some(
+          (name) => normalizeString(name) === normalizedEventType
+        );
+
       // Check if menu type matches
       const matchesMenu = normalizedItemMenuType === normalizedMenuType;
-  
+
       // Check if the item matches the veg/non-veg preference
-      const matchesPreference = menuPreference === "nonveg" ? true : item.is_veg === "1";
-  
+      const matchesPreference =
+        menuPreference === "nonveg" ? true : item.is_veg === "1";
+
       return matchesEvent && matchesMenu && matchesPreference;
     });
   };
   useEffect(() => {
-    console.log('Event Type:', eventType);
-    console.log('Service Type:', serviceType);
-    console.log('Menu Type:', menuType);
-    console.log('Filtered Items:', getFilteredItems());
+    // console.log("Event Type:", eventType);
+    // console.log("Service Type:", serviceType);
+    // console.log("Menu Type:", menuType);
+    // console.log("Filtered Items:", getFilteredItems());
   }, [menuData, eventType, serviceType, menuType]);
 
-  const getSortedCategories = () => {
-    const filteredItems = getFilteredItems();
-    const uniqueCategories = [
-      ...new Set(filteredItems.map((item) => item.category_name)),
-    ];
+  // const getSortedCategories = () => {
+  //   const filteredItems = getFilteredItems();
+  //   const uniqueCategories = [
+  //     ...new Set(filteredItems.map((item) => item.category_name)),
+  //   ];
 
-    return uniqueCategories.sort((a, b) => {
-      const categoryA = categoryData.find((cat) => cat.category_name === a);
-      const categoryB = categoryData.find((cat) => cat.category_name === b);
-      const posA = categoryA ? parseInt(categoryA.position) || 0 : 0;
-      const posB = categoryB ? parseInt(categoryB.position) || 0 : 0;
-      return posA - posB;
-    });
-  };
+  //   return uniqueCategories.sort((a, b) => {
+  //     const categoryA = categoryData.find((cat) => cat.category_name === a);
+  //     const categoryB = categoryData.find((cat) => cat.category_name === b);
+  //     const posA = categoryA ? parseInt(categoryA.position) || 0 : 0;
+  //     const posB = categoryB ? parseInt(categoryB.position) || 0 : 0;
+  //     return posA - posB;
+  //   });
+  // };
 
   const getCategoryLimit = (categoryName) => {
-    if (categoryName.toLowerCase() === "common items") return 0;
+    if (
+      categoryName.toLowerCase() === "common items" ||
+      categoryName.toLowerCase() === "live counter"
+    ) {
+      return 0; // No limit for optional categories
+    }  
     const category = categoryData.find(
       (cat) =>
         cat.category_name === categoryName &&
@@ -222,13 +310,21 @@ const MenuSelection = () => {
 
   const handleActionButton = (action) => {
     const incompleteCategories = getSortedCategories().filter((category) => {
-      if (category.toLowerCase() === "common items") return false;
+      // Exclude "Live Counter" and "Common Items" from validation
+      if (
+        category.toLowerCase() === "common items" ||
+        category.toLowerCase() === "live counter"
+      ) {
+        return false;
+      }
+  
       const limit = getCategoryLimit(category);
       const selectedCount = getItemsInCategory(category).length;
       return selectedCount < limit;
     });
-
+  
     if (incompleteCategories.length > 0) {
+      console.log("Incomplete categories:", incompleteCategories); // Debugging log
       setShowAlert({
         message: `Please select required items from: ${incompleteCategories.join(
           ", "
@@ -236,26 +332,26 @@ const MenuSelection = () => {
       });
       return;
     }
-
+  
     if (action === "pay") {
       handleProceedToPay();
     }
   };
 
-  const handleProceedToPay = () => {
-    const extraItems = selectedItems.filter((item) => item.isExtra);
-    const platePrice = calculatePlatePrice();
+  // const handleProceedToPay = () => {
+  //   const extraItems = selectedItems.filter((item) => item.isExtra);
+  //   const platePrice = calculatePlatePrice();
 
-    navigate(`/events/${eventType}/${serviceType}/Menu/${menuType}/order`, {
-      state: {
-        selectedItems,
-        extraItems,
-        platePrice,
-        guestCount,
-        totalAmount: calculateTotal(),
-      },
-    });
-  };
+  //   navigate(`/events/${eventType}/${serviceType}/Menu/${menuType}/order`, {
+  //     state: {
+  //       selectedItems,
+  //       extraItems,
+  //       platePrice,
+  //       guestCount,
+  //       totalAmount: calculateTotal(),
+  //     },
+  //   });
+  // };
 
   const handleItemSelectWithConfirmation = (item) => {
     const categoryItems = getItemsInCategory(item.category_name);
@@ -267,10 +363,12 @@ const MenuSelection = () => {
     }
 
     if (categoryItems.length >= limit && limit > 0) {
+      console.log("Triggering alert for item:", item.item_name);
       setShowAlert({
         message: `You've reached the limit of ${limit} items for ${item.category_name}. Adding this item will cost extra ₹${item.price}.`,
         isConfirmation: true,
         onConfirm: () => {
+          console.log("User confirmed adding item:", item.item_name);
           handleItemSelect(item);
           setShowAlert(null);
         },
@@ -329,6 +427,50 @@ const MenuSelection = () => {
 
   return (
     <div className="min-h-screen bg-aliceBlue grid grid-cols-3 gap-1">
+      {/* Live Counter Alert */}
+      {showLiveCounterAlert && (
+        <>
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div
+              className="max-w-md bg-white border border-green-200 rounded-xl p-4 shadow-lg transition-opacity duration-300 ease-in-out opacity-100"
+              style={slideInAnimation}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                    <span className="text-white text-lg">🌟</span>
+                  </div>
+                  <p className="text-black-800 font-medium">
+                    We also provide live counter options! Feel free to explore
+                    and enhance your event experience.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowLiveCounterAlert(false)}
+                  className="text-black-800 hover:text-black-600 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Add the keyframes animation using a style element with proper React syntax */}
+          <style>{`
+            @keyframes slideIn {
+              from {
+                transform: translateX(100%);
+                opacity: 0;
+              }
+              to {
+                transform: translateX(0);
+                opacity: 1;
+              }
+            }
+          `}</style>
+        </>
+      )}
+
       <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
         {/* Header */}
         <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -374,33 +516,38 @@ const MenuSelection = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
           {/* Menu Categories */}
-          <div className="lg:col-span-2 space-y-6 ">
+          <div className="lg:col-span-2 space-y-6">
             {getSortedCategories().map((category) => {
               const limit = getCategoryLimit(category);
               const selectedCount = getItemsInCategory(category).length;
               const isCommonItems = category.toLowerCase() === "common items";
+              const isLiveCounter = category.toLowerCase() === "live counter";
 
               return (
                 <div
                   key={category}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden"
+                  className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+                    isLiveCounter ? "border-2 border-blue-500" : ""
+                  }`}
                 >
-                  <div className="p-4 border-b  bg-gray-50 ">
-                    <div className="flex  justify-between items-center">
-                      <h2 className="text-xl font-bold text-gray-800">
+                  <div
+                    className={`p-4 border-b ${
+                      isLiveCounter ? "bg-blue-50" : "bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <h2
+                        className={`text-xl font-bold ${
+                          isLiveCounter ? "text-blue-800" : "text-gray-800"
+                        }`}
+                      >
                         {category} {!isCommonItems && `(ANY ${limit})`}
+                        {isLiveCounter && (
+                          <span className="ml-2 text-sm font-normal text-blue-600 animate-pulse">
+                            ✨ Special Addition (Optional)
+                          </span>
+                        )}
                       </h2>
-                      {!isCommonItems && (
-                        <span
-                          className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            selectedCount >= limit
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-blue-100 text-blue-700"
-                          }`}
-                        >
-                          {selectedCount}/{limit} selected
-                        </span>
-                      )}
                     </div>
                   </div>
 
@@ -612,8 +759,6 @@ const MenuSelection = () => {
           </div>
 
           <div className="space-y-3">
-         
-
             <button
               onClick={() => handleActionButton("pay")}
               className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"

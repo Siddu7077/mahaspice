@@ -121,7 +121,7 @@ const Navbar = () => {
     try {
       window.location.href = "tel:+919697798888";
     } catch (error) {
-      alert("Call +91 969779 8888");
+      alert("Call +91 9697798888");
     }
   };
 
