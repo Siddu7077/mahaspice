@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Minus, ShoppingCart, CreditCard, AlertTriangle } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, CreditCard, AlertTriangle , AlertCircle } from 'lucide-react';
 import SupOrder from './SupOrder';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,8 @@ const UniversalMenu = ({ eventName, packageName }) => {
   const [pricingData, setPricingData] = useState(null);
   const [inputValue, setInputValue] = useState(guestCount.toString());
   const navigate = useNavigate();
-    const [showOrder, setShowOrder] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
+  const [showGuestLimitPopup, setShowGuestLimitPopup] = useState(false);
 
   const baseUrl = 'https://mahaspice.desoftimp.com/ms3/';
 
@@ -77,13 +78,47 @@ const UniversalMenu = ({ eventName, packageName }) => {
     setSelectedItems([]);
   };
 
+  const handleGuestIncrement = () => {
+    if (guestCount >= 50) {
+      setShowGuestLimitPopup(true);
+      return;
+    }
+    const newCount = guestCount + 1;
+    setGuestCount(newCount);
+    setInputValue(newCount.toString());
+  };
+   const handleGuestLimitCancel = () => {
+    setShowGuestLimitPopup(false);
+    setGuestCount(50);
+    setInputValue("50");
+  };
+
+  const handleRedirectToBox = () => {
+    navigate('/events');
+  };
+
+
+  const handleGuestDecrement = () => {
+    const newCount = Math.max(10, guestCount - 1);
+    setGuestCount(newCount);
+    setInputValue(newCount.toString());
+  };
+
   const handleInputChange = (e) => {
     const value = e.target.value;
     if (value === "" || /^\d+$/.test(value)) {
       setInputValue(value);
       const numValue = parseInt(value);
-      if (!isNaN(numValue) && numValue >= 10) {
-        setGuestCount(numValue);
+      if (!isNaN(numValue)) {
+        if (numValue > 50) {
+          setShowAlert({
+            message: "In Superfast, we can deliver only up to 50 guests. For larger events, please order from '/events'",
+          });
+          setGuestCount(50);
+          setInputValue("50");
+        } else if (numValue >= 10) {
+          setGuestCount(numValue);
+        }
       }
     }
   };
@@ -93,6 +128,9 @@ const UniversalMenu = ({ eventName, packageName }) => {
     if (isNaN(numValue) || numValue < 10) {
       setInputValue("10");
       setGuestCount(10);
+    } else if (numValue > 50) {
+      setInputValue("50");
+      setGuestCount(50);
     }
   };
 
@@ -273,14 +311,16 @@ const UniversalMenu = ({ eventName, packageName }) => {
         </div>
       </div>
 
-      <div className="p-6">
+      <div className="lg:sticky lg:top-6 lg:col-span-1 mt-5 mr-5">
         <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">Your Selection</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-6">
+            Your Selection
+          </h2>
 
           <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
             <span className="text-gray-600">Guests:</span>
             <button
-              onClick={() => setGuestCount(Math.max(10, guestCount - 5))}
+              onClick={handleGuestDecrement}
               className="p-2 rounded hover:bg-gray-200 transition-colors"
             >
               <Minus size={16} />
@@ -290,10 +330,11 @@ const UniversalMenu = ({ eventName, packageName }) => {
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
-              className="w-16 text-center font-bold bg-white border rounded-md py-1 px-2"
+              className="w-16 text-center font-bold bg-white border rounded-md py-1 px-2 focus:outline-none"
+              maxLength={4}
             />
             <button
-              onClick={() => setGuestCount(guestCount + 5)}
+              onClick={handleGuestIncrement}
               className="p-2 rounded hover:bg-gray-200 transition-colors"
             >
               <Plus size={16} />
@@ -301,59 +342,105 @@ const UniversalMenu = ({ eventName, packageName }) => {
           </div>
 
           <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
+            <h3 className="font-bold">Selected Items</h3>
             {Object.entries(
               selectedItems.reduce((acc, item) => {
                 if (!acc[item.category_name]) acc[item.category_name] = [];
                 acc[item.category_name].push(item);
                 return acc;
               }, {})
-            ).map(([category, items]) => (
-              <div key={category} className="p-4 bg-gray-50 rounded-lg">
-                <h3 className="font-bold text-gray-700 mb-2">{category}</h3>
-                <ul className="space-y-2">
-                  {items.map(item => (
-                    <li key={item.id} className="text-gray-600">
-                      {item.item_name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+            )
+              .reverse()
+              .map(([category, items]) => (
+                <div key={category} className="p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-bold text-gray-700 mb-2">{category}</h3>
+                  <ul className="space-y-2">
+                    {items.map((item) => (
+                      <li
+                        key={item.id}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-gray-600">{item.item_name}</span>
+                        {item.isExtra && (
+                          <span className="text-orange-600 font-bold">
+                            +₹{item.price}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
           </div>
 
           <div className="border-t pt-4 mb-6">
-            <div className="flex justify-between text-xl font-bold">
-              <span>Total</span>
-              <span>₹{calculateTotal().toFixed(2)}</span>
+            <div className="space-y-2">
+              <div className="flex justify-between text-gray-600">
+                <span>
+                  Plate Cost (₹{calculatePlatePrice()} × {guestCount})
+                </span>
+                <span>₹{(calculatePlatePrice() * guestCount).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Extra Items Per Plate</span>
+                <span>
+                  ₹
+                  {selectedItems
+                    .filter((item) => item.isExtra)
+                    .reduce((sum, item) => sum + parseFloat(item.price || 0), 0)
+                    .toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Delivery Charge</span>
+                <span>₹500</span>
+              </div>
+              <div className="flex justify-between text-xl font-bold pt-2 border-t">
+                <span>Total</span>
+                <span>₹{calculateTotal().toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
           <div className="space-y-3">
-            <button 
-        onClick={handleProceedToOrder}
-        className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
-      >
-        <CreditCard size={20} />
-        Proceed to Order
-      </button>
+            <button
+              onClick={handleProceedToOrder}
+              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
+            >
+              <CreditCard size={20} />
+              Proceed to Pay
+            </button>
           </div>
         </div>
       </div>
 
-      {showAlert && (
-        <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-            <div className="flex items-center gap-3 mb-4">
-              <AlertTriangle className="text-orange-500" size={24} />
-              <h3 className="text-lg font-bold">Alert</h3>
+      {/* Alert Modal */}
+     {showGuestLimitPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex items-start mb-4">
+              <AlertCircle className="w-6 h-6 text-orange-500 mr-3 flex-shrink-0 mt-1" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Guest Limit Exceeded</h3>
+                <p className="text-gray-600 mb-6">
+                  We can only accommodate up to 50 guests with Superfast Event Caterers. If you'd like to add more than 50 guests, we recommend switching to regular Event Caterers. Please note that delivery times may vary based on the number of guests and the delivery location.
+                </p>
+              </div>
             </div>
-            <p className="text-gray-600 mb-6">{showAlert.message}</p>
-            <button
-              onClick={() => setShowAlert(null)}
-              className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-            >
-              OK
-            </button>
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={handleGuestLimitCancel}
+                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRedirectToBox}
+                className="px-4 py-2 text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+              >
+                Yes, continue
+              </button>
+            </div>
           </div>
         </div>
       )}

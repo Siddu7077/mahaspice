@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MapPin, X, Check, AlertCircle } from "lucide-react";
+import { MapPin, X, Check, AlertCircle , ArrowLeft } from "lucide-react";
 
 const DELIVERY_FEE = 500;
 const STAFF_PRICE = 500;
@@ -11,6 +11,7 @@ const VALID_COUPONS = {
   GSR10: 10,
   GSR15: 15,
 };
+
 
 const HYDERABAD_LOCATIONS = [
   "Hitech City",
@@ -25,17 +26,13 @@ const HYDERABAD_LOCATIONS = [
   "Kondapur",
 ];
 
-const SupOrder = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const {
-    selectedItems = [],
-    extraItems = [],
-    platePrice = 0,
-    guestCount = 0,
-    totalAmount = 0,
-  } = location.state || {};
-
+const SupOrder = ({
+  selectedItems = [],
+  platePrice = 0,
+  guestCount = 0,
+  totalAmount = 0,
+  onBackToMenu, // Callback to go back to UniversalMenu
+}) => {
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -158,10 +155,9 @@ const SupOrder = () => {
     const tablesCost = userDetails.numberOfTables * TABLE_PRICE;
 
     const baseCost = platePrice * guestCount;
-    const extraItemsCost = extraItems.length * 50;
+    const extraItemsCost = selectedItems.filter((item) => item.isExtra).length * 50;
 
-    const subtotal =
-      baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
+    const subtotal = baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
 
     let discount = 0;
     if (appliedCoupon) {
@@ -243,7 +239,17 @@ const SupOrder = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        {/* Back to Menu Button */}
+        {/* <button
+          onClick={onBackToMenu}
+          className="mb-6 flex items-center text-blue-600 hover:text-blue-800"
+        >
+          <ArrowLeft className="mr-2" /> Back to Menu
+        </button> */}
+
         <div className="grid md:grid-cols-2 gap-8">
           {/* Customer Details Form */}
           <div className="bg-white rounded-lg shadow-md p-6">
@@ -464,59 +470,6 @@ const SupOrder = () => {
               </div>
             </div>
 
-            {/* Coupon Section */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-2">Apply Coupon</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  placeholder="Enter coupon code"
-                  className="flex-1 p-2 border rounded-md"
-                  disabled={appliedCoupon !== null}
-                />
-                {appliedCoupon ? (
-                  <button
-                    onClick={removeCoupon}
-                    className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
-                  >
-                    ✕
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleCouponApply}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Apply
-                  </button>
-                )}
-              </div>
-
-              {couponError && (
-                <div className="mt-2 p-3 bg-red-50 text-red-600 rounded-md flex items-center gap-2">
-                  <span>⚠️</span>
-                  <div>
-                    <p className="font-semibold">Error</p>
-                    <p>{couponError}</p>
-                  </div>
-                </div>
-              )}
-
-              {showCouponSuccess && (
-                <div className="mt-2 p-3 bg-green-50 text-green-800 rounded-md flex items-center gap-2">
-                  <span>✓</span>
-                  <div>
-                    <p className="font-semibold">Success</p>
-                    <p>
-                      Coupon applied successfully! You got{" "}
-                      {VALID_COUPONS[appliedCoupon]}% off
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Price Breakdown */}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
@@ -532,16 +485,6 @@ const SupOrder = () => {
                   <span>₹{totals.extraItemsCost.toFixed(2)}</span>
                 </div>
               )}
-
-              <div className="flex justify-between">
-                <span>Staff Charges</span>
-                <span>₹{totals.staffCost.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Table Charges</span>
-                <span>₹{totals.tablesCost.toFixed(2)}</span>
-              </div>
 
               <div className="flex justify-between font-medium">
                 <span>Subtotal</span>
@@ -577,15 +520,6 @@ const SupOrder = () => {
             >
               Proceed to Payment
             </button>
-
-            <div className="mt-4 text-sm text-gray-500">
-              <p>* Required fields</p>
-              <p>
-                Note: Base staff count is calculated as 1 per 100 guests
-                (minimum 2)
-              </p>
-              <p>Minimum tables are calculated as 1 per 50 guests</p>
-            </div>
           </div>
         </div>
         {showPaymentSuccess && (
