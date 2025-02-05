@@ -435,6 +435,12 @@ const MenuSelection = () => {
     }
   };
 
+  const getLiveCounterItems = () => {
+    return getFilteredItems().filter(
+      (item) => item.category_name.toLowerCase() === "live counter"
+    );
+  };
+
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
@@ -443,41 +449,90 @@ const MenuSelection = () => {
       {/* Live Counter Alert */}
       {showLiveCounterAlert && (
         <>
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="max-w-lg w-full bg-white border border-green-300 rounded-2xl p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom">
-              <div className="flex justify-between items-start">
+          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+            <div className="max-w-2xl w-full bg-white border border-green-300 rounded-2xl p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom mx-4">
+              <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-10 rounded-full flex items-center justify-center">
-                    <span className="text-white">🌟</span>
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-50">
+                    <span className="text-2xl">🌟</span>
                   </div>
-                  <p className="text-black-900 font-semibold text-lg">
-                    We also provide{" "}
-                    <span className="text-green-600">Live Counter</span>{" "}
-                    options! Feel free to explore and enhance your event
-                    experience.
-                  </p>
+                  <div>
+                    <p className="text-gray-900 font-semibold text-lg mb-1">
+                      We also provide{" "}
+                      <span className="text-green-600">Live Counter</span>{" "}
+                      options!
+                    </p>
+                    <p className="text-gray-600">
+                      Enhance your event experience with our special live
+                      counters
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowLiveCounterAlert(false)}
-                  className="text-black-900 hover:text-black-700 transition-colors"
+                  className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   <X size={24} />
                 </button>
               </div>
+
+              <div className="mt-4 max-h-64 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {getLiveCounterItems().map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center p-4 bg-gray-50 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                        <span
+                            className={`w-4 h-4 rounded flex items-center justify-center ${
+                              item.is_veg === "1"
+                                ? "border-2 border-green-500"
+                                : "border-2 border-red-500"
+                            }`}
+                          >
+                            <span
+                              className={`w-2 h-2 rounded-full ${
+                                item.is_veg === "1"
+                                  ? "bg-green-500"
+                                  : "bg-red-500"
+                              }`}
+                            ></span>
+                          </span>
+                          <p className="font-medium text-gray-900">
+                            {item.item_name}
+                          </p>
+                          
+                        </div>
+                        {/* <p className="text-green-600 font-medium mt-1">
+                          +₹{item.price} per plate
+                        </p> */}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <p className="text-sm text-gray-500">
+                  Click on any live counter item in the menu to add it to your
+                  selection
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Add the keyframes animation using a style element with proper React syntax */}
           <style>{`
-  @keyframes zoomInOut {
-    0% { transform: scale(0.8); opacity: 0; }
-    50% { transform: scale(1.1); opacity: 1; }
-    100% { transform: scale(1); }
-  }
-  .animate-zoom {
-    animation: zoomInOut 0.5s ease-in-out;
-  }
-`}</style>
+        @keyframes zoomInOut {
+          0% { transform: scale(0.8); opacity: 0; }
+          50% { transform: scale(1.1); opacity: 1; }
+          100% { transform: scale(1); }
+        }
+        .animate-zoom {
+          animation: zoomInOut 0.5s ease-in-out;
+        }
+      `}</style>
         </>
       )}
 
@@ -551,7 +606,8 @@ const MenuSelection = () => {
                           isLiveCounter ? "text-black" : "text-gray-800"
                         }`}
                       >
-                        {category} {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
+                        {category}{" "}
+                        {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
                         {isLiveCounter && (
                           <span className="ml-2 text-sm font-normal text-black animate-pulse">
                             ✨ Special Addition (Optional)
