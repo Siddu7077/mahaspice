@@ -40,7 +40,7 @@ const MenuSelection = () => {
     const hasLiveCounter = menuData.some(
       (item) => item.category_name.toLowerCase() === "live counter"
     );
-  
+
     if (hasLiveCounter && !showLiveCounterAlert) {
       setShowLiveCounterAlert(true);
       const timer = setTimeout(() => {
@@ -49,7 +49,6 @@ const MenuSelection = () => {
       return () => clearTimeout(timer);
     }
   }, [menuData]);
-  
 
   useEffect(() => {
     let timeoutId;
@@ -58,7 +57,7 @@ const MenuSelection = () => {
       timeoutId = setTimeout(() => {
         console.log("Hiding Live Counter Alert"); // Debugging log
         setShowLiveCounterAlert(false);
-      }, 4000);
+      }, 10000);
     }
     return () => clearTimeout(timeoutId);
   }, [showLiveCounterAlert]);
@@ -71,8 +70,8 @@ const MenuSelection = () => {
 
     return uniqueCategories.sort((a, b) => {
       // Always put Live Counter at the end
-      if (a.toLowerCase() === "live counter") return 1;
-      if (b.toLowerCase() === "live counter") return -1;
+      if (a.toLowerCase() === "live counter") return -1;
+      if (b.toLowerCase() === "live counter") return 1;
 
       const categoryA = categoryData.find((cat) => cat.category_name === a);
       const categoryB = categoryData.find((cat) => cat.category_name === b);
@@ -184,17 +183,26 @@ const MenuSelection = () => {
       return 0;
     }
 
-    // Use menuPreference instead of showVegOnly
     const basePrice =
       menuPreference === "veg"
         ? parseFloat(matchingPrice.veg_price)
         : parseFloat(matchingPrice.nonveg_price);
 
-    const extraItemsPrice = selectedItems
-      .filter((item) => item.isExtra)
+    // Calculate extra items cost (excluding Live Counter items)
+    const regularExtraItemsPrice = selectedItems
+      .filter(
+        (item) =>
+          item.isExtra && item.category_name.toLowerCase() !== "live counter"
+      )
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
-    const totalPlatePrice = basePrice + extraItemsPrice;
+    // Calculate Live Counter items cost separately
+    const liveCounterItemsPrice = selectedItems
+      .filter((item) => item.category_name.toLowerCase() === "live counter")
+      .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
+
+    const totalPlatePrice =
+      basePrice + regularExtraItemsPrice + liveCounterItemsPrice;
 
     let discountAmount = 0;
 
@@ -274,28 +282,13 @@ const MenuSelection = () => {
     // console.log("Filtered Items:", getFilteredItems());
   }, [menuData, eventType, serviceType, menuType]);
 
-  // const getSortedCategories = () => {
-  //   const filteredItems = getFilteredItems();
-  //   const uniqueCategories = [
-  //     ...new Set(filteredItems.map((item) => item.category_name)),
-  //   ];
-
-  //   return uniqueCategories.sort((a, b) => {
-  //     const categoryA = categoryData.find((cat) => cat.category_name === a);
-  //     const categoryB = categoryData.find((cat) => cat.category_name === b);
-  //     const posA = categoryA ? parseInt(categoryA.position) || 0 : 0;
-  //     const posB = categoryB ? parseInt(categoryB.position) || 0 : 0;
-  //     return posA - posB;
-  //   });
-  // };
-
   const getCategoryLimit = (categoryName) => {
     if (
       categoryName.toLowerCase() === "common items" ||
       categoryName.toLowerCase() === "live counter"
     ) {
       return 0; // No limit for optional categories
-    }  
+    }
     const category = categoryData.find(
       (cat) =>
         cat.category_name === categoryName &&
@@ -317,12 +310,12 @@ const MenuSelection = () => {
       ) {
         return false;
       }
-  
+
       const limit = getCategoryLimit(category);
       const selectedCount = getItemsInCategory(category).length;
       return selectedCount < limit;
     });
-  
+
     if (incompleteCategories.length > 0) {
       console.log("Incomplete categories:", incompleteCategories); // Debugging log
       setShowAlert({
@@ -332,7 +325,7 @@ const MenuSelection = () => {
       });
       return;
     }
-  
+
     if (action === "pay") {
       handleProceedToPay();
     }
@@ -354,21 +347,38 @@ const MenuSelection = () => {
   // };
 
   const handleItemSelectWithConfirmation = (item) => {
+    const isLiveCounter = item.category_name.toLowerCase() === "live counter";
     const categoryItems = getItemsInCategory(item.category_name);
     const limit = getCategoryLimit(item.category_name);
 
+    // If item is already selected, handle removal
     if (selectedItems.some((selected) => selected.id === item.id)) {
       handleItemSelect(item);
       return;
     }
 
+    // Special handling for Live Counter items
+    if (isLiveCounter) {
+      setShowAlert({
+        message: `Adding "${item.item_name}" will cost extra ₹${item.price} per plate.`,
+        isConfirmation: true,
+        onConfirm: () => {
+          handleItemSelect({
+            ...item,
+            isExtra: true, // Force Live Counter items to always be extra
+          });
+          setShowAlert(null);
+        },
+      });
+      return;
+    }
+
+    // Handle regular items that exceed category limit
     if (categoryItems.length >= limit && limit > 0) {
-      console.log("Triggering alert for item:", item.item_name);
       setShowAlert({
         message: `You've reached the limit of ${limit} items for ${item.category_name}. Adding this item will cost extra ₹${item.price}.`,
         isConfirmation: true,
         onConfirm: () => {
-          console.log("User confirmed adding item:", item.item_name);
           handleItemSelect(item);
           setShowAlert(null);
         },
@@ -379,11 +389,11 @@ const MenuSelection = () => {
   };
 
   const handleItemSelect = (item) => {
+    const isLiveCounter = item.category_name.toLowerCase() === "live counter";
+
     if (item.category_name.toLowerCase() === "common items") {
       return;
     }
-
-    const categoryLimit = getCategoryLimit(item.category_name);
 
     if (selectedItems.some((selected) => selected.id === item.id)) {
       // Remove the item
@@ -393,18 +403,19 @@ const MenuSelection = () => {
 
       // Recalculate isExtra status for remaining items in the same category
       const finalItems = updatedItems.map((selectedItem) => {
-        if (selectedItem.category_name === item.category_name) {
-          // Get all items in this category after removal
+        if (
+          selectedItem.category_name === item.category_name &&
+          !isLiveCounter
+        ) {
           const categoryItems = updatedItems.filter(
             (i) => i.category_name === item.category_name
           );
-          // Update isExtra based on current position in category
           const itemIndex = categoryItems.findIndex(
             (i) => i.id === selectedItem.id
           );
           return {
             ...selectedItem,
-            isExtra: itemIndex >= categoryLimit,
+            isExtra: itemIndex >= getCategoryLimit(item.category_name),
           };
         }
         return selectedItem;
@@ -413,10 +424,12 @@ const MenuSelection = () => {
       setSelectedItems(finalItems);
     } else {
       // Adding a new item
-      const categoryItems = getItemsInCategory(item.category_name);
       const newItem = {
         ...item,
-        isExtra: categoryItems.length >= categoryLimit && categoryLimit > 0,
+        isExtra: isLiveCounter
+          ? true
+          : getItemsInCategory(item.category_name).length >=
+            getCategoryLimit(item.category_name),
       };
       setSelectedItems([...selectedItems, newItem]);
     }
@@ -430,26 +443,25 @@ const MenuSelection = () => {
       {/* Live Counter Alert */}
       {showLiveCounterAlert && (
         <>
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div
-              className="max-w-md bg-white border border-green-200 rounded-xl p-4 shadow-lg transition-opacity duration-300 ease-in-out opacity-100"
-              style={slideInAnimation}
-            >
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="max-w-lg w-full bg-white border border-green-300 rounded-2xl p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                    <span className="text-white text-lg">🌟</span>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-10 rounded-full flex items-center justify-center">
+                    <span className="text-white">🌟</span>
                   </div>
-                  <p className="text-black-800 font-medium">
-                    We also provide live counter options! Feel free to explore
-                    and enhance your event experience.
+                  <p className="text-black-900 font-semibold text-lg">
+                    We also provide{" "}
+                    <span className="text-green-600">Live Counter</span>{" "}
+                    options! Feel free to explore and enhance your event
+                    experience.
                   </p>
                 </div>
                 <button
                   onClick={() => setShowLiveCounterAlert(false)}
-                  className="text-black-800 hover:text-black-600 transition-colors"
+                  className="text-black-900 hover:text-black-700 transition-colors"
                 >
-                  <X size={20} />
+                  <X size={24} />
                 </button>
               </div>
             </div>
@@ -457,17 +469,15 @@ const MenuSelection = () => {
 
           {/* Add the keyframes animation using a style element with proper React syntax */}
           <style>{`
-            @keyframes slideIn {
-              from {
-                transform: translateX(100%);
-                opacity: 0;
-              }
-              to {
-                transform: translateX(0);
-                opacity: 1;
-              }
-            }
-          `}</style>
+  @keyframes zoomInOut {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); }
+  }
+  .animate-zoom {
+    animation: zoomInOut 0.5s ease-in-out;
+  }
+`}</style>
         </>
       )}
 
@@ -475,7 +485,7 @@ const MenuSelection = () => {
         {/* Header */}
         <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
           <div className="flex gap-6 items-center">
-            <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-lg">
+            <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg">
               <h1 className="text-3xl font-bold text-gray-800">
                 {menuType
                   .split("-")
@@ -483,7 +493,7 @@ const MenuSelection = () => {
                   .join(" ")}
               </h1>
               <span className="text-gray-600">Base Price:</span>
-              <span className="text-2xl font-bold text-blue-600">
+              <span className="text-2xl font-bold text-green-600">
                 ₹{calculatePlatePrice()}
               </span>
               <span className="text-gray-600">per plate</span>
@@ -527,23 +537,23 @@ const MenuSelection = () => {
                 <div
                   key={category}
                   className={`bg-white rounded-xl shadow-lg overflow-hidden ${
-                    isLiveCounter ? "border-2 border-blue-500" : ""
+                    isLiveCounter ? "border-2 border-green-500" : ""
                   }`}
                 >
                   <div
                     className={`p-4 border-b ${
-                      isLiveCounter ? "bg-blue-50" : "bg-gray-50"
+                      isLiveCounter ? "bg-green-50" : "bg-gray-50"
                     }`}
                   >
                     <div className="flex justify-between items-center">
                       <h2
                         className={`text-xl font-bold ${
-                          isLiveCounter ? "text-blue-800" : "text-gray-800"
+                          isLiveCounter ? "text-black" : "text-gray-800"
                         }`}
                       >
-                        {category} {!isCommonItems && `(ANY ${limit})`}
+                        {category} {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
                         {isLiveCounter && (
-                          <span className="ml-2 text-sm font-normal text-blue-600 animate-pulse">
+                          <span className="ml-2 text-sm font-normal text-black animate-pulse">
                             ✨ Special Addition (Optional)
                           </span>
                         )}
@@ -583,7 +593,7 @@ const MenuSelection = () => {
                                   selectedItems.some(
                                     (selected) => selected.id === item.id
                                   )
-                                    ? "bg-blue-500 border-blue-500"
+                                    ? "bg-green-500 border-green-500"
                                     : "border-gray-300"
                                 }`}
                               >
@@ -657,7 +667,7 @@ const MenuSelection = () => {
                 {showAlert.isConfirmation && (
                   <button
                     onClick={showAlert.onConfirm}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
                   >
                     Add Anyway
                   </button>
