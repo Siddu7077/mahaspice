@@ -449,7 +449,7 @@ const MenuSelection = () => {
       {/* Live Counter Alert */}
       {showLiveCounterAlert && (
         <>
-          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-50">
+          <div className="fixed inset-0  flex items-center justify-center z-50">
             <div className="max-w-2xl w-full bg-white border border-green-300 rounded-2xl p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom mx-4">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex items-center gap-4">
@@ -700,7 +700,7 @@ const MenuSelection = () => {
 
         {/* Alert Dialog */}
         {showAlert && (
-          <div className="fixed inset-0 bg-black/20 flex items-center justify-center p-4 z-50">
+          <div className="fixed inset-0  flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
               <div className="flex items-center gap-3 mb-4">
                 <AlertTriangle className="text-orange-500" size={24} />
