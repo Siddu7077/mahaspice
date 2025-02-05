@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   X,
 } from "lucide-react";
+import { useAuth } from "./AuthSystem";
 
 const MenuSelection = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const MenuSelection = () => {
   const currentServiceType = serviceType.toLowerCase(); // "haldi-ceremony"
   const currentMenuType = menuType.replace(/-/g, " "); // "Silver Menu"
   const [showLiveCounterAlert, setShowLiveCounterAlert] = useState(false);
+  const { user } = useAuth();
 
   const slideInAnimation = {
     animation: "slideIn 0.5s ease-out",
@@ -331,21 +333,6 @@ const MenuSelection = () => {
     }
   };
 
-  // const handleProceedToPay = () => {
-  //   const extraItems = selectedItems.filter((item) => item.isExtra);
-  //   const platePrice = calculatePlatePrice();
-
-  //   navigate(`/events/${eventType}/${serviceType}/Menu/${menuType}/order`, {
-  //     state: {
-  //       selectedItems,
-  //       extraItems,
-  //       platePrice,
-  //       guestCount,
-  //       totalAmount: calculateTotal(),
-  //     },
-  //   });
-  // };
-
   const handleItemSelectWithConfirmation = (item) => {
     const isLiveCounter = item.category_name.toLowerCase() === "live counter";
     const categoryItems = getItemsInCategory(item.category_name);
@@ -441,6 +428,56 @@ const MenuSelection = () => {
     );
   };
 
+  const handleAddToCart = async () => {
+    // const { user } = useAuth(); 
+  
+    if (!user) {
+      alert('Please login to add items to the cart.');
+      // window.location.href = '/login';
+      return;
+    }
+  
+    // Prepare order details
+    const orderDetails = {
+      user_id: user.id, 
+      event_name: serviceType, 
+      menu_type: menuType, 
+      guest_count: guestCount,
+      plate_price:calculatePlatePrice(),
+      total_price: calculateTotal(),
+      items: selectedItems.map(item => ({
+        category_name: item.category_name,
+        item_name: item.item_name,
+        price: parseFloat(item.price || 0),
+        is_extra: item.isExtra,
+      })),
+    };
+  
+    try {
+      const response = await fetch('https://mahaspice.desoftimp.com/ms3/add-to-cart.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderDetails),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to add to cart');
+      }
+  
+      const data = await response.json();
+      if (data.success) {
+        alert('Order added to cart successfully!');
+      } else {
+        throw new Error(data.error || 'Failed to add to cart');
+      }
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      alert('Failed to add to cart. Please try again.');
+    }
+  };
+
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
@@ -485,7 +522,7 @@ const MenuSelection = () => {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                        <span
+                          <span
                             className={`w-4 h-4 rounded flex items-center justify-center ${
                               item.is_veg === "1"
                                 ? "border-2 border-green-500"
@@ -503,7 +540,6 @@ const MenuSelection = () => {
                           <p className="font-medium text-gray-900">
                             {item.item_name}
                           </p>
-                          
                         </div>
                         {/* <p className="text-green-600 font-medium mt-1">
                           +₹{item.price} per plate
@@ -832,6 +868,13 @@ const MenuSelection = () => {
               <CreditCard size={20} />
               Proceed to Pay
             </button>
+            <button
+              onClick={handleAddToCart}
+              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            >
+              <ShoppingCart size={20} />
+              Add to Cart
+            </button>
           </div>
         </div>
       </div>
@@ -840,3 +883,5 @@ const MenuSelection = () => {
 };
 
 export default MenuSelection;
+
+// http://localhost:5173/events/wedding-catering/Engagement-ceremony/Menu/Silver%20Menu

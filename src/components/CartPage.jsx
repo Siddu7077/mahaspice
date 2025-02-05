@@ -1,204 +1,204 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "./AuthSystem";
 
 const CartPage = () => {
-  const [isVeg, setIsVeg] = useState(true);
-  const [selectedPackage, setSelectedPackage] = useState("mealbox");
+  const { user, loading: authLoading } = useAuth();
+  const [events, setEvents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [cartItems, setCartItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [activeMenuTypes, setActiveMenuTypes] = useState([]); // Track active menu types
 
-  const packageData = {
-    mealbox: {
-      veg: [
-        {
-          id: 1,
-          name: "Veg Mealbox A",
-          items: ["Paneer", "Rice", "Dal"],
-          price: "₹150",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-        {
-          id: 2,
-          name: "Veg Mealbox B",
-          items: ["Vegetable Curry", "Chapati", "Rice"],
-          price: "₹170",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-      ],
-      nonVeg: [
-        {
-          id: 3,
-          name: "Chicken Mealbox A",
-          items: ["Chicken Curry", "Rice", "Dal"],
-          price: "₹200",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-        {
-          id: 4,
-          name: "Chicken Mealbox B",
-          items: ["Grilled Chicken", "Naan", "Salad"],
-          price: "₹250",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-      ],
-    },
-    deliverybox: {
-      veg: [
-        {
-          id: 5,
-          name: "Veg Delivery Box A",
-          items: ["Salad", "Rice", "Curry"],
-          price: "₹180",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-        {
-          id: 6,
-          name: "Veg Delivery Box B",
-          items: ["Paneer Butter Masala", "Naan", "Rice"],
-          price: "₹220",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-      ], 
-      nonVeg: [
-        {
-          id: 7,
-          name: "Non-Veg Delivery Box A",
-          items: ["Fish Curry", "Rice", "Gravy"],
-          price: "₹250",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-        {
-          id: 8,
-          name: "Non-Veg Delivery Box B",
-          items: ["Mutton Biryani", "Salad", "Raitha"],
-          price: "₹300",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-      ],
-    },
-    catering: {
-      veg: [
-        {
-          id: 9,
-          name: "Veg Catering A",
-          items: ["Paneer Butter Masala", "Rice", "Naan"],
-          price: "₹300",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-        {
-          id: 10,
-          name: "Veg Catering B",
-          items: ["Vegetable Pulao", "Salad", "Raitha"],
-          price: "₹350",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-      ],
-      nonVeg: [
-        {
-          id: 11,
-          name: "Non-Veg Catering A",
-          items: ["Chicken Curry", "Naan", "Rice"],
-          price: "₹400",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-        {
-          id: 12,
-          name: "Non-Veg Catering B",
-          items: ["Mutton Curry", "Rice", "Pickles"],
-          price: "₹450",
-          image: "https://5.imimg.com/data5/SELLER/Default/2023/2/BX/WK/QF/5331327/3cp-meal-tray-natraj-1000x1000.jpg",
-        },
-      ],
-    },
+  // Fetch events that are in the user's cart
+  useEffect(() => {
+    if (authLoading) {
+      return; // Wait for auth to load
+    }
+
+    if (!user || !user.id) {
+      setError("Please login to view your cart.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchEvents = async () => {
+      try {
+        const url = `https://mahaspice.desoftimp.com/ms3/get-events.php?user_id=${user.id}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch events.");
+        }
+        const data = await response.json();
+        if (data.success) {
+          setEvents(data.data);
+        } else {
+          throw new Error(data.error || "Failed to fetch events.");
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, [user, authLoading]);
+
+  // Fetch cart items for the selected event
+  useEffect(() => {
+    if (!selectedEvent || !user) return;
+
+    const fetchCartItems = async () => {
+      try {
+        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${user.id}&event_id=${selectedEvent}`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch cart items.");
+        }
+        const data = await response.json();
+        if (data.success) {
+          setCartItems(data.data);
+        } else {
+          throw new Error(data.error || "Failed to fetch cart items.");
+        }
+      } catch (err) {
+        setError(err.message);
+      }
+    };
+
+    fetchCartItems();
+  }, [selectedEvent, user]);
+
+  // Group cart items by menu_type
+  const groupedCartItems = cartItems.reduce((acc, item) => {
+    if (!acc[item.menu_type]) {
+      acc[item.menu_type] = {
+        items: [],
+        totalPrice: 0,
+        platePrice: item.plate_price || 0,
+        guestCount: item.guest_count || 1,
+      };
+    }
+    acc[item.menu_type].items.push(item);
+    acc[item.menu_type].totalPrice += item.price ;
+    return acc;
+  }, {});
+
+  // Get unique menu types for the selected event
+  const menuTypes = Object.keys(groupedCartItems);
+
+  // Toggle active menu types
+  const handleMenuTypeClick = (menuType) => {
+    if (activeMenuTypes.includes(menuType)) {
+      setActiveMenuTypes((prev) => prev.filter((type) => type !== menuType)); // Remove if already active
+    } else {
+      setActiveMenuTypes((prev) => [...prev, menuType]); // Add if not active
+    }
   };
 
-  const handleProceedToPay = (item) => {
-    console.log("Proceeding to pay for:", item);
-    alert(`Proceeding to pay for ${item.name}`);
-  };
+  if (authLoading) {
+    return <div className="p-8 text-center">Loading authentication...</div>;
+  }
+  if (loading) {
+    return <div className="p-8 text-center">Loading cart...</div>;
+  }
+  if (error) {
+    return <div className="p-8 text-center text-red-600">{error}</div>;
+  }
 
   return (
-    <div className="min-w-[550px] mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-7 m-4">
-        {/* Package Selection */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="space-x-4">
-            {["mealbox", "deliverybox", "catering"].map((pkg) => (
-              <button
-                key={pkg}
-                onClick={() => setSelectedPackage(pkg)}
-                className={`px-4 py-2 text-white font-medium rounded-lg ${
-                  selectedPackage === pkg
-                    ? "bg-blue-600"
-                    : "bg-gray-400 hover:bg-gray-500"
-                }`}
-              >
-                {pkg.charAt(0).toUpperCase() + pkg.slice(1)}
-              </button>
-            ))}
+    <div className="min-h-screen bg-gray-100 p-8">
+      <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+
+      {/* Event List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {events && events.length > 0 ? (
+          events.map((event = {}) => (
+            <div
+              key={event.event_id || "default-id"}
+              className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
+              onClick={() => setSelectedEvent(event.event_id)}
+            >
+              <img
+                src={`https://mahaspice.desoftimp.com/ms3/${event.event_file_path || "default-image.jpg"}`}
+                alt={event.event_name || "Event"}
+                className="w-full h-48 object-cover rounded-lg mb-4"
+              />
+              <h2 className="text-xl font-bold mb-2">{event.event_name || "Event Name"}</h2>
+              <p className="text-gray-600">{event.event_category || "Event Category"}</p>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600">No events found.</p>
+        )}
+      </div>
+
+      {/* Cart Items for Selected Event */}
+      {selectedEvent && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-6">Cart Items</h2>
+
+          {/* Menu Type Buttons */}
+          <div className="flex space-x-4 mb-6">
+            {menuTypes.map((menuType) => {
+              const { totalPrice, guestCount, platePrice } = groupedCartItems[menuType];
+              const pricePerGuest = totalPrice / guestCount;
+
+              return (
+                <button
+                  key={menuType}
+                  onClick={() => handleMenuTypeClick(menuType)}
+                  className={`px-4 py-2 rounded-lg text-left ${
+                    activeMenuTypes.includes(menuType)
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  <div className="font-bold">{menuType}</div>
+                  
+                  {/* <div className="text-sm">Plate Price: ₹{platePrice}</div> */}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Veg/Non-Veg Toggle */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setIsVeg(true)}
-              className={`px-3 py-1 rounded-lg ${
-                isVeg ? "bg-green-500 text-white" : "bg-gray-300"
-              }`}
-            >
-              Veg
-            </button>
-            <button
-              onClick={() => setIsVeg(false)}
-              className={`px-3 py-1 rounded-lg ${
-                !isVeg ? "bg-red-500 text-white" : "bg-gray-300"
-              }`}
-            >
-              Non-Veg
-            </button>
-          </div>
-        </div>
+          {/* Display Cart Items for Active Menu Types Side by Side */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {activeMenuTypes.map((menuType) => {
+              const { items, totalPrice, guestCount,platePrice } = groupedCartItems[menuType];
+              const pricePerGuest = totalPrice / guestCount;
 
-        {/* Display All Menus */}
-        <div className="grid grid-cols-1 gap-6">
-          {packageData[selectedPackage][isVeg ? "veg" : "nonVeg"].map(
-            (item) => (
-              <div
-                key={item.id}
-                className="p-4 border rounded-xl flex items-center justify-between"
-              >
-                <div className="flex items-center">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-lg mr-4"
-                  />
-                  <div>
-                    <h3
-                      className={`font-semibold ${
-                        isVeg ? "text-green-700" : "text-red-700"
-                      }`}
-                    >
-                      {item.name}
-                    </h3>
-                    <p className="text-gray-600 w-15 mb-3">
-                      {item.items.join(", ")}
-                    </p>
-                    <div className="text-gray-600">{item.price}</div>
+              return (
+                
+                <div key={menuType} className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-xl font-bold mb-4">{menuType}</h3>
+                  <div className="text-base font-bold mb-4 text-black">Guest Count: {guestCount}</div>
+                  <div className="text-base font-bold mb-4 text-black">Plate Price: ₹{platePrice}</div>
+                  <div className="space-y-4">
+                    {items.map((item, index) => (
+                      <div key={index} className="p-4 bg-white rounded-lg shadow-sm">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <h4 className="font-bold text-gray-700 mb-2">
+                              {item.category_name}
+                            </h4>
+                            <span className="text-gray-600">{item.item_name}</span>
+                            <span className="text-gray-600 ml-4">
+                              {/* {item.is_extra && item.price !== 0 && `₹${item.price} (Extra)`} */}
+                              {item.is_extra && `₹${item.price} (Extra)` || ""}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-
-                {/* Proceed to Pay Button */}
-                <button
-                  onClick={() => handleProceedToPay(item)}
-                  className={`px-4 py-2 ${
-                    isVeg ? "bg-green-500" : "bg-red-500"
-                  } text-white rounded-lg`}
-                >
-                  Proceed to Pay
-                </button>
-              </div>
-            )
-          )}
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
