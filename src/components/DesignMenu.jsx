@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Mail, 
-  Users, 
-  MinusCircle, 
+import {
+  Mail,
+  Users,
+  MinusCircle,
   PlusCircle,
   X,
   CheckCircle
@@ -35,7 +35,7 @@ const AlertMessage = ({ message, onClose }) => {
           <h3 className="text-xl font-bold text-gray-800">Success!</h3>
           <p className="text-gray-600">{message}</p>
           <p className="text-sm text-gray-500">Redirecting in {countdown} seconds...</p>
-          <button 
+          <button
             onClick={onClose}
             className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
@@ -58,7 +58,7 @@ const DesignMenu = () => {
   const [showEnquiryForm, setShowEnquiryForm] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(''); 
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -128,57 +128,57 @@ const DesignMenu = () => {
   };
 
   const handleEnquirySubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
 
-  // Transform selected items into the correct format with category_name
-  const selectedItemsList = Object.entries(selectedItems)
-    .flatMap(([categoryId, itemsObj]) => {
-      const category = categories.find(cat => cat.id === categoryId);
-      return Object.entries(itemsObj)
-        .filter(([_, isSelected]) => isSelected)
-        .map(([itemId, _]) => {
-          const itemData = items.find(item => item.id === itemId);
-          return {
-            category: category?.category_name || '',
-            category_id: categoryId,
-            category_name: category?.category_name || '',
-            name: itemData?.name || '',
-            type: itemData?.veg_nonveg || ''
-          };
-        });
-    });
+    // Transform selected items into the correct format with category_name
+    const selectedItemsList = Object.entries(selectedItems)
+      .flatMap(([categoryId, itemsObj]) => {
+        const category = categories.find(cat => cat.id === categoryId);
+        return Object.entries(itemsObj)
+          .filter(([_, isSelected]) => isSelected)
+          .map(([itemId, _]) => {
+            const itemData = items.find(item => item.id === itemId);
+            return {
+              category: category?.category_name || '',
+              category_id: categoryId,
+              category_name: category?.category_name || '',
+              name: itemData?.name || '',
+              type: itemData?.veg_nonveg || ''
+            };
+          });
+      });
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/enquiry.php`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...formData,
-        selectedItems: selectedItemsList,
-        guests
-      })
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}/enquiry.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          selectedItems: selectedItemsList,
+          guests
+        })
+      });
 
-    const data = await response.json();
-    if (data.status === 'success') {
-      setShowEnquiryForm(false);
-      setShowAlert(true);
-      setFormData({ name: '', email: '', phone: '', delivery_date: '' });
-      setSelectedItems({});
-    } else {
-      throw new Error(data.message || 'Error submitting enquiry');
+      const data = await response.json();
+      if (data.status === 'success') {
+        setShowEnquiryForm(false);
+        setShowAlert(true);
+        setFormData({ name: '', email: '', phone: '', delivery_date: '' });
+        setSelectedItems({});
+      } else {
+        throw new Error(data.message || 'Error submitting enquiry');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setErrorMessage(error.message);
+      setShowErrorAlert(true);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error:', error);
-    setErrorMessage(error.message);
-    setShowErrorAlert(true);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const filteredItems = items.filter(item => {
     if (menuPreference === 'veg') {
@@ -210,21 +210,19 @@ const DesignMenu = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setMenuPreference('veg')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  menuPreference === 'veg'
+                className={`px-4 py-2 rounded-lg transition-colors ${menuPreference === 'veg'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-200 text-gray-700'
-                }`}
+                  }`}
               >
                 Veg
               </button>
               <button
                 onClick={() => setMenuPreference('nonveg')}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  menuPreference === 'nonveg'
+                className={`px-4 py-2 rounded-lg transition-colors ${menuPreference === 'nonveg'
                     ? 'bg-red-500 text-white'
                     : 'bg-gray-200 text-gray-700'
-                }`}
+                  }`}
               >
                 Non-Veg
               </button>
@@ -236,7 +234,7 @@ const DesignMenu = () => {
           {/* Menu Selection Area */}
           <div className="lg:col-span-2">
             {categories.map((category) => {
-              const categoryItems = filteredItems.filter(item => 
+              const categoryItems = filteredItems.filter(item =>
                 String(item.category_id) === String(category.id)
               );
 
@@ -257,11 +255,10 @@ const DesignMenu = () => {
                               [item.id]: !prev[category.id]?.[item.id]
                             }
                           }))}
-                          className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200 ${
-                            selectedItems[category.id]?.[item.id]
+                          className={`flex items-center gap-3 p-4 rounded-lg cursor-pointer transition-all duration-200 ${selectedItems[category.id]?.[item.id]
                               ? 'bg-blue-50 border-2 border-blue-500'
                               : 'border-2 border-gray-100 hover:border-blue-200 hover:bg-blue-50/50'
-                          }`}
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -284,12 +281,12 @@ const DesignMenu = () => {
           <div className="lg:sticky lg:top-6">
             <div className="bg-white rounded-xl shadow-lg p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Menu Details</h2>
-              
+
               {/* Guests Counter */}
               <div className="flex items-center gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
                 <Users className="w-5 h-5 text-gray-500" />
                 <span className="text-gray-600">Guests:</span>
-                <button 
+                <button
                   onClick={() => handleGuestsChange(guests - 10)}
                   className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
                 >
@@ -301,7 +298,7 @@ const DesignMenu = () => {
                   onChange={handleInputChange}
                   className="w-20 text-center font-semibold bg-white border border-gray-200 rounded-md py-1"
                 />
-                <button 
+                <button
                   onClick={() => handleGuestsChange(guests + 10)}
                   className="p-1 text-gray-500 hover:text-blue-600 transition-colors"
                 >
@@ -310,7 +307,7 @@ const DesignMenu = () => {
               </div>
 
               {/* Enquire Button */}
-              <button 
+              <button
                 onClick={() => setShowEnquiryForm(true)}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium shadow-sm transition-all duration-200 flex items-center justify-center gap-2"
               >
@@ -328,7 +325,7 @@ const DesignMenu = () => {
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-gray-800">Contact Details</h3>
-              <button 
+              <button
                 onClick={() => setShowEnquiryForm(false)}
                 className="text-gray-500 hover:text-gray-700"
               >
@@ -411,21 +408,21 @@ const DesignMenu = () => {
         </div>
       )}
       {showAlert && (
-  <AlertMessage 
-    message="Thank you for your enquiry! We will get back to you soon."
-    onClose={() => {
-      setShowAlert(false);
-      window.location.href = '/';
-    }}
-  />
-)}
+        <AlertMessage
+          message="Thank you for your enquiry! We will get back to you soon."
+          onClose={() => {
+            setShowAlert(false);
+            window.location.href = '/';
+          }}
+        />
+      )}
 
-{showErrorAlert && (
-  <AlertMessage 
-    message={errorMessage || "An error occurred while submitting your enquiry."}
-    onClose={() => setShowErrorAlert(false)}
-  />
-)}
+      {showErrorAlert && (
+        <AlertMessage
+          message={errorMessage || "An error occurred while submitting your enquiry."}
+          onClose={() => setShowErrorAlert(false)}
+        />
+      )}
     </div>
   );
 };
