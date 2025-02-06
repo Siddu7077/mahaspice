@@ -8,30 +8,51 @@ const CartPage = () => {
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeMenuTypes, setActiveMenuTypes] = useState([]); // Track active menu types
+  const [selectedMenuTypes, setSelectedMenuTypes] = useState([]);
+  const [availableMenuTypes, setAvailableMenuTypes] = useState([]);
 
-  // Fetch events that are in the user's cart
+  // Fetch events and their menu types
   useEffect(() => {
-    if (authLoading) {
-      return; // Wait for auth to load
-    }
-
-    if (!user || !user.id) {
-      setError("Please login to view your cart.");
-      setLoading(false);
-      return;
-    }
+    if (authLoading) return;
 
     const fetchEvents = async () => {
       try {
-        const url = `https://mahaspice.desoftimp.com/ms3/get-events.php?user_id=${user.id}`;
+        const localUser = JSON.parse(localStorage.getItem("user"));
+        const currentUser = user || localUser;
+
+        if (!currentUser || !currentUser.id) {
+          setError("Please login to view your cart.");
+          setLoading(false);
+          return;
+        }
+
+        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${currentUser.id}`;
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch events.");
         }
         const data = await response.json();
+
         if (data.success) {
-          setEvents(data.data);
+          // Group events and their menu types
+          const eventMap = new Map();
+
+          data.data.forEach((item) => {
+            if (!eventMap.has(item.event_name)) {
+              eventMap.set(item.event_name, {
+                event_name: item.event_name,
+                menu_types: new Set(),
+              });
+            }
+            eventMap.get(item.event_name).menu_types.add(item.menu_type);
+          });
+
+          const uniqueEvents = Array.from(eventMap.values()).map((event) => ({
+            ...event,
+            menu_types: Array.from(event.menu_types),
+          }));
+
+          setEvents(uniqueEvents);
         } else {
           throw new Error(data.error || "Failed to fetch events.");
         }
@@ -45,20 +66,49 @@ const CartPage = () => {
     fetchEvents();
   }, [user, authLoading]);
 
-  // Fetch cart items for the selected event
+  // Update available menu types when an event is selected
   useEffect(() => {
-    if (!selectedEvent || !user) return;
+    if (!selectedEvent) {
+      setAvailableMenuTypes([]);
+      setSelectedMenuTypes([]);
+      return;
+    }
+
+    const selectedEventData = events.find(
+      (event) => event.event_name === selectedEvent
+    );
+    if (selectedEventData) {
+      setAvailableMenuTypes(selectedEventData.menu_types);
+      setSelectedMenuTypes([]);
+    }
+  }, [selectedEvent, events]);
+
+  // Fetch cart items for selected menu types
+  useEffect(() => {
+    if (!selectedMenuTypes.length || !selectedEvent) return;
 
     const fetchCartItems = async () => {
       try {
-        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${user.id}&event_id=${selectedEvent}`;
+        const localUser = JSON.parse(localStorage.getItem("user"));
+        const currentUser = user || localUser;
+
+        if (!currentUser) return;
+
+        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${
+          currentUser.id
+        }&event_name=${encodeURIComponent(selectedEvent)}`;
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch cart items.");
         }
         const data = await response.json();
+
         if (data.success) {
-          setCartItems(data.data);
+          // Filter items based on selected menu types
+          const filteredItems = data.data.filter((item) =>
+            selectedMenuTypes.includes(item.menu_type)
+          );
+          setCartItems(filteredItems);
         } else {
           throw new Error(data.error || "Failed to fetch cart items.");
         }
@@ -68,32 +118,32 @@ const CartPage = () => {
     };
 
     fetchCartItems();
-  }, [selectedEvent, user]);
+  }, [selectedMenuTypes, selectedEvent, user]);
 
   // Group cart items by menu_type
   const groupedCartItems = cartItems.reduce((acc, item) => {
     if (!acc[item.menu_type]) {
       acc[item.menu_type] = {
         items: [],
-        totalPrice: 0,
+        totalPrice: item.total_price || 0,
         platePrice: item.plate_price || 0,
         guestCount: item.guest_count || 1,
       };
     }
     acc[item.menu_type].items.push(item);
-    acc[item.menu_type].totalPrice += item.price ;
     return acc;
   }, {});
 
-  // Get unique menu types for the selected event
-  const menuTypes = Object.keys(groupedCartItems);
+  const handleEventSelect = (eventName) => {
+    setSelectedEvent(eventName);
+    setSelectedMenuTypes([]);
+  };
 
-  // Toggle active menu types
   const handleMenuTypeClick = (menuType) => {
-    if (activeMenuTypes.includes(menuType)) {
-      setActiveMenuTypes((prev) => prev.filter((type) => type !== menuType)); // Remove if already active
+    if (selectedMenuTypes.includes(menuType)) {
+      setSelectedMenuTypes((prev) => prev.filter((type) => type !== menuType));
     } else {
-      setActiveMenuTypes((prev) => [...prev, menuType]); // Add if not active
+      setSelectedMenuTypes((prev) => [...prev, menuType]);
     }
   };
 
@@ -111,91 +161,96 @@ const CartPage = () => {
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
-      {/* Event List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {events && events.length > 0 ? (
-          events.map((event = {}) => (
-            <div
-              key={event.event_id || "default-id"}
-              className="bg-white rounded-lg shadow-md p-6 cursor-pointer hover:shadow-lg transition-shadow"
-              onClick={() => setSelectedEvent(event.event_id)}
+      {/* Event Selection */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4">Select Event</h2>
+        <div className="flex flex-wrap gap-4">
+          {events.map((event) => (
+            <button
+              key={event.event_name}
+              onClick={() => handleEventSelect(event.event_name)}
+              className={`px-6 py-3 rounded-lg ${
+                selectedEvent === event.event_name
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              } shadow-md transition-colors`}
             >
-              <img
-                src={`https://mahaspice.desoftimp.com/ms3/${event.event_file_path || "default-image.jpg"}`}
-                alt={event.event_name || "Event"}
-                className="w-full h-48 object-cover rounded-lg mb-4"
-              />
-              <h2 className="text-xl font-bold mb-2">{event.event_name || "Event Name"}</h2>
-              <p className="text-gray-600">{event.event_category || "Event Category"}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-600">No events found.</p>
-        )}
+              {event.event_name.replace(/-/g, " ")}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Cart Items for Selected Event */}
-      {selectedEvent && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold mb-6">Cart Items</h2>
-
-          {/* Menu Type Buttons */}
-          <div className="flex space-x-4 mb-6">
-            {menuTypes.map((menuType) => {
-              const { totalPrice, guestCount, platePrice } = groupedCartItems[menuType];
-              const pricePerGuest = totalPrice / guestCount;
-
-              return (
-                <button
-                  key={menuType}
-                  onClick={() => handleMenuTypeClick(menuType)}
-                  className={`px-4 py-2 rounded-lg text-left ${
-                    activeMenuTypes.includes(menuType)
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  <div className="font-bold">{menuType}</div>
-                  
-                  {/* <div className="text-sm">Plate Price: ₹{platePrice}</div> */}
-                </button>
-              );
-            })}
+      {/* Menu Types */}
+      {selectedEvent && availableMenuTypes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+          <h2 className="text-2xl font-bold mb-4">Available Menu Types</h2>
+          <div className="flex flex-wrap gap-4">
+            {availableMenuTypes.map((menuType) => (
+              <button
+                key={menuType}
+                onClick={() => handleMenuTypeClick(menuType)}
+                className={`px-4 py-2 rounded-lg ${
+                  selectedMenuTypes.includes(menuType)
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                } transition-colors`}
+              >
+                {menuType}
+              </button>
+            ))}
           </div>
+        </div>
+      )}
 
-          {/* Display Cart Items for Active Menu Types Side by Side */}
+      {/* Menu Items Comparison */}
+      {selectedMenuTypes.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-2xl font-bold mb-6">Compare Menu Items</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {activeMenuTypes.map((menuType) => {
-              const { items, totalPrice, guestCount,platePrice } = groupedCartItems[menuType];
-              const pricePerGuest = totalPrice / guestCount;
-
-              return (
-                
-                <div key={menuType} className="bg-gray-50 rounded-lg p-6">
-                  <h3 className="text-xl font-bold mb-4">{menuType}</h3>
-                  <div className="text-base font-bold mb-4 text-black">Guest Count: {guestCount}</div>
-                  <div className="text-base font-bold mb-4 text-black">Plate Price: ₹{platePrice}</div>
-                  <div className="space-y-4">
-                    {items.map((item, index) => (
-                      <div key={index} className="p-4 bg-white rounded-lg shadow-sm">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <h4 className="font-bold text-gray-700 mb-2">
-                              {item.category_name}
-                            </h4>
-                            <span className="text-gray-600">{item.item_name}</span>
-                            <span className="text-gray-600 ml-4">
-                              {/* {item.is_extra && item.price !== 0 && `₹${item.price} (Extra)`} */}
-                              {item.is_extra && `₹${item.price} (Extra)` || ""}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+            {selectedMenuTypes.map((menuType) => (
+              <div key={menuType} className="bg-gray-50 rounded-lg p-6">
+                <h3 className="text-xl font-bold mb-4">{menuType}</h3>
+                <div className="space-y-2 mb-4">
+                  <div className="font-bold">
+                    Guest Count: {groupedCartItems[menuType]?.guestCount}
+                  </div>
+                  <div className="font-bold">
+                    Plate Price: ₹{groupedCartItems[menuType]?.platePrice}
+                  </div>
+                  <div className="font-bold">
+                    Total Price: ₹{groupedCartItems[menuType]?.totalPrice}
                   </div>
                 </div>
-              );
-            })}
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="py-2">Category</th>
+                      <th className="py-2">Item Name</th>
+                      {/* <th className="py-2">Price</th> */}
+                      {/* <th className="py-2">Extra</th> */}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupedCartItems[menuType]?.items.map((item, index) => (
+                      <tr key={index} className="border-b">
+                        <td className="py-2">{item.category_name}</td>
+                        <td className="py-2">
+                          {item.item_name}{" "}
+                          {item.is_extra && (
+                            <span className="text-red-500">
+                              (Extra Item) ₹{item.price}
+                            </span>
+                          )|| ""}
+                        </td>
+
+                        {/* <td className="py-2">{item.is_extra ? "Yes" : "No"}</td> */}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))}
           </div>
         </div>
       )}
