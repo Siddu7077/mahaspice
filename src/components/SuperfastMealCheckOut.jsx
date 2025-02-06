@@ -344,7 +344,7 @@ const SuperfastCheckOutform = ({
 
       const options = {
         key: "rzp_live_Mjm1GpVqxzwjQL",
-        amount: Math.round(totalAmount * 100),
+        amount: Math.round(finalTotal * 100),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: appliedCoupon
