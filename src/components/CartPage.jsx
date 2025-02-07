@@ -5,18 +5,70 @@ import { useNavigate } from "react-router-dom";
 const CartPage = () => {
   const { user, loading: authLoading } = useAuth();
   const [events, setEvents] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedMenuTypes, setSelectedMenuTypes] = useState([]);
-  const [availableMenuTypes, setAvailableMenuTypes] = useState([]);
+  const [extraTotal, setExtraTotal] = useState(0);
 
   const navigate = useNavigate();
 
-  // Function to handle the "Proceed to Checkout" button click
-  const handleProceedToCheckout = (menuType) => {
-    const menuData = groupedCartItems[menuType];
+
+  // Helper function to sanitize and create consistent keys
+  const createKey = (eventName, menuType) => {
+    const sanitizedEventName = eventName.replace(/[^\w\s-]/g, "").trim();
+    const sanitizedMenuType = menuType.replace(/[^\w\s-]/g, "").trim();
+    return `${sanitizedEventName}-${sanitizedMenuType}`.toLowerCase();
+  };
+
+  // Store original event and menu type mappings
+  const [keyMappings, setKeyMappings] = useState({});
+
+  // const handleProceedToCheckout = (key) => {
+  //   console.log("Attempting checkout with key:", key);
+  //   console.log("Available grouped items:", groupedCartItems);
+
+  //   const menuData = groupedCartItems[key];
+
+
+  
+
+  //   if (!menuData) {
+  //     console.error("Menu data not found. Debug info:", {
+  //       attemptedKey: key,
+  //       availableKeys: Object.keys(groupedCartItems),
+  //       groupedItems: groupedCartItems,
+  //     });
+  //     alert(`Menu data not found. Please try again. (Key: ${key})`);
+  //     return;
+  //   }
+
+  //   navigate("/order", {
+  //     state: {
+  //       selectedItems: menuData.items.filter((item) => !item.is_extra),
+  //       extraItems: menuData.items.filter((item) => item.is_extra),
+  //       platePrice: menuData.platePrice,
+  //       guestCount: menuData.guestCount,
+  //       totalAmount: menuData.totalPrice,
+  //     },
+  //   });
+  // };
+
+  const calculateExtraTotal = (items) => {
+    return items
+      .filter(item => item.is_extra)
+      .reduce((sum, item) => sum + (Number(item.price) || 50), 0);
+  };
+
+  const handleProceedToCheckout = (key) => {
+    const menuData = groupedCartItems[key];
+    
+    if (!menuData) {
+      console.error("Menu data not found", { key, groupedCartItems });
+      alert(`Menu data not found. Please try again. (Key: ${key})`);
+      return;
+    }
+
     navigate("/order", {
       state: {
         selectedItems: menuData.items.filter((item) => !item.is_extra),
@@ -24,11 +76,11 @@ const CartPage = () => {
         platePrice: menuData.platePrice,
         guestCount: menuData.guestCount,
         totalAmount: menuData.totalPrice,
+        extraAmount: menuData.extraTotal,
       },
     });
   };
 
-  // Fetch events and their menu types
   useEffect(() => {
     if (authLoading) return;
 
@@ -51,10 +103,16 @@ const CartPage = () => {
         const data = await response.json();
 
         if (data.success) {
-          // Group events and their menu types
           const eventMap = new Map();
+          const newKeyMappings = {};
 
           data.data.forEach((item) => {
+            const key = createKey(item.event_name, item.menu_type);
+            newKeyMappings[key] = {
+              eventName: item.event_name,
+              menuType: item.menu_type,
+            };
+
             if (!eventMap.has(item.event_name)) {
               eventMap.set(item.event_name, {
                 event_name: item.event_name,
@@ -63,6 +121,8 @@ const CartPage = () => {
             }
             eventMap.get(item.event_name).menu_types.add(item.menu_type);
           });
+
+          setKeyMappings(newKeyMappings);
 
           const uniqueEvents = Array.from(eventMap.values()).map((event) => ({
             ...event,
@@ -82,27 +142,10 @@ const CartPage = () => {
 
     fetchEvents();
   }, [user, authLoading]);
+  
 
-  // Update available menu types when an event is selected
   useEffect(() => {
-    if (!selectedEvent) {
-      setAvailableMenuTypes([]);
-      setSelectedMenuTypes([]);
-      return;
-    }
-
-    const selectedEventData = events.find(
-      (event) => event.event_name === selectedEvent
-    );
-    if (selectedEventData) {
-      setAvailableMenuTypes(selectedEventData.menu_types);
-      setSelectedMenuTypes([]);
-    }
-  }, [selectedEvent, events]);
-
-  // Fetch cart items for selected menu types
-  useEffect(() => {
-    if (!selectedMenuTypes.length || !selectedEvent) return;
+    if (!selectedMenuTypes.length) return;
 
     const fetchCartItems = async () => {
       try {
@@ -111,9 +154,7 @@ const CartPage = () => {
 
         if (!currentUser) return;
 
-        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${
-          currentUser.id
-        }&event_name=${encodeURIComponent(selectedEvent)}`;
+        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${currentUser.id}`;
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch cart items.");
@@ -121,10 +162,10 @@ const CartPage = () => {
         const data = await response.json();
 
         if (data.success) {
-          // Filter items based on selected menu types
-          const filteredItems = data.data.filter((item) =>
-            selectedMenuTypes.includes(item.menu_type)
-          );
+          const filteredItems = data.data.filter((item) => {
+            const key = createKey(item.event_name, item.menu_type);
+            return selectedMenuTypes.includes(key);
+          });
           setCartItems(filteredItems);
         } else {
           throw new Error(data.error || "Failed to fetch cart items.");
@@ -135,34 +176,42 @@ const CartPage = () => {
     };
 
     fetchCartItems();
-  }, [selectedMenuTypes, selectedEvent, user]);
+  }, [selectedMenuTypes, user]);
 
-  // Group cart items by menu_type
+  
+
   const groupedCartItems = cartItems.reduce((acc, item) => {
-    if (!acc[item.menu_type]) {
-      acc[item.menu_type] = {
+    const key = createKey(item.event_name, item.menu_type);
+
+    if (!acc[key]) {
+      acc[key] = {
         items: [],
-        totalPrice: item.total_price || 0,
         platePrice: item.plate_price || 0,
         guestCount: item.guest_count || 1,
       };
     }
-    acc[item.menu_type].items.push(item);
+    acc[key].items.push(item);
+    
+    // Calculate totals after adding item
+    const extraTotal = calculateExtraTotal(acc[key].items);
+    const baseTotal = acc[key].platePrice * acc[key].guestCount;
+    acc[key].extraTotal = extraTotal;
+    acc[key].baseTotal = baseTotal;
+    acc[key].totalPrice = baseTotal + extraTotal;
+    
     return acc;
   }, {});
 
-  const handleEventSelect = (eventName) => {
-    setSelectedEvent(eventName);
-    setSelectedMenuTypes([]);
-  };
+  const handleMenuTypeClick = (eventName, menuType) => {
+    const key = createKey(eventName, menuType);
 
-  const handleMenuTypeClick = (menuType) => {
-    if (selectedMenuTypes.includes(menuType)) {
-      setSelectedMenuTypes((prev) => prev.filter((type) => type !== menuType));
+    if (selectedMenuTypes.includes(key)) {
+      setSelectedMenuTypes((prev) => prev.filter((type) => type !== key));
     } else {
-      setSelectedMenuTypes((prev) => [...prev, menuType]);
+      setSelectedMenuTypes((prev) => [...prev, key]);
     }
   };
+  
 
   if (authLoading) {
     return <div className="p-8 text-center">Loading authentication...</div>;
@@ -174,103 +223,102 @@ const CartPage = () => {
     return <div className="p-8 text-center text-red-600">{error}</div>;
   }
 
-  return (
+  
+ return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
 
-      {/* Event Selection */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Select Event</h2>
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-2xl font-bold mb-4">Available Menu Types</h2>
         <div className="flex flex-wrap gap-4">
-          {events.map((event) => (
-            <button
-              key={event.event_name}
-              onClick={() => handleEventSelect(event.event_name)}
-              className={`px-6 py-3 rounded-lg ${
-                selectedEvent === event.event_name
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
-              } shadow-md transition-colors`}
-            >
-              {event.event_name.replace(/-/g, " ")}
-            </button>
-          ))}
+          {events.map((event) =>
+            event.menu_types.map((menuType) => {
+              const key = createKey(event.event_name, menuType);
+              return (
+                <button
+                  key={key}
+                  onClick={() => handleMenuTypeClick(event.event_name, menuType)}
+                  className={`px-4 py-2 rounded-lg ${
+                    selectedMenuTypes.includes(key)
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  } transition-colors`}
+                >
+                  {`${event.event_name} - ${menuType}`}
+                </button>
+              );
+            })
+          )}
         </div>
       </div>
 
-      {/* Menu Types */}
-      {selectedEvent && availableMenuTypes.length > 0 && (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <h2 className="text-2xl font-bold mb-4">Available Menu Types</h2>
-          <div className="flex flex-wrap gap-4">
-            {availableMenuTypes.map((menuType) => (
-              <button
-                key={menuType}
-                onClick={() => handleMenuTypeClick(menuType)}
-                className={`px-4 py-2 rounded-lg ${
-                  selectedMenuTypes.includes(menuType)
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                } transition-colors`}
-              >
-                {menuType}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Menu Items Comparison */}
       {selectedMenuTypes.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-bold mb-6">Compare Menu Items</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {selectedMenuTypes.map((menuType) => (
-              <div key={menuType} className="bg-gray-50 rounded-lg p-6">
-                <h3 className="text-xl font-bold mb-4">{menuType}</h3>
-                <div className="space-y-2 mb-4">
-                  <div className="font-bold">
-                    Guest Count: {groupedCartItems[menuType]?.guestCount}
+            {selectedMenuTypes.map((key) => {
+              const menuData = groupedCartItems[key];
+              const originalData = keyMappings[key];
+
+              if (!menuData || !originalData) return null;
+
+              return (
+                <div key={key} className="bg-gray-50 rounded-lg p-6">
+                  <h3 className="text-xl font-bold mb-4">
+                    {originalData.eventName} - {originalData.menuType}
+                  </h3>
+                  <div className="space-y-2 mb-4 bg-white p-4 rounded-lg">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="text-gray-600">Guest Count:</div>
+                      <div className="font-semibold text-right">{menuData.guestCount}</div>
+                      
+                      <div className="text-gray-600">Plate Price:</div>
+                      <div className="font-semibold text-right">₹{menuData.platePrice}</div>
+                      
+                      <div className="text-gray-600">Base Total:</div>
+                      <div className="font-semibold text-right">₹{menuData.baseTotal}</div>
+                      
+                      <div className="text-gray-600">Extra Items Total:</div>
+                      <div className="font-semibold text-right text-orange-600">₹{menuData.extraTotal}</div>
+                      
+                      <div className="text-gray-600 font-bold pt-2 border-t">Final Total:</div>
+                      <div className="font-bold text-right pt-2 border-t">₹{menuData.totalPrice}</div>
+                    </div>
                   </div>
-                  <div className="font-bold">
-                    Plate Price: ₹{groupedCartItems[menuType]?.platePrice}
-                  </div>
-                  <div className="font-bold">
-                    Total Price: ₹{groupedCartItems[menuType]?.totalPrice}
-                  </div>
-                </div>
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="py-2">Category</th>
-                      <th className="py-2">Item Name</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupedCartItems[menuType]?.items.map((item, index) => (
-                      <tr key={index} className="border-b">
-                        <td className="py-2">{item.category_name}</td>
-                        <td className="py-2">
-                          {item.item_name}{" "}
-                          {item.is_extra && (
-                            <span className="text-red-500">
-                              (Extra Item) ₹{item.price}
-                            </span>
-                          )}
-                        </td>
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="py-2">Category</th>
+                        <th className="py-2">Item Name</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {/* Add the "Proceed to Checkout" button */}
-                <button
-                  onClick={() => handleProceedToCheckout(menuType)}
-                  className="w-full mt-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
-                >
-                  Proceed to Checkout
-                </button>
-              </div>
-            ))}
+                    </thead>
+                    <tbody>
+                      {menuData.items.map((item, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="py-2">{item.category_name}</td>
+                          <td className="py-2">
+                            <div className="flex justify-between items-center">
+                              <span>{item.item_name}</span>
+                              {item.is_extra && (
+                                <span className="text-orange-600 text-sm">
+                                  Extra (+₹{item.price || 0})
+                                </span>
+                              )|| ""}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <button
+                    onClick={() => handleProceedToCheckout(key)}
+                    className="w-full mt-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
+                  >
+                    Proceed to Checkout
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

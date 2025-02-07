@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapPin, X, Check, AlertCircle } from "lucide-react";
+import { useAuth } from "./AuthSystem"; // Import useAuth
 
 const DELIVERY_FEE = 500;
 const STAFF_PRICE = 500;
@@ -34,8 +35,10 @@ const CartMenuOrder = () => {
     platePrice = 0,
     guestCount = 0,
     totalAmount = 0,
+    extraAmount = 0,
   } = location.state || {};
 
+  const { user } = useAuth(); // Access logged-in user data
 
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [couponCode, setCouponCode] = useState("");
@@ -58,46 +61,18 @@ const CartMenuOrder = () => {
 
   const getAvailableTimeSlots = () => {
     if (guestCount < 30) {
-      // For less than 30 guests, allow times after 1 PM for next day
       return timeSlots.filter((slot) => {
         const hour = parseInt(slot.split(":")[0]);
         return hour >= 1;
       });
     } else if (guestCount < 100) {
-      // For 30-100 guests, allow times after 7 PM for next day
       return timeSlots.filter((slot) => {
         const hour = parseInt(slot.split(":")[0]);
         return hour >= 7;
       });
     }
-    // For more than 100 guests, show all time slots (but date will be after tomorrow)
     return timeSlots;
   };
-
-  useEffect(() => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-
-    // Set minimum date based on guest count
-    if (guestCount > 100) {
-      // More than 100 guests need to book at least 2 days in advance
-      tomorrow.setDate(today.getDate() + 2);
-    } else {
-      // Less than 100 guests can book for tomorrow
-      tomorrow.setDate(today.getDate() + 1);
-    }
-
-    setMinDate(tomorrow.toISOString().split("T")[0]);
-
-    // Reset time if it doesn't match new constraints
-    const availableSlots = getAvailableTimeSlots();
-    if (!availableSlots.includes(userDetails.time)) {
-      setUserDetails((prev) => ({
-        ...prev,
-        time: "",
-      }));
-    }
-  }, [guestCount]);
 
   const [userDetails, setUserDetails] = useState({
     fullName: "",
@@ -115,6 +90,39 @@ const CartMenuOrder = () => {
   });
 
   const [minDate, setMinDate] = useState("");
+
+  // Populate user details if user is logged in
+  useEffect(() => {
+    if (user) {
+      setUserDetails((prev) => ({
+        ...prev,
+        fullName: user.name || "",
+        phoneNumber: user.phone || "",
+        address: user.address || "",
+      }));
+    }
+  }, [user]);
+
+  useEffect(() => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+
+    if (guestCount > 100) {
+      tomorrow.setDate(today.getDate() + 2);
+    } else {
+      tomorrow.setDate(today.getDate() + 1);
+    }
+
+    setMinDate(tomorrow.toISOString().split("T")[0]);
+
+    const availableSlots = getAvailableTimeSlots();
+    if (!availableSlots.includes(userDetails.time)) {
+      setUserDetails((prev) => ({
+        ...prev,
+        time: "",
+      }));
+    }
+  }, [guestCount]);
 
   useEffect(() => {
     const today = new Date();
@@ -159,7 +167,7 @@ const CartMenuOrder = () => {
     const tablesCost = userDetails.numberOfTables * TABLE_PRICE;
 
     const baseCost = platePrice * guestCount;
-    const extraItemsCost = extraItems.length * 50;
+    const extraItemsCost = extraAmount;
 
     const subtotal =
       baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
@@ -241,6 +249,42 @@ const CartMenuOrder = () => {
   };
 
   const totals = calculateTotals();
+
+  const groupedSelectedItems = selectedItems.reduce((acc, item) => {
+    if (!acc[item.category_name]) {
+      acc[item.category_name] = [];
+    }
+    acc[item.category_name].push(item);
+    return acc;
+  }, {});
+
+  const groupedItems = () => {
+    const allItems = {};
+
+    // Group selected items
+    selectedItems.forEach((item) => {
+      if (!allItems[item.category_name]) {
+        allItems[item.category_name] = [];
+      }
+      allItems[item.category_name].push({
+        ...item,
+        isExtra: false,
+      });
+    });
+
+    // Group extra items
+    extraItems.forEach((item) => {
+      if (!allItems[item.category_name]) {
+        allItems[item.category_name] = [];
+      }
+      allItems[item.category_name].push({
+        ...item,
+        isExtra: true,
+      });
+    });
+
+    return allItems;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -453,16 +497,46 @@ const CartMenuOrder = () => {
             {/* Selected Items */}
             <div className="mb-6 max-h-64 overflow-y-auto">
               <h3 className="font-semibold mb-2">Selected Items</h3>
-              <div className="space-y-2">
-                {selectedItems.map((item, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span>{item.item_name}</span>
-                    {item.isExtra && (
-                      <span className="text-orange-600">+₹50</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left p-2 border-b font-medium text-gray-600 w-1/3">
+                      Category
+                    </th>
+                    <th className="text-left p-2 border-b font-medium text-gray-600 w-2/3">
+                      Items
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(groupedItems()).map(([category, items]) => (
+                    <tr key={category} className="border-b last:border-b-0">
+                      <td className="p-2 align-top font-medium text-gray-700">
+                        {category}
+                      </td>
+                      <td className="p-2">
+                        <div className="space-y-2">
+                          {items.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between text-sm items-center"
+                            >
+                              <span className="flex items-center gap-2">
+                                {item.item_name}
+                                {item.isExtra && (
+                                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
+                                    Extra
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Coupon Section */}
@@ -582,8 +656,8 @@ const CartMenuOrder = () => {
             <div className="mt-4 text-sm text-gray-500">
               <p>* Required fields</p>
               <p>
-                Note: Base staff count is calculated as 1 per 100 guests
-                (minimum 2)
+                Note: Base staff count is calculated as 1 per 100 guests (minimum
+                2)
               </p>
               <p>Minimum tables are calculated as 1 per 50 guests</p>
             </div>
