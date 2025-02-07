@@ -69,6 +69,7 @@ import Developers from "./Developers";
 import NavbarOffers from "./NavbarOffers";
 import Navigation from "./NavItems";
 import Offers from "./Offers";
+import CartMenuOrder from "./cartMenuOrder";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -102,6 +103,10 @@ const Navbar = () => {
     {
       path: "/events/:eventType/:serviceType/Menu/:categoryName/order",
       element: <MenuOrder />,
+    },
+    {
+      path: "/order",
+      element: <CartMenuOrder />,
     },
     { path: "/events/:eventType", element: <EventsPage /> },
     { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },

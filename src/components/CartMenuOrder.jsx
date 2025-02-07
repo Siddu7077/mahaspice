@@ -25,7 +25,7 @@ const HYDERABAD_LOCATIONS = [
   "Kondapur",
 ];
 
-const MenuOrder = () => {
+const CartMenuOrder = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
@@ -655,4 +655,4 @@ const MenuOrder = () => {
   );
 };
 
-export default MenuOrder;
+export default CartMenuOrder;

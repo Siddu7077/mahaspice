@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthSystem";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -10,6 +11,22 @@ const CartPage = () => {
   const [error, setError] = useState(null);
   const [selectedMenuTypes, setSelectedMenuTypes] = useState([]);
   const [availableMenuTypes, setAvailableMenuTypes] = useState([]);
+
+  const navigate = useNavigate();
+
+  // Function to handle the "Proceed to Checkout" button click
+  const handleProceedToCheckout = (menuType) => {
+    const menuData = groupedCartItems[menuType];
+    navigate("/order", {
+      state: {
+        selectedItems: menuData.items.filter((item) => !item.is_extra),
+        extraItems: menuData.items.filter((item) => item.is_extra),
+        platePrice: menuData.platePrice,
+        guestCount: menuData.guestCount,
+        totalAmount: menuData.totalPrice,
+      },
+    });
+  };
 
   // Fetch events and their menu types
   useEffect(() => {
@@ -227,8 +244,6 @@ const CartPage = () => {
                     <tr className="border-b">
                       <th className="py-2">Category</th>
                       <th className="py-2">Item Name</th>
-                      {/* <th className="py-2">Price</th> */}
-                      {/* <th className="py-2">Extra</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -241,14 +256,19 @@ const CartPage = () => {
                             <span className="text-red-500">
                               (Extra Item) ₹{item.price}
                             </span>
-                          )|| ""}
+                          )}
                         </td>
-
-                        {/* <td className="py-2">{item.is_extra ? "Yes" : "No"}</td> */}
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                {/* Add the "Proceed to Checkout" button */}
+                <button
+                  onClick={() => handleProceedToCheckout(menuType)}
+                  className="w-full mt-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
+                >
+                  Proceed to Checkout
+                </button>
               </div>
             ))}
           </div>
