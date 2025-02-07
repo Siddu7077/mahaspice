@@ -122,7 +122,7 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
       const orderPayload = {
         razorpay_order_id: response.razorpay_order_id,
         paymentId: response.razorpay_payment_id,
-        amount: Math.round(totals.total * 100),
+        amount: Math.round(totals.total * 100 ),
         customerDetails: {
           name: formData.name.trim(),
           phone1: formData.phone1.trim(),
@@ -144,7 +144,7 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
 
       try {
         const orderResponse = await fetch(
-          'https://mahaspice.desoftimp.com/ms3/payment/create_order.php',
+          'https://mahaspice.desoftimp.com/ms3/payment/create_home_order.php',
           {
             method: 'POST',
             headers: {
@@ -203,7 +203,7 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
 
       const options = {
         key: "rzp_live_Mjm1GpVqxzwjQL",
-        amount: Math.round(totals.total * 100),
+        amount: Math.round(totals.total * 100 ),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: "Delbox Order Payment",
