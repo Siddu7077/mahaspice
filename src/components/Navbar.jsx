@@ -69,7 +69,7 @@ import Developers from "./Developers";
 import NavbarOffers from "./NavbarOffers";
 import Navigation from "./NavItems";
 import Offers from "./Offers";
-import CartMenuOrder from "./cartMenuOrder";
+import CartMenuOrder from "./CartMenuOrder";
 
 const Navbar = () => {
   const navigate = useNavigate();
