@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapPin, X, Check, AlertCircle } from "lucide-react";
 import { useAuth } from "./AuthSystem"; // Import useAuth
+import ScrollToTop from "./ScrollToTop";
 
 const DELIVERY_FEE = 500;
 const STAFF_PRICE = 500;
@@ -287,445 +288,452 @@ const CartMenuOrder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Customer Details Form */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-6">Customer Details</h2>
+    <>
+      <ScrollToTop />
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Customer Details Form */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-2xl font-bold mb-6">Customer Details</h2>
 
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="fullName"
-                  placeholder="Full Name *"
-                  value={userDetails.fullName}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border rounded-md"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email *"
-                  value={userDetails.email}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border rounded-md"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  placeholder="Phone Number *"
-                  value={userDetails.phoneNumber}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border rounded-md"
-                />
-                <input
-                  type="tel"
-                  name="alternateNumber"
-                  placeholder="Alternate Number"
-                  value={userDetails.alternateNumber}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border rounded-md"
-                />
-              </div>
-
-              <select
-                name="city"
-                value={userDetails.city}
-                onChange={handleInputChange}
-                className="w-full p-3 border rounded-md"
-              >
-                <option value="">Select Area *</option>
-                {HYDERABAD_LOCATIONS.map((location) => (
-                  <option key={location} value={location}>
-                    {location}
-                  </option>
-                ))}
-              </select>
-
-              <div className="relative">
-                <button
-                  onClick={detectLocation}
-                  className="p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 flex items-center gap-2"
-                >
-                  <MapPin size={16} />
-                  {isLoadingLocation ? "Detecting..." : "Use current location"}
-                </button>
-                <textarea
-                  name="address"
-                  placeholder="Delivery Address *"
-                  value={userDetails.address}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border rounded-md h-24"
-                />
-              </div>
-
-              <input
-                type="text"
-                name="landmark"
-                placeholder="Landmark *"
-                value={userDetails.landmark}
-                onChange={handleInputChange}
-                className="w-full p-3 border rounded-md"
-              />
-
-              <input
-                type="number"
-                name="landmark"
-                placeholder="Landmark *"
-                value={guestCount}
-                onChange={handleInputChange}
-                className="w-full p-3 border rounded-md"
-              />
-
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Date *
-                  </label>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
                   <input
-                    type="date"
-                    name="date"
-                    value={userDetails.date}
+                    type="text"
+                    name="fullName"
+                    placeholder="Full Name *"
+                    value={userDetails.fullName}
                     onChange={handleInputChange}
-                    min={minDate}
+                    className="w-full p-3 border rounded-md"
+                  />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Email *"
+                    value={userDetails.email}
+                    onChange={handleInputChange}
                     className="w-full p-3 border rounded-md"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Time *
-                  </label>
-                  <select
-                    name="time"
-                    value={userDetails.time}
+
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    placeholder="Phone Number *"
+                    value={userDetails.phoneNumber}
                     onChange={handleInputChange}
                     className="w-full p-3 border rounded-md"
-                  >
-                    <option value="">Select Time</option>
-                    {getAvailableTimeSlots().map((slot) => (
-                      <option key={slot} value={slot}>
-                        {slot}
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  <input
+                    type="tel"
+                    name="alternateNumber"
+                    placeholder="Alternate Number"
+                    value={userDetails.alternateNumber}
+                    onChange={handleInputChange}
+                    className="w-full p-3 border rounded-md"
+                  />
                 </div>
-              </div>
 
-              {/* Add this helper text */}
-              <div className="mt-2 text-sm text-gray-600">
-                {guestCount < 30 && (
-                  <p>
-                    For orders under 30 guests: Available for tomorrow after
-                    1:00 PM
-                  </p>
-                )}
-                {guestCount >= 30 && guestCount < 100 && (
-                  <p>
-                    For orders between 30-100 guests: Available for tomorrow
-                    after 7:00 PM
-                  </p>
-                )}
-                {guestCount >= 100 && (
-                  <p>
-                    For orders over 100 guests: Available starting day after
-                    tomorrow
-                  </p>
-                )}
-              </div>
-
-              {/* Staff and Tables Section */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Tables
-                    </label>
-                    <input
-                      type="number"
-                      name="numberOfTables"
-                      value={userDetails.numberOfTables}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full p-2 border rounded-md"
-                    />
-                    <span className="text-xs text-gray-500">₹200 each</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Staff
-                    </label>
-                    <input
-                      type="number"
-                      name="numberOfStaff"
-                      value={userDetails.numberOfStaff}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full p-2 border rounded-md"
-                    />
-                    <span className="text-xs text-gray-500">₹500 each</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Helpers
-                    </label>
-                    <input
-                      type="number"
-                      name="numberOfHelpers"
-                      value={userDetails.numberOfHelpers}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full p-2 border rounded-md"
-                    />
-                    <span className="text-xs text-gray-500">₹500 each</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Order Summary */}
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-
-            {/* Selected Items */}
-            <div className="mb-6 max-h-64 overflow-y-auto">
-              <h3 className="font-semibold mb-2">Selected Items</h3>
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left p-2 border-b font-medium text-gray-600 w-1/3">
-                      Category
-                    </th>
-                    <th className="text-left p-2 border-b font-medium text-gray-600 w-2/3">
-                      Items
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(groupedItems()).map(([category, items]) => (
-                    <tr key={category} className="border-b last:border-b-0">
-                      <td className="p-2 align-top font-medium text-gray-700">
-                        {category}
-                      </td>
-                      <td className="p-2">
-                        <div className="space-y-2">
-                          {items.map((item, index) => (
-                            <div
-                              key={index}
-                              className="flex justify-between text-sm items-center"
-                            >
-                              <span className="flex items-center gap-2">
-                                {item.item_name}
-                                {item.isExtra && (
-                                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
-                                    Extra
-                                  </span>
-                                )}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </td>
-                    </tr>
+                <select
+                  name="city"
+                  value={userDetails.city}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border rounded-md"
+                >
+                  <option value="">Select Area *</option>
+                  {HYDERABAD_LOCATIONS.map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </select>
 
-            {/* Coupon Section */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-2">Apply Coupon</h3>
-              <div className="flex gap-2">
+                <div className="relative">
+                  <button
+                    onClick={detectLocation}
+                    className="p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 flex items-center gap-2"
+                  >
+                    <MapPin size={16} />
+                    {isLoadingLocation
+                      ? "Detecting..."
+                      : "Use current location"}
+                  </button>
+                  <textarea
+                    name="address"
+                    placeholder="Delivery Address *"
+                    value={userDetails.address}
+                    onChange={handleInputChange}
+                    className="w-full p-3 border rounded-md h-24"
+                  />
+                </div>
+
                 <input
                   type="text"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  placeholder="Enter coupon code"
-                  className="flex-1 p-2 border rounded-md"
-                  disabled={appliedCoupon !== null}
+                  name="landmark"
+                  placeholder="Landmark *"
+                  value={userDetails.landmark}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border rounded-md"
                 />
-                {appliedCoupon ? (
-                  <button
-                    onClick={removeCoupon}
-                    className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
-                  >
-                    ✕
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleCouponApply}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    Apply
-                  </button>
+
+                <input
+                  type="number"
+                  name="landmark"
+                  placeholder="Landmark *"
+                  value={guestCount}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border rounded-md"
+                />
+
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Date *
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={userDetails.date}
+                      onChange={handleInputChange}
+                      min={minDate}
+                      className="w-full p-3 border rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Time *
+                    </label>
+                    <select
+                      name="time"
+                      value={userDetails.time}
+                      onChange={handleInputChange}
+                      className="w-full p-3 border rounded-md"
+                    >
+                      <option value="">Select Time</option>
+                      {getAvailableTimeSlots().map((slot) => (
+                        <option key={slot} value={slot}>
+                          {slot}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Add this helper text */}
+                <div className="mt-2 text-sm text-gray-600">
+                  {guestCount < 30 && (
+                    <p>
+                      For orders under 30 guests: Available for tomorrow after
+                      1:00 PM
+                    </p>
+                  )}
+                  {guestCount >= 30 && guestCount < 100 && (
+                    <p>
+                      For orders between 30-100 guests: Available for tomorrow
+                      after 7:00 PM
+                    </p>
+                  )}
+                  {guestCount >= 100 && (
+                    <p>
+                      For orders over 100 guests: Available starting day after
+                      tomorrow
+                    </p>
+                  )}
+                </div>
+
+                {/* Staff and Tables Section */}
+                <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Tables
+                      </label>
+                      <input
+                        type="number"
+                        name="numberOfTables"
+                        value={userDetails.numberOfTables}
+                        onChange={handleInputChange}
+                        min="0"
+                        className="w-full p-2 border rounded-md"
+                      />
+                      <span className="text-xs text-gray-500">₹200 each</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Staff
+                      </label>
+                      <input
+                        type="number"
+                        name="numberOfStaff"
+                        value={userDetails.numberOfStaff}
+                        onChange={handleInputChange}
+                        min="0"
+                        className="w-full p-2 border rounded-md"
+                      />
+                      <span className="text-xs text-gray-500">₹500 each</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">
+                        Helpers
+                      </label>
+                      <input
+                        type="number"
+                        name="numberOfHelpers"
+                        value={userDetails.numberOfHelpers}
+                        onChange={handleInputChange}
+                        min="0"
+                        className="w-full p-2 border rounded-md"
+                      />
+                      <span className="text-xs text-gray-500">₹500 each</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+
+              {/* Selected Items */}
+              <div className="mb-6 max-h-64 overflow-y-auto">
+                <h3 className="font-semibold mb-2">Selected Items</h3>
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="text-left p-2 border-b font-medium text-gray-600 w-1/3">
+                        Category
+                      </th>
+                      <th className="text-left p-2 border-b font-medium text-gray-600 w-2/3">
+                        Items
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(groupedItems()).map(([category, items]) => (
+                      <tr key={category} className="border-b last:border-b-0">
+                        <td className="p-2 align-top font-medium text-gray-700">
+                          {category}
+                        </td>
+                        <td className="p-2">
+                          <div className="space-y-2">
+                            {items.map((item, index) => (
+                              <div
+                                key={index}
+                                className="flex justify-between text-sm items-center"
+                              >
+                                <span className="flex items-center gap-2">
+                                  {item.item_name}
+                                  {item.isExtra && (
+                                    <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
+                                      Extra
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Coupon Section */}
+              <div className="mb-6">
+                <h3 className="font-semibold mb-2">Apply Coupon</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) =>
+                      setCouponCode(e.target.value.toUpperCase())
+                    }
+                    placeholder="Enter coupon code"
+                    className="flex-1 p-2 border rounded-md"
+                    disabled={appliedCoupon !== null}
+                  />
+                  {appliedCoupon ? (
+                    <button
+                      onClick={removeCoupon}
+                      className="px-4 py-2 bg-red-100 text-red-600 rounded-md hover:bg-red-200"
+                    >
+                      ✕
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleCouponApply}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      Apply
+                    </button>
+                  )}
+                </div>
+
+                {couponError && (
+                  <div className="mt-2 p-3 bg-red-50 text-red-600 rounded-md flex items-center gap-2">
+                    <span>⚠️</span>
+                    <div>
+                      <p className="font-semibold">Error</p>
+                      <p>{couponError}</p>
+                    </div>
+                  </div>
+                )}
+
+                {showCouponSuccess && (
+                  <div className="mt-2 p-3 bg-green-50 text-green-800 rounded-md flex items-center gap-2">
+                    <span>✓</span>
+                    <div>
+                      <p className="font-semibold">Success</p>
+                      <p>
+                        Coupon applied successfully! You got{" "}
+                        {VALID_COUPONS[appliedCoupon]}% off
+                      </p>
+                    </div>
+                  </div>
                 )}
               </div>
 
-              {couponError && (
-                <div className="mt-2 p-3 bg-red-50 text-red-600 rounded-md flex items-center gap-2">
-                  <span>⚠️</span>
-                  <div>
-                    <p className="font-semibold">Error</p>
-                    <p>{couponError}</p>
-                  </div>
-                </div>
-              )}
-
-              {showCouponSuccess && (
-                <div className="mt-2 p-3 bg-green-50 text-green-800 rounded-md flex items-center gap-2">
-                  <span>✓</span>
-                  <div>
-                    <p className="font-semibold">Success</p>
-                    <p>
-                      Coupon applied successfully! You got{" "}
-                      {VALID_COUPONS[appliedCoupon]}% off
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Price Breakdown */}
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>
-                  Base Cost (₹{platePrice} × {guestCount})
-                </span>
-                <span>₹{totals.baseCost.toFixed(2)}</span>
-              </div>
-
-              {totals.extraItemsCost > 0 && (
+              {/* Price Breakdown */}
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Extra Items</span>
-                  <span>₹{totals.extraItemsCost.toFixed(2)}</span>
+                  <span>
+                    Base Cost (₹{platePrice} × {guestCount})
+                  </span>
+                  <span>₹{totals.baseCost.toFixed(2)}</span>
                 </div>
-              )}
 
-              <div className="flex justify-between">
-                <span>Staff Charges</span>
-                <span>₹{totals.staffCost.toFixed(2)}</span>
-              </div>
+                {totals.extraItemsCost > 0 && (
+                  <div className="flex justify-between">
+                    <span>Extra Items</span>
+                    <span>₹{totals.extraItemsCost.toFixed(2)}</span>
+                  </div>
+                )}
 
-              <div className="flex justify-between">
-                <span>Table Charges</span>
-                <span>₹{totals.tablesCost.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between font-medium">
-                <span>Subtotal</span>
-                <span>₹{totals.subtotal.toFixed(2)}</span>
-              </div>
-
-              {totals.discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                  <span>Discount ({VALID_COUPONS[appliedCoupon]}% off)</span>
-                  <span>-₹{totals.discount.toFixed(2)}</span>
+                <div className="flex justify-between">
+                  <span>Staff Charges</span>
+                  <span>₹{totals.staffCost.toFixed(2)}</span>
                 </div>
-              )}
 
-              <div className="flex justify-between">
-                <span>GST (18%)</span>
-                <span>₹{totals.gst.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>₹{DELIVERY_FEE.toFixed(2)}</span>
-              </div>
-
-              <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                <span>Total</span>
-                <span>₹{totals.total.toFixed(2)}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleSubmit}
-              className="w-full mt-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
-            >
-              Proceed to Payment
-            </button>
-
-            <div className="mt-4 text-sm text-gray-500">
-              <p>* Required fields</p>
-              <p>
-                Note: Base staff count is calculated as 1 per 100 guests (minimum
-                2)
-              </p>
-              <p>Minimum tables are calculated as 1 per 50 guests</p>
-            </div>
-          </div>
-        </div>
-        {showPaymentSuccess && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Check className="w-8 h-8 text-green-600" />
+                <div className="flex justify-between">
+                  <span>Table Charges</span>
+                  <span>₹{totals.tablesCost.toFixed(2)}</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Payment Successful!
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  Thank you for your order. Our executive will call you shortly
-                  for confirmation.
+
+                <div className="flex justify-between font-medium">
+                  <span>Subtotal</span>
+                  <span>₹{totals.subtotal.toFixed(2)}</span>
+                </div>
+
+                {totals.discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount ({VALID_COUPONS[appliedCoupon]}% off)</span>
+                    <span>-₹{totals.discount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between">
+                  <span>GST (18%)</span>
+                  <span>₹{totals.gst.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span>Delivery Fee</span>
+                  <span>₹{DELIVERY_FEE.toFixed(2)}</span>
+                </div>
+
+                <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                  <span>Total</span>
+                  <span>₹{totals.total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleSubmit}
+                className="w-full mt-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-300"
+              >
+                Proceed to Payment
+              </button>
+
+              <div className="mt-4 text-sm text-gray-500">
+                <p>* Required fields</p>
+                <p>
+                  Note: Base staff count is calculated as 1 per 100 guests
+                  (minimum 2)
                 </p>
-                <button
-                  onClick={() => {
-                    setShowPaymentSuccess(false);
-                    navigate("/");
-                  }}
-                  className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  Back to Home
-                </button>
+                <p>Minimum tables are calculated as 1 per 50 guests</p>
               </div>
             </div>
           </div>
-        )}
-      </div>
+          {showPaymentSuccess && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Payment Successful!
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    Thank you for your order. Our executive will call you
+                    shortly for confirmation.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowPaymentSuccess(false);
+                      navigate("/");
+                    }}
+                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  >
+                    Back to Home
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-      {/* Terms and Conditions */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">Terms and Conditions</h3>
-          <div className="text-sm text-gray-600 space-y-2">
-            <p>
-              1. Orders must be placed at least{" "}
-              {guestCount > 200
-                ? "3 days"
-                : guestCount > 100
-                ? "2 days"
-                : "1 day"}{" "}
-              in advance.
-            </p>
-            <p>
-              2. Cancellations within 24 hours of the event will incur a 50%
-              charge.
-            </p>
-            <p>
-              3. Changes to the order can be made up to 48 hours before the
-              event.
-            </p>
-            <p>
-              4. Delivery time may vary based on location and traffic
-              conditions.
-            </p>
-            <p>
-              5. Additional charges may apply for locations outside service
-              area.
-            </p>
+        {/* Terms and Conditions */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold mb-4">Terms and Conditions</h3>
+            <div className="text-sm text-gray-600 space-y-2">
+              <p>
+                1. Orders must be placed at least{" "}
+                {guestCount > 200
+                  ? "3 days"
+                  : guestCount > 100
+                  ? "2 days"
+                  : "1 day"}{" "}
+                in advance.
+              </p>
+              <p>
+                2. Cancellations within 24 hours of the event will incur a 50%
+                charge.
+              </p>
+              <p>
+                3. Changes to the order can be made up to 48 hours before the
+                event.
+              </p>
+              <p>
+                4. Delivery time may vary based on location and traffic
+                conditions.
+              </p>
+              <p>
+                5. Additional charges may apply for locations outside service
+                area.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

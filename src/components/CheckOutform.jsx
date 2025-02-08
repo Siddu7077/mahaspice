@@ -229,11 +229,12 @@ const CheckOutform = ({
   // Pre-fill form with user data
   useEffect(() => {
     if (user) {
+      console.log("User Data:", user); 
       setFormData((prevData) => ({
         ...prevData,
         name: user.name || "",
         phone1: user.phone || "",
-        email: user.email || "",
+        email: user.email || "", 
         address: user.address || "",
       }));
     }
@@ -557,7 +558,7 @@ const CheckOutform = ({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email (Optional)
+                  Email*
                 </label>
                 <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
                   <Mail className="ml-3 h-5 w-5 text-gray-400" />

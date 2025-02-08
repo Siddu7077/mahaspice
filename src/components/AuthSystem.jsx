@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Home, Lock } from 'lucide-react';
+import { User, Phone, Home, Lock, Mail } from 'lucide-react';
 import { createContext, useContext } from 'react';
 
 const AuthContext = createContext(null);
@@ -92,6 +92,7 @@ const AuthSystem = () => {
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     phone: '',
     address: '',
     otp: ''
@@ -103,6 +104,35 @@ const AuthSystem = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
   };
+
+  const validateEmail = (email) => {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  };
+
+  const checkUserExists = async (phone) => {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('phone', phone);
+
+      const response = await fetch(`${API_BASE_URL}/check-user.php`, {
+        method: 'POST',
+        body: formDataToSend,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.exists;
+      
+    } catch (error) {
+      console.error('Error checking user:', error);
+      throw new Error('Unable to check user status');
+    }
+  };
+
 
   const sendOTP = async (phone) => {
     try {
@@ -123,56 +153,51 @@ const AuthSystem = () => {
         setShowOTP(true);
         return true;
       } else {
-        setError('Failed to send OTP. Please try again.');
-        return false;
+        throw new Error('Failed to send OTP');
       }
     } catch (error) {
       console.error('Error sending OTP:', error);
-      setError('Unable to send OTP. Please try again.');
-      return false;
+      throw new Error('Unable to send OTP');
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
-    if (isLogin) {
-      try {
-        const formDataToSend = new FormData();
-        formDataToSend.append('phone', formData.phone);
+    try {
+      // Validate email if signing up
+      if (!isLogin && !validateEmail(formData.email)) {
+        setError('Please enter a valid email address');
+        return;
+      }
 
-        const response = await fetch(`${API_BASE_URL}/check-user.php`, {
-          method: 'POST',
-          body: formDataToSend,
-        });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.exists) {
-          const otpSent = await sendOTP(formData.phone);
-          if (otpSent) {
-            setShowOTP(true);
-          }
-        } else {
-          setError('User not found. Please sign up.');
-          setIsLogin(false);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        setError('Unable to check user. Please try again.');
+      // First check if user exists
+      const userExists = await checkUserExists(formData.phone);
+      
+      if (userExists && !isLogin) {
+        setError('Account already exists. Please login instead.');
+        setIsLogin(true);
+        return;
       }
-    } else {
-      const otpSent = await sendOTP(formData.phone);
-      if (otpSent) {
-        setShowOTP(true);
+      
+      if (!userExists && isLogin) {
+        setError('Account not found. Please sign up first.');
+        setIsLogin(false);
+        return;
       }
+      
+      // If we get here, we're in the correct flow
+      await sendOTP(formData.phone);
+      setShowOTP(true);
+      
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message || 'An error occurred. Please try again.');
     }
   };
+
 
   const verifyOTP = async (e) => {
     e.preventDefault();
@@ -180,21 +205,26 @@ const AuthSystem = () => {
       const formDataToSend = new FormData();
       formDataToSend.append('phone', formData.phone);
       formDataToSend.append('otp', formData.otp);
+  
+      // Verify OTP
       const response = await fetch(`${API_BASE_URL}/verify-otp.php`, {
         method: 'POST',
         body: formDataToSend,
       });
-      
+  
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
-      
+  
       const data = await response.json();
-      
+  
       if (data.success) {
         if (!isLogin) {
+          // Handle signup after OTP verification
           const signupFormData = new FormData();
           signupFormData.append('name', formData.name);
+          signupFormData.append('email', formData.email);
           signupFormData.append('phone', formData.phone);
           signupFormData.append('address', formData.address);
   
@@ -202,114 +232,139 @@ const AuthSystem = () => {
             method: 'POST',
             body: signupFormData,
           });
-          
+  
           if (!signupResponse.ok) {
-            throw new Error(`HTTP error! status: ${signupResponse.status}`);
+            const errorData = await signupResponse.json();
+            throw new Error(errorData.error || `HTTP error! status: ${signupResponse.status}`);
           }
-          
+  
           const signupData = await signupResponse.json();
-          
+  
           if (signupData.success) {
-            setSignupSuccess(true);
-            setIsLogin(true);
-            setShowOTP(false);
-            setError('');
-            setFormData({ ...formData, otp: '' });
-          } else {
-            setError('Signup failed. Please try again.');
-          }
-        } else {
-          // After OTP verification, fetch user details
-          const userDetailsResponse = await fetch(`${API_BASE_URL}/get-user-details.php`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ phone: formData.phone })
-          });
-          
-          if (!userDetailsResponse.ok) {
-            throw new Error(`HTTP error! status: ${userDetailsResponse.status}`);
-          }
-          
-          const userDetails = await userDetailsResponse.json();
-          
-          if (userDetails.success) {
-            // Store complete user information in context
-            login(userDetails.user);
-            
-            // Check if there was a checkout redirect
+            // Automatically log in the user after signup
+            login(signupData.user); // Use the user data returned from signup.php
+  
+            // Redirect the user
             const checkoutRedirect = localStorage.getItem('checkoutRedirect');
             if (checkoutRedirect) {
-              localStorage.removeItem('checkoutRedirect'); // Clean up
+              localStorage.removeItem('checkoutRedirect');
               window.location.href = checkoutRedirect;
             } else {
               window.location.href = '/';
             }
           } else {
-            setError('Failed to fetch user details. Please try again.');
+            throw new Error('Signup failed');
+          }
+        } else {
+          // Handle login after OTP verification
+          const userDetailsResponse = await fetch(`${API_BASE_URL}/get-user-details.php`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ phone: formData.phone }),
+          });
+  
+          if (!userDetailsResponse.ok) {
+            const errorData = await userDetailsResponse.json();
+            throw new Error(errorData.error || `HTTP error! status: ${userDetailsResponse.status}`);
+          }
+  
+          const userDetails = await userDetailsResponse.json();
+  
+          if (userDetails.success) {
+            login(userDetails.user);
+  
+            const checkoutRedirect = localStorage.getItem('checkoutRedirect');
+            if (checkoutRedirect) {
+              localStorage.removeItem('checkoutRedirect');
+              window.location.href = checkoutRedirect;
+            } else {
+              window.location.href = '/';
+            }
+          } else {
+            throw new Error('Failed to fetch user details');
           }
         }
       } else {
-        setError('Invalid OTP. Please try again.');
+        throw new Error('Invalid OTP');
       }
     } catch (error) {
       console.error('Error verifying OTP:', error);
-      setError('Unable to verify OTP. Please try again.');
+      setError(error.message || 'Unable to verify OTP. Please try again.');
     }
   };
 
+  
+
+
+
+
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          {isLogin ? 'Login' : 'Sign Up'}
+    <div className="min-h-full bg-gradient-to-br from-green-50 to-white flex items-center justify-center p-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-md border border-green-100 transform transition-all duration-300 ease-in-out opacity-100 translate-y-0">
+        <h2 className="text-3xl font-bold mb-6 text-center text-green-800 transition-opacity duration-300">
+          {isLogin ? 'Welcome Back' : 'Create Account'}
         </h2>
         
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg border border-red-200 transform transition-all duration-300 ease-in-out">
             {error}
           </div>
         )}
         
         {signupSuccess && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
-            Signup successful! Please login with your phone number.
+          <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 transform transition-all duration-300 ease-in-out">
+            ✨ Account created successfully! Please login with your phone number.
           </div>
         )}
         
-        <form onSubmit={showOTP ? verifyOTP : handleSubmit} className="space-y-4">
-          {!isLogin && (
-            <>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+        <form onSubmit={showOTP ? verifyOTP : handleSubmit} className="space-y-5">
+          {!isLogin && !showOTP && (
+            <div className="space-y-5 transform transition-all duration-300 ease-in-out">
+              <div className="relative group">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 transition-colors duration-200 group-hover:text-green-600" size={20} />
                 <input
                   type="text"
                   name="name"
                   placeholder="Full Name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="pl-10 w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="pl-10 w-full p-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white hover:border-green-300"
+                  required={!isLogin}
+                />
+              </div>
+
+              <div className="relative group">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 transition-colors duration-200 group-hover:text-green-600" size={20} />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="pl-10 w-full p-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white hover:border-green-300"
                   required={!isLogin}
                 />
               </div>
               
-              <div className="relative">
-                <Home className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <div className="relative group">
+                <Home className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 transition-colors duration-200 group-hover:text-green-600" size={20} />
                 <textarea
                   name="address"
                   placeholder="Address"
                   value={formData.address}
                   onChange={handleChange}
-                  className="pl-10 w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                  className="pl-10 w-full p-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white hover:border-green-300 min-h-[100px]"
                   required={!isLogin}
                 />
               </div>
-            </>
+            </div>
           )}
           
-          <div className="relative">
-            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <div className="relative group">
+            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 transition-colors duration-200 group-hover:text-green-600" size={20} />
             <input
               type="tel"
               name="phone"
@@ -318,14 +373,14 @@ const AuthSystem = () => {
               onChange={handleChange}
               pattern="[0-9]{10}"
               title="Please enter a valid 10-digit phone number"
-              className="pl-10 w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+              className="pl-10 w-full p-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white hover:border-green-300"
               required
             />
           </div>
           
           {showOTP && (
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <div className="relative group transform transition-all duration-300 ease-in-out">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-green-400 transition-colors duration-200 group-hover:text-green-600" size={20} />
               <input
                 type="text"
                 name="otp"
@@ -334,7 +389,7 @@ const AuthSystem = () => {
                 onChange={handleChange}
                 pattern="[0-9]{6}"
                 title="Please enter the 6-digit OTP"
-                className="pl-10 w-full p-3 border rounded-lg focus:outline-none focus:border-blue-500"
+                className="pl-10 w-full p-3 border border-green-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white hover:border-green-300"
                 required={showOTP}
               />
             </div>
@@ -342,14 +397,14 @@ const AuthSystem = () => {
           
           <button
             type="submit"
-            className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors"
+            className="w-full bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-all duration-200 transform hover:shadow-lg font-medium hover:scale-[1.01] active:scale-[0.99]"
           >
             {showOTP ? 'Verify OTP' : (isLogin ? 'Login' : 'Sign Up')}
           </button>
         </form>
         
         {!showOTP && (
-          <p className="mt-4 text-center text-gray-600">
+          <div className="mt-6 text-center text-gray-600 transition-opacity duration-300">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={() => {
@@ -357,11 +412,11 @@ const AuthSystem = () => {
                 setError('');
                 setSignupSuccess(false);
               }}
-              className="text-blue-500 hover:underline"
+              className="text-green-600 hover:text-green-700 font-medium hover:underline transition-colors duration-200"
             >
               {isLogin ? 'Sign Up' : 'Login'}
             </button>
-          </p>
+          </div>
         )}
       </div>
     </div>
