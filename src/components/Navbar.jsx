@@ -221,45 +221,53 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Menu Button */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button
-              onClick={toggleNavbar}
-              className="p-2 hover:bg-gray-100 rounded-full"
-            >
-              <AiOutlineMenu className="w-6 h-6 text-green-500" />
-            </button>
-          </div>
-
-          {/* Search Bar - Hidden on mobile */}
-          <div className="hidden md:flex flex-1 mx-4 max-w-[650px]">
-            <div className="flex w-full">
-              <input
-                type="text"
-                placeholder="Search"
-                className="w-full px-4 py-2 bg-white border border-gray-300 rounded-l-full outline-none text-gray-800"
-              />
-              <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
-                <AiOutlineSearch className="h-5 w-5 text-gray-600" />
+          <div className="flex items-center justify-between w-full">
+            {/* Left Side - Menu Button (Hidden on mobile) */}
+            <div className="hidden md:flex items-center space-x-4">
+              <button
+                onClick={toggleNavbar}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <AiOutlineMenu className="w-6 h-6 text-green-500" />
               </button>
             </div>
-          </div>
 
-          {/* Right Side Items */}
-          <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center" onClick={handleCall}>
-              <Phone
-                size={20}
-                strokeWidth={2}
-                className="relative top-1/2 right-1 text-green-600 cursor-pointer"
-              />
-              <h2 className="text-xl text-green-600 cursor-pointer">
-                040-2222 8888 / 969779 8888
-              </h2>
+            {/* Search Bar - Hidden on mobile */}
+            <div className="hidden md:flex flex-1 mx-4 max-w-[650px]">
+              <div className="flex w-full">
+                <input
+                  type="text"
+                  placeholder="Search"
+                  className="w-full px-4 py-2 bg-white border border-gray-300 rounded-l-full outline-none text-gray-800"
+                />
+                <button className="px-6 py-2 bg-gray-50 border border-l-0 border-gray-300 rounded-r-full hover:bg-gray-100">
+                  <AiOutlineSearch className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+              
             </div>
-            <Link to="/cart">
-              <ShoppingCart className="text-black w-6 h-6 hover:text-green-500" />
-            </Link>
-            <UserDropdown />
+            <div
+                className="hidden md:flex items-center space-x-2 cursor-pointer"
+                onClick={handleCall}
+              >
+                <Phone size={20} strokeWidth={2} className="text-green-600" />
+                <h2 className="text-lg text-green-600">
+                  040-2222 8888 / 969779 8888
+                </h2>
+              </div>
+
+            {/* Right Side Items */}
+            <div className="flex items-center space-x-6">
+              {/* Phone Number */}
+              
+              {/* Shopping Cart */}
+              <Link to="/cart" className="hover:text-green-500">
+                <ShoppingCart className="text-black w-6 h-6" />
+              </Link>
+
+              {/* User Dropdown */}
+              <UserDropdown />
+            </div>
           </div>
         </header>
 
