@@ -70,6 +70,7 @@ import NavbarOffers from "./NavbarOffers";
 import Navigation from "./NavItems";
 import Offers from "./Offers";
 import CartMenuOrder from "./CartMenuOrder";
+// import OrderTrackingPage from "./OrderTrackingPage";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -108,6 +109,10 @@ const Navbar = () => {
       path: "/order",
       element: <CartMenuOrder />,
     },
+    // {
+    //   path: "/ordertracking",
+    //   element: <OrderTrackingPage />,
+    // },
     { path: "/events/:eventType", element: <EventsPage /> },
     { path: "/events/:eventType/:serviceType/Menu", element: <MenuPage /> },
 
