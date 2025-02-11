@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Linkedin, Mail, Globe, ArrowLeft, User2 } from "lucide-react";
 import soh from "../assets/sohail.jpeg";
-import sid from "../assets/siddesh.jpg"
+import sid from "../assets/Siddesh.jpg"
 
 const Developers = () => {
   const developers = [
