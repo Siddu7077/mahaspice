@@ -305,6 +305,8 @@ const CheckOutform = ({
           email: formData.email?.trim() || "",
           address: formData.address.trim(),
           landmark: formData.landmark?.trim() || "",
+          deliveryDate: formData.deliveryDate,
+          deliveryTime: formData.deliveryTime,
         },
         orderDetails: Object.entries(cart).map(([id, item]) => ({
           name: item.details.name,

@@ -56,7 +56,6 @@ const SuperfastCheckOutform = ({
   const getMinDate = () => {
     const today = new Date();
     if (isPastFourPM()) {
-      // If it's past 4 PM IST, minimum date is tomorrow
       today.setDate(today.getDate() + 1);
     }
     return today.toISOString().split("T")[0];
@@ -69,7 +68,6 @@ const SuperfastCheckOutform = ({
       selectedDate.toISOString().split("T")[0] ===
       today.toISOString().split("T")[0];
 
-    // Base time slots
     const allTimeSlots = [
       "10:00 AM",
       "11:00 AM",
@@ -86,7 +84,8 @@ const SuperfastCheckOutform = ({
     if (!isToday) {
       return allTimeSlots;
     }
-    const istOffset = 330; // IST offset in minutes
+
+    const istOffset = 330;
     const istTime = new Date(
       today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000
     );
@@ -100,10 +99,9 @@ const SuperfastCheckOutform = ({
       if (period === "PM" && hours !== 12) hours += 12;
       if (period === "AM" && hours === 12) hours = 0;
 
-      // Calculate if slot is at least 4 hours ahead
       const slotTotalMinutes = hours * 60;
       const currentTotalMinutes = currentHour * 60 + currentMinutes;
-      return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19; // 19 is 7 PM
+      return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19;
     });
   };
 
@@ -118,28 +116,12 @@ const SuperfastCheckOutform = ({
       return;
     }
 
-    // Clear selected time when date changes
     setFormData((prev) => ({
       ...prev,
       deliveryDate: selectedDate,
       deliveryTime: "",
     }));
   };
-
-  // Time slots
-  const timeSlots = [
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-    "5:00 PM",
-    "6:00 PM",
-    "7:00 PM",
-    "8:00 PM",
-  ];
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -150,7 +132,6 @@ const SuperfastCheckOutform = ({
         const data = await response.json();
 
         if (data.success && data.locations) {
-          // Filter for box_genie service type and get unique locations with prices
           const boxGenieLocations = data.locations
             .filter((loc) => loc.service_type === "superfast")
             .reduce((acc, loc) => {
@@ -161,7 +142,6 @@ const SuperfastCheckOutform = ({
               return acc;
             }, {});
 
-          // Convert to array and sort alphabetically
           const sortedLocations = Object.values(boxGenieLocations).sort(
             (a, b) => a.location.localeCompare(b.location)
           );
@@ -176,43 +156,6 @@ const SuperfastCheckOutform = ({
     fetchLocations();
   }, []);
 
-  const handleLocationChange = (e) => {
-    const selectedLocation = locations.find(
-      (loc) => loc.location === e.target.value
-    );
-    setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
-    handleChange(e);
-  };
-
-  const finalTotal = totalAmount + deliveryCharge;
-
-  // Pre-fill form with user data
-  useEffect(() => {
-    if (user) {
-      setFormData((prevData) => ({
-        ...prevData,
-        name: user.name || "",
-        phone1: user.phone || "",
-        email: user.email || "",
-        address: user.address || "",
-      }));
-    }
-  }, [user]);
-
-  // Group cart items by package
-  const groupedCartItems = Object.entries(cart).reduce(
-    (acc, [itemId, item]) => {
-      const pkg = item.package || "Default";
-      if (!acc[pkg]) {
-        acc[pkg] = [];
-      }
-      acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
-      return acc;
-    },
-    {}
-  );
-
-  // Load Razorpay script
   useEffect(() => {
     const loadRazorpay = async () => {
       const script = document.createElement("script");
@@ -233,102 +176,137 @@ const SuperfastCheckOutform = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        phone1: user.phone || "",
+        email: user.email || "",
+        address: user.address || "",
+      }));
+    }
+  }, [user]);
+
+  const handleLocationChange = (e) => {
+    const selectedLocation = locations.find(
+      (loc) => loc.location === e.target.value
+    );
+    setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
+    handleChange(e);
+  };
+
+  const finalTotal = totalAmount + deliveryCharge;
+
+  const groupedCartItems = Object.entries(cart).reduce(
+    (acc, [itemId, item]) => {
+      const pkg = item.package || "Default";
+      if (!acc[pkg]) {
+        acc[pkg] = [];
+      }
+      acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
+      return acc;
+    },
+    {}
+  );
+
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.phone1.trim()) newErrors.phone1 = "Phone number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.location) newErrors.location = "Location is required";
-    if (!formData.deliveryDate)
-      newErrors.deliveryDate = "Delivery date is required";
-    if (!formData.deliveryTime)
-      newErrors.deliveryTime = "Delivery time is required";
+    if (!formData.deliveryDate) newErrors.deliveryDate = "Delivery date is required";
+    if (!formData.deliveryTime) newErrors.deliveryTime = "Delivery time is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handlePaymentSuccess = async (response) => {
-    try {
-      setIsLoading(true);
-      console.log("Payment successful, response:", response);
+  try {
+    setIsLoading(true);
+    console.log("Payment successful, response:", response);
 
-      const orderPayload = {
-        razorpay_order_id: response.razorpay_order_id,
-        paymentId: response.razorpay_payment_id,
-        amount: Math.round(totalAmount * 100),
-        customerDetails: {
-          name: formData.name.trim(),
-          phone1: formData.phone1.trim(),
-          phone2: formData.phone2?.trim() || "",
-          email: formData.email?.trim() || "",
-          address: formData.address.trim(),
-          landmark: formData.landmark?.trim() || "",
+    const orderPayload = {
+      razorpay_order_id: response.razorpay_order_id,
+      paymentId: response.razorpay_payment_id,
+      amount: Math.round(finalTotal * 100),
+      customerDetails: {
+        name: formData.name.trim(),
+        phone1: formData.phone1.trim(),
+        phone2: formData.phone2?.trim() || "",
+        email: formData.email?.trim() || "",
+        address: formData.address.trim(),
+        landmark: formData.landmark?.trim() || "",
+        location: formData.location,
+        deliveryDate: formData.deliveryDate,
+        deliveryTime: formData.deliveryTime,
+      },
+      orderDetails: Object.entries(cart).map(([id, item]) => ({
+        name: item.details.name,
+        price: parseFloat(item.details.price.replace(/[^\d.]/g, "")),
+        quantity: parseInt(item.quantity),
+        package: item.package,
+      })),
+      coupon: appliedCoupon
+        ? {
+            code: appliedCoupon.code,
+            discount: discountAmount,
+            type: appliedCoupon.discount_type,
+          }
+        : null,
+    };
+
+    console.log("Sending order payload:", orderPayload);
+
+    const orderResponse = await fetch(
+      "https://mahaspice.desoftimp.com/ms3/payment/create_sup_box.php",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        orderDetails: Object.entries(cart).map(([id, item]) => ({
-          name: item.details.name,
-          price: parseFloat(item.details.price.replace(/[^\d.]/g, "")),
-          quantity: parseInt(item.quantity),
-          package: item.package,
-        })),
-        coupon: appliedCoupon
-          ? {
-              code: appliedCoupon.code,
-              discount: discountAmount,
-              type: appliedCoupon.discount_type,
-            }
-          : null,
-      };
-
-      console.log("Sending order payload:", orderPayload);
-
-      const orderResponse = await fetch(
-        "https://mahaspice.desoftimp.com/ms3/payment/create_order.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(orderPayload),
-        }
-      );
-
-      const responseText = await orderResponse.text();
-      console.log("Raw response:", responseText);
-
-      let orderData;
-      try {
-        orderData = JSON.parse(responseText);
-      } catch (e) {
-        throw new Error(`Invalid JSON response: ${responseText}`);
+        body: JSON.stringify(orderPayload),
       }
+    );
 
-      if (!orderResponse.ok) {
-        throw new Error(
-          `HTTP error! status: ${orderResponse.status}, message: ${
-            orderData.message || responseText
-          }`
-        );
-      }
+    const responseText = await orderResponse.text();
+    console.log("Raw response:", responseText);
 
-      if (orderData.status !== "success") {
-        throw new Error(orderData.message || "Failed to create order");
-      }
-
-      setIsSuccess(true);
-
-      setTimeout(() => {
-        window.location.href = "/";
-      }, 3000);
-    } catch (error) {
-      console.error("Error in payment success handler:", error);
-      alert(
-        `Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`
-      );
-    } finally {
-      setIsLoading(false);
+    let orderData;
+    try {
+      orderData = JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid JSON response: ${responseText}`);
     }
-  };
+
+    if (!orderResponse.ok) {
+      throw new Error(
+        `HTTP error! status: ${orderResponse.status}, message: ${
+          orderData.message || responseText
+        }`
+      );
+    }
+
+    if (orderData.status !== "success") {
+      throw new Error(orderData.message || "Failed to create order");
+    }
+
+    setIsSuccess(true);
+
+    setTimeout(() => {
+      window.location.href = "/";
+    }, 3000);
+  } catch (error) {
+    console.error("Error in payment success handler:", error);
+    alert(
+      `Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handlePayment = async () => {
     if (!validate()) return;
@@ -344,7 +322,7 @@ const SuperfastCheckOutform = ({
 
       const options = {
         key: "rzp_live_Mjm1GpVqxzwjQL",
-        amount: Math.round(finalTotal * 100),
+        amount: Math.round(finalTotal * 100 ),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: appliedCoupon
@@ -393,7 +371,7 @@ const SuperfastCheckOutform = ({
       [name]: value,
     }));
   };
-  // Success Modal
+
   if (isSuccess) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -424,21 +402,6 @@ const SuperfastCheckOutform = ({
       </div>
     );
   }
-
-  // Loading overlay
-  const LoadingOverlay = () => (
-    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          Processing Your Payment
-        </h3>
-        <p className="text-sm text-gray-500 text-center">
-          Please wait while we securely process your payment
-        </p>
-      </div>
-    </div>
-  );
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">
@@ -510,9 +473,6 @@ const SuperfastCheckOutform = ({
                     placeholder="Enter alternate phone number"
                   />
                 </div>
-                {errors.phone2 && (
-                  <p className="text-red-500 text-sm mt-1">{errors.phone2}</p>
-                )}
               </div>
 
               <div>
@@ -530,12 +490,8 @@ const SuperfastCheckOutform = ({
                     placeholder="Enter your email address"
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
               </div>
 
-              {/* Add Date Picker */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Delivery Date*
@@ -552,13 +508,10 @@ const SuperfastCheckOutform = ({
                   />
                 </div>
                 {errors.deliveryDate && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.deliveryDate}
-                  </p>
+                  <p className="text-red-500 text-sm mt-1">{errors.deliveryDate}</p>
                 )}
               </div>
 
-              {/* Modified Time Dropdown */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Delivery Time*
@@ -582,17 +535,13 @@ const SuperfastCheckOutform = ({
                   </select>
                 </div>
                 {errors.deliveryTime && (
+                  <p className="text-red-500 text-sm mt-1">{errors.deliveryTime}</p>
+                )}
+                {formData.deliveryDate && getAvailableTimeSlots().length === 0 && (
                   <p className="text-red-500 text-sm mt-1">
-                    {errors.deliveryTime}
+                    No available delivery slots for today. Please select another date.
                   </p>
                 )}
-                {formData.deliveryDate &&
-                  getAvailableTimeSlots().length === 0 && (
-                    <p className="text-red-500 text-sm mt-1">
-                      No available delivery slots for today. Please select
-                      another date.
-                    </p>
-                  )}
               </div>
 
               <div>
@@ -662,7 +611,6 @@ const SuperfastCheckOutform = ({
 
         {/* Order Summary Section */}
         <div className="space-y-6">
-          {/* Selected Items */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Selected Items</h2>
             <div className="space-y-6">
@@ -700,6 +648,7 @@ const SuperfastCheckOutform = ({
               ))}
             </div>
           </div>
+
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Price Summary</h2>
             <DownloadInvoice
@@ -713,7 +662,7 @@ const SuperfastCheckOutform = ({
               gstPercentage={gstPercentage}
             />
           </div>
-          {/* Price Summary */}
+
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Price Summary</h2>
             <div className="space-y-4">
@@ -755,14 +704,14 @@ const SuperfastCheckOutform = ({
       </div>
 
       {isLoading && (
-        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Connecting to Payment Gateway
+              Processing Your Payment
             </h3>
             <p className="text-sm text-gray-500 text-center">
-              Please wait while we securely connect you to our payment partner
+              Please wait while we securely process your payment
             </p>
           </div>
         </div>

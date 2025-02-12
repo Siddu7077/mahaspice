@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Users } from 'lucide-react';
+import { ChevronLeft, Users, CreditCard } from 'lucide-react';
+import { useAuth } from "./AuthSystem";
 
 const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCount, formData: initialFormData }) => {
+    const { user } = useAuth();
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [minDate, setMinDate] = useState('');
     const [minTime, setMinTime] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [razorpayLoaded, setRazorpayLoaded] = useState(false);
     const [formData, setFormData] = useState({
         name: initialFormData?.name || '',
         phone1: initialFormData?.phone1 || '',
@@ -16,37 +21,64 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
         time: initialFormData?.time || ''
     });
 
-    // Initialize date/time constraints when component mounts
+    // Pre-fill form with user data
+    useEffect(() => {
+        if (user) {
+            setFormData(prevData => ({
+                ...prevData,
+                name: user.name || "",
+                phone1: user.phone || "",
+                email: user.email || "",
+                address: user.address || ""
+            }));
+        }
+    }, [user]);
+
+    // Load Razorpay script
+    useEffect(() => {
+        const loadRazorpay = async () => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            script.onload = () => setRazorpayLoaded(true);
+            document.body.appendChild(script);
+        };
+        loadRazorpay();
+        
+        // Cleanup
+        return () => {
+            const script = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+            if (script) {
+                document.body.removeChild(script);
+            }
+        };
+    }, []);
+
+    // Initialize date/time constraints
     useEffect(() => {
         updateDateTimeConstraints();
     }, []);
 
-    // Update minimum date and time constraints
     const updateDateTimeConstraints = () => {
         const now = new Date();
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
-        // Set minimum date to tomorrow
         const minDateStr = tomorrow.toISOString().split('T')[0];
         setMinDate(minDateStr);
 
-        // Calculate minimum time (now + 15 hours)
         const minTimeDate = new Date(now.getTime() + (15 * 60 * 60 * 1000));
         const hours = minTimeDate.getHours().toString().padStart(2, '0');
         const minutes = minTimeDate.getMinutes().toString().padStart(2, '0');
         setMinTime(`${hours}:${minutes}`);
 
-        // If no date is set in form data, set it to minimum date
         if (!formData.date) {
             setFormData(prev => ({
                 ...prev,
                 date: minDateStr,
                 time: `${hours}:${minutes}`
             }));
-        }
-        // If current date is already selected, ensure time is valid
-        else if (formData.date === minDateStr && formData.time < `${hours}:${minutes}`) {
+        } else if (formData.date === minDateStr && formData.time < `${hours}:${minutes}`) {
             setFormData(prev => ({ ...prev, time: `${hours}:${minutes}` }));
         }
     };
@@ -55,7 +87,6 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
         const { name, value } = e.target;
 
         if (name === 'date') {
-            // If selecting today's date, enforce minimum time
             const selectedDate = new Date(value);
             const today = new Date();
 
@@ -63,7 +94,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
                 setFormData(prev => ({
                     ...prev,
                     [name]: value,
-                    time: minTime // Reset time to minimum when selecting today's date
+                    time: minTime
                 }));
                 return;
             }
@@ -75,46 +106,152 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
         }));
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setShowPaymentModal(true);
-        setTimeout(() => {
-            console.log('Redirecting to PhonePe...', {
-                orderDetails: {
-                    items: superselecteditems,
-                    totals,
-                    delivery: formData
-                }
-            });
-        }, 2000);
-    };
-
     const isFormValid = () => {
         if (!formData.name || !formData.phone1 || !formData.address || !formData.date || !formData.time) {
             return false;
         }
 
-        // Validate date and time
         const selectedDateTime = new Date(`${formData.date}T${formData.time}`);
-        const minDateTime = new Date(Date.now() + (15 * 60 * 60 * 1000)); // now + 15 hours
+        const minDateTime = new Date(Date.now() + (15 * 60 * 60 * 1000));
 
         return selectedDateTime > minDateTime;
     };
 
-    // Payment Gateway Modal Component
-    const PaymentModal = () => {
-        if (!showPaymentModal) return null;
+    const handlePaymentSuccess = async (response) => {
+        try {
+            setIsLoading(true);
+            console.log("Payment successful, response:", response);
 
+            const orderPayload = {
+                razorpay_order_id: response.razorpay_order_id,
+                paymentId: response.razorpay_payment_id,
+                amount: Math.round(totals.total * 100),
+                customerDetails: {
+                    name: formData.name.trim(),
+                    phone1: formData.phone1.trim(),
+                    phone2: formData.phone2?.trim() || '',
+                    email: formData.email?.trim() || '',
+                    address: formData.address.trim(),
+                    landmark: formData.landmark?.trim() || '',
+                    deliveryDate: formData.date,
+                    deliveryTime: formData.time
+                },
+                orderDetails: superselecteditems.map(item => ({
+                    name: item.title,
+                    price: item.price,
+                    quantity: item.quantity
+                }))
+            };
+
+            console.log("Sending order payload:", orderPayload);
+
+            try {
+                const orderResponse = await fetch(
+                    'https://mahaspice.desoftimp.com/ms3/payment/create_sup_home.php',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(orderPayload)
+                    }
+                );
+
+                const responseText = await orderResponse.text();
+                console.log("Raw response:", responseText);
+
+                let orderData;
+                try {
+                    orderData = JSON.parse(responseText);
+                } catch (e) {
+                    throw new Error(`Invalid JSON response: ${responseText}`);
+                }
+
+                if (!orderResponse.ok) {
+                    throw new Error(`HTTP error! status: ${orderResponse.status}, message: ${orderData.message || responseText}`);
+                }
+
+                if (orderData.status !== "success") {
+                    throw new Error(orderData.message || "Failed to create order");
+                }
+
+                setIsSuccess(true);
+
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
+
+            } catch (error) {
+                console.error("Error saving order:", error);
+                throw new Error(`Failed to save order: ${error.message}`);
+            }
+
+        } catch (error) {
+            console.error("Error in payment success handler:", error);
+            alert(`Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handlePayment = async () => {
+        if (!isFormValid()) return;
+
+        try {
+            setIsLoading(true);
+
+            if (!window.Razorpay) {
+                throw new Error("Razorpay SDK failed to load. Please refresh the page and try again.");
+            }
+
+            const options = {
+                key: "rzp_live_Mjm1GpVqxzwjQL",
+                amount: Math.round(totals.total * 100 /2500),
+                currency: "INR",
+                name: "Mahaspice Caterers",
+                description: "Delbox Order Payment",
+                prefill: {
+                    name: formData.name,
+                    email: formData.email,
+                    contact: formData.phone1
+                },
+                handler: handlePaymentSuccess,
+                modal: {
+                    ondismiss: function() {
+                        setIsLoading(false);
+                    }
+                },
+                theme: {
+                    color: "#22c55e"
+                }
+            };
+
+            const razorpayInstance = new window.Razorpay(options);
+            razorpayInstance.open();
+            
+        } catch (error) {
+            console.error('Payment Error:', error);
+            alert('Payment initiation failed: ' + error.message);
+            setIsLoading(false);
+        }
+    };
+
+    if (isSuccess) {
         return (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                <div className="bg-white rounded-lg p-6 text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto mb-4"></div>
-                    <h3 className="text-lg font-semibold mb-2">Connecting to Payment Gateway</h3>
-                    <p className="text-gray-600">Please wait while we connect to PhonePe servers...</p>
+                <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">Order Successful!</h2>
+                    <p className="text-gray-600 mb-6">Your order has been placed successfully. Redirecting to home page...</p>
+                    <div className="animate-spin rounded-full h-8 w-8 border-4 border-green-500 border-t-transparent mx-auto"></div>
                 </div>
             </div>
         );
-    };
+    }
 
     if (!superselecteditems || superselecteditems.length === 0) {
         return (
@@ -137,8 +274,6 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
 
     return (
         <div className="min-h-screen bg-gray-100 p-4 md:p-8">
-            <PaymentModal />
-
             <div className="max-w-6xl mx-auto">
                 <button
                     onClick={onBack}
@@ -156,7 +291,8 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
                             <Users className="text-gray-600" />
                             <span className="font-medium">Number of Guests: {guestCount}</span>
                         </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <form onSubmit={(e) => { e.preventDefault(); handlePayment(); }} className="space-y-4">
+                            {/* Form fields remain the same */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Name *
@@ -269,7 +405,11 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
                                     />
                                     {formData.date === minDate && (
                                         <p className="text-sm text-gray-500 mt-1">
-                                            Minimum delivery time: {minTime}
+                                            Minimum delivery time: {new Date(`1970-01-01T${minTime}:00`).toLocaleTimeString('en-US', {
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                hour12: true,
+                                            })}
                                         </p>
                                     )}
                                 </div>
@@ -317,15 +457,30 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
                         </div>
 
                         <button
-                            onClick={handleSubmit}
+                            onClick={handlePayment}
                             disabled={!isFormValid()}
-                            className="w-full bg-green-500 text-white py-3 rounded-lg mt-6 hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                            className="w-full mt-6 bg-green-500 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                         >
+                            <CreditCard className="h-5 w-5" />
                             Proceed to Pay
                         </button>
                     </div>
                 </div>
             </div>
+
+            {isLoading && (
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            Connecting to Payment Gateway
+                        </h3>
+                        <p className="text-sm text-gray-500 text-center">
+                            Please wait while we securely connect you to our payment partner
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

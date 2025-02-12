@@ -203,7 +203,7 @@ const DelboxCheckout = ({ selectedItems, totals, onBack, guestCount }) => {
 
       const options = {
         key: "rzp_live_Mjm1GpVqxzwjQL",
-        amount: Math.round(totals.total * 100 ),
+        amount: Math.round(totals.total * 100   ),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: "Delbox Order Payment",
