@@ -336,7 +336,7 @@ const CartMenuOrder = () => {
                   />
                 </div>
 
-                <select
+                {/* <select
                   name="city"
                   value={userDetails.city}
                   onChange={handleInputChange}
@@ -348,10 +348,10 @@ const CartMenuOrder = () => {
                       {location}
                     </option>
                   ))}
-                </select>
+                </select> */}
 
                 <div className="relative">
-                  <button
+                  {/* <button
                     onClick={detectLocation}
                     className="p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 flex items-center gap-2"
                   >
@@ -359,7 +359,7 @@ const CartMenuOrder = () => {
                     {isLoadingLocation
                       ? "Detecting..."
                       : "Use current location"}
-                  </button>
+                  </button> */}
                   <textarea
                     name="address"
                     placeholder="Delivery Address *"
