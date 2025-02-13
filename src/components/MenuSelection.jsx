@@ -30,11 +30,20 @@ const MenuSelection = () => {
   const { user } = useAuth();
   const [previouslySelectedItems, setPreviouslySelectedItems] = useState({});
   const [notifications, setNotifications] = useState({});
-  
+  const [commonItems, setCommonItems] = useState([]);
 
-  const slideInAnimation = {
-    animation: "slideIn 0.5s ease-out",
+  const getCommonItems = () => {
+    return getFilteredItems().filter(
+      item => item.category_name.toLowerCase() === "common items"
+    );
   };
+
+  useEffect(() => {
+    const items = getCommonItems();
+    setCommonItems(items);
+  }, [menuData]);
+
+
 
   useEffect(() => {
     const fetchPreviousSelections = async () => {
@@ -389,50 +398,6 @@ const MenuSelection = () => {
     }
   };
 
-  // const handleItemSelectWithConfirmation = (item) => {
-
-
-  //   const isLiveCounter = item.category_name.toLowerCase() === "live counter";
-  //   const categoryItems = getItemsInCategory(item.category_name);
-  //   const limit = getCategoryLimit(item.category_name);
-
-  //   // If item is already selected, handle removal
-  //   if (selectedItems.some((selected) => selected.id === item.id)) {
-  //     handleItemSelect(item);
-  //     return;
-  //   }
-
-  //   // Special handling for Live Counter items
-  //   if (isLiveCounter) {
-  //     setShowAlert({
-  //       message: `Adding "${item.item_name}" will cost extra ₹${item.price} per plate.`,
-  //       isConfirmation: true,
-  //       onConfirm: () => {
-  //         handleItemSelect({
-  //           ...item,
-  //           isExtra: true, // Force Live Counter items to always be extra
-  //         });
-  //         setShowAlert(null);
-  //       },
-  //     });
-  //     return;
-  //   }
-
-  //   // Handle regular items that exceed category limit
-  //   if (categoryItems.length >= limit && limit > 0) {
-  //     setShowAlert({
-  //       message: `You've reached the limit of ${limit} items for ${item.category_name}. Adding this item will cost extra ₹${item.price}.`,
-  //       isConfirmation: true,
-  //       onConfirm: () => {
-  //         handleItemSelect(item);
-  //         setShowAlert(null);
-  //       },
-  //     });
-  //   } else {
-  //     handleItemSelect(item);
-  //   }
-  // };
-
   const handleItemSelectWithConfirmation = (item) => {
     const isLiveCounter = item.category_name.toLowerCase() === "live counter";
     const categoryItems = getItemsInCategory(item.category_name);
@@ -534,28 +499,36 @@ const MenuSelection = () => {
   };
 
   const handleAddToCart = async () => {
-    // const { user } = useAuth(); 
-  
     if (!user) {
       alert('Please login to add items to the cart.');
-      // window.location.href = '/login';
       return;
     }
   
+    // Combine selected items with common items
+    const allItems = [
+      ...selectedItems,
+      ...commonItems.map(item => ({
+        ...item,
+        isExtra: false,
+        isComplimentary: true
+      }))
+    ];
+  
     // Prepare order details
     const orderDetails = {
-      user_id: user.id, 
-      event_name: serviceType, 
-      menu_type: menuType, 
+      user_id: user.id,
+      event_name: serviceType,
+      menu_type: menuType,
       guest_count: guestCount,
-      plate_price:calculatePlatePrice(),
+      plate_price: calculatePlatePrice(),
       total_price: calculateTotal(),
-      items: selectedItems.map(item => ({
+      items: allItems.map(item => ({
         category_name: item.category_name,
         item_name: item.item_name,
         price: parseFloat(item.price || 0),
         is_extra: item.isExtra,
-      })),
+        is_complimentary: item.category_name.toLowerCase() === "common items"
+      }))
     };
   
     try {
@@ -564,7 +537,7 @@ const MenuSelection = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(orderDetails),
+        body: JSON.stringify(orderDetails)
       });
   
       if (!response.ok) {
@@ -582,6 +555,7 @@ const MenuSelection = () => {
       alert('Failed to add to cart. Please try again.');
     }
   };
+
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;

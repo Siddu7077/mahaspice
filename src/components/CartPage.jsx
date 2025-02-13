@@ -7,7 +7,7 @@ const CartPage = () => {
   const [carts, setCarts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedCarts, setSelectedCarts] = useState([]); // Store selected cart IDs
+  const [selectedCarts, setSelectedCarts] = useState([]);
   const navigate = useNavigate();
 
   // Fetch cart data for the user
@@ -186,7 +186,7 @@ const CartPage = () => {
                       <tr className="border-b">
                         <th className="py-2">Category</th>
                         <th className="py-2">Item Name</th>
-                        <th className="py-2">Price</th>
+                        {/* <th className="py-2">Price</th> */}
                       </tr>
                     </thead>
                     <tbody>
@@ -199,7 +199,7 @@ const CartPage = () => {
                               {item.is_extra ? `₹${item.price} (Extra)` : ""}
                             </span>
                           </td>
-                          <td className="py-2 text-right"></td>
+                          {/* <td className="py-2 text-right"></td> */}
                         </tr>
                       ))}
                     </tbody>
