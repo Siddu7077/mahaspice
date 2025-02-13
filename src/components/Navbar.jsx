@@ -277,7 +277,7 @@ const Navbar = () => {
         </header>
 
         {/* Categories Navigation - Scrollable on mobile */}
-        <div className="sticky top-0 w-full bg-white border-t border-gray-100 z-30">
+        <div className="sticky top-0 w-full bg-white border-t border-gray-100 z-30 hidden md:block">
           <div className="max-w-7xl h-10 mx-auto px-4">
             <div className="flex items-center lg:text-sm justify-between">
               <Link

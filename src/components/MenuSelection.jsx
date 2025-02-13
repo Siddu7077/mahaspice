@@ -28,10 +28,66 @@ const MenuSelection = () => {
   const currentMenuType = menuType.replace(/-/g, " "); // "Silver Menu"
   const [showLiveCounterAlert, setShowLiveCounterAlert] = useState(false);
   const { user } = useAuth();
+  const [previouslySelectedItems, setPreviouslySelectedItems] = useState({});
+  const [notifications, setNotifications] = useState({});
+  
 
   const slideInAnimation = {
     animation: "slideIn 0.5s ease-out",
   };
+
+  useEffect(() => {
+    const fetchPreviousSelections = async () => {
+      if (!user?.id) return;
+
+      try {
+        const response = await fetch(`https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${user.id}`);
+        if (!response.ok) throw new Error('Failed to fetch cart data');
+        
+        const data = await response.json();
+        if (data.success && data.data) {
+          // Create a map of previously selected items by category
+          const itemMap = {};
+          data.data.forEach(cart => {
+            if (cart.event_name === serviceType && cart.menu_type === menuType) {
+              cart.items.forEach(item => {
+                if (!itemMap[item.category_name]) {
+                  itemMap[item.category_name] = [];
+                }
+                itemMap[item.category_name].push(item.item_name);
+              });
+            }
+          });
+          setPreviouslySelectedItems(itemMap);
+        }
+      } catch (error) {
+        console.error('Error fetching previous selections:', error);
+      }
+    };
+
+    fetchPreviousSelections();
+  }, [user, serviceType, menuType]);
+
+  const showTemporaryNotification = (categoryName, itemName) => {
+    setNotifications(prev => ({
+      ...prev,
+      [categoryName]: {
+        message: `You've already selected ${itemName} in your previous cart. Consider trying a different variety!`,
+        timestamp: Date.now()
+      }
+    }));
+
+    // Clear notification after 4 seconds
+    setTimeout(() => {
+      setNotifications(prev => {
+        const newNotifications = { ...prev };
+        delete newNotifications[categoryName];
+        return newNotifications;
+      });
+    }, 4000);
+  };
+
+  
 
   useEffect(() => {
     console.log("Component mounted. Showing Live Counter Alert."); // Debugging log
@@ -333,18 +389,68 @@ const MenuSelection = () => {
     }
   };
 
+  // const handleItemSelectWithConfirmation = (item) => {
+
+
+  //   const isLiveCounter = item.category_name.toLowerCase() === "live counter";
+  //   const categoryItems = getItemsInCategory(item.category_name);
+  //   const limit = getCategoryLimit(item.category_name);
+
+  //   // If item is already selected, handle removal
+  //   if (selectedItems.some((selected) => selected.id === item.id)) {
+  //     handleItemSelect(item);
+  //     return;
+  //   }
+
+  //   // Special handling for Live Counter items
+  //   if (isLiveCounter) {
+  //     setShowAlert({
+  //       message: `Adding "${item.item_name}" will cost extra ₹${item.price} per plate.`,
+  //       isConfirmation: true,
+  //       onConfirm: () => {
+  //         handleItemSelect({
+  //           ...item,
+  //           isExtra: true, // Force Live Counter items to always be extra
+  //         });
+  //         setShowAlert(null);
+  //       },
+  //     });
+  //     return;
+  //   }
+
+  //   // Handle regular items that exceed category limit
+  //   if (categoryItems.length >= limit && limit > 0) {
+  //     setShowAlert({
+  //       message: `You've reached the limit of ${limit} items for ${item.category_name}. Adding this item will cost extra ₹${item.price}.`,
+  //       isConfirmation: true,
+  //       onConfirm: () => {
+  //         handleItemSelect(item);
+  //         setShowAlert(null);
+  //       },
+  //     });
+  //   } else {
+  //     handleItemSelect(item);
+  //   }
+  // };
+
   const handleItemSelectWithConfirmation = (item) => {
     const isLiveCounter = item.category_name.toLowerCase() === "live counter";
     const categoryItems = getItemsInCategory(item.category_name);
     const limit = getCategoryLimit(item.category_name);
 
-    // If item is already selected, handle removal
+    // Check if item was previously selected
+    const wasSelectedPreviously = previouslySelectedItems[item.category_name]?.includes(item.item_name);
+    
+    if (wasSelectedPreviously && !selectedItems.some(selected => selected.id === item.id)) {
+      showTemporaryNotification(item.category_name, item.item_name);
+    }
+
+    // Continue with existing logic...
     if (selectedItems.some((selected) => selected.id === item.id)) {
       handleItemSelect(item);
       return;
     }
 
-    // Special handling for Live Counter items
     if (isLiveCounter) {
       setShowAlert({
         message: `Adding "${item.item_name}" will cost extra ₹${item.price} per plate.`,
@@ -352,7 +458,7 @@ const MenuSelection = () => {
         onConfirm: () => {
           handleItemSelect({
             ...item,
-            isExtra: true, // Force Live Counter items to always be extra
+            isExtra: true,
           });
           setShowAlert(null);
         },
@@ -360,7 +466,6 @@ const MenuSelection = () => {
       return;
     }
 
-    // Handle regular items that exceed category limit
     if (categoryItems.length >= limit && limit > 0) {
       setShowAlert({
         message: `You've reached the limit of ${limit} items for ${item.category_name}. Adding this item will cost extra ₹${item.price}.`,
@@ -559,16 +664,17 @@ const MenuSelection = () => {
             </div>
           </div>
 
-          <style>{`
-        @keyframes zoomInOut {
-          0% { transform: scale(0.8); opacity: 0; }
-          50% { transform: scale(1.1); opacity: 1; }
-          100% { transform: scale(1); }
-        }
-        .animate-zoom {
-          animation: zoomInOut 0.5s ease-in-out;
-        }
-      `}</style>
+          <style>
+        {`
+          @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+          .animate-fade-out {
+            animation: fadeOut 4s ease-out forwards;
+          }
+        `}
+      </style>
         </>
       )}
 
@@ -625,33 +731,31 @@ const MenuSelection = () => {
               const isLiveCounter = category.toLowerCase() === "live counter";
 
               return (
-                <div
-                  key={category}
-                  className={`bg-white rounded-xl shadow-lg overflow-hidden ${
-                    isLiveCounter ? "border-2 border-green-500" : ""
-                  }`}
-                >
-                  <div
-                    className={`p-4 border-b ${
-                      isLiveCounter ? "bg-green-50" : "bg-gray-50"
-                    }`}
-                  >
+                <div key={category} className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+                  category.toLowerCase() === "live counter" ? "border-2 border-green-500" : ""
+                }`}>
+                  <div className={`p-4 border-b ${
+                    category.toLowerCase() === "live counter" ? "bg-green-50" : "bg-gray-50"
+                  }`}>
                     <div className="flex justify-between items-center">
-                      <h2
-                        className={`text-xl font-bold ${
-                          isLiveCounter ? "text-black" : "text-gray-800"
-                        }`}
-                      >
-                        {category}{" "}
-                        {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
-                        {isLiveCounter && (
+                      <h2 className={`text-xl font-bold ${
+                        category.toLowerCase() === "live counter" ? "text-black" : "text-gray-800"
+                      }`}>
+                        {category} {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
+                        {category.toLowerCase() === "live counter" && (
                           <span className="ml-2 text-sm font-normal text-black animate-pulse">
                             ✨ Special Addition (Optional)
                           </span>
                         )}
                       </h2>
                     </div>
+                    {notifications[category] && (
+                      <div className="mt-2 p-2 bg-yellow-50 text-yellow-800 rounded-md text-sm animate-fade-out">
+                        {notifications[category].message}
+                      </div>
+                    )}
                   </div>
+                  
 
                   <div className="p-4 min-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {getFilteredItems()

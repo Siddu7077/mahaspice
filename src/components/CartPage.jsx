@@ -179,10 +179,6 @@ const CartPage = () => {
                       <div className="font-semibold text-right">
                         ₹{cart.plate_price}
                       </div>
-                      {/* <div className="text-gray-600">Total Price:</div>
-                      <div className="font-semibold text-right">
-                        ₹{cart.total_price}
-                      </div> */}
                     </div>
                   </div>
                   <table className="w-full text-left">
