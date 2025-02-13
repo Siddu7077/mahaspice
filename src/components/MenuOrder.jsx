@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapPin, X, Check, AlertCircle } from "lucide-react";
-
 const DELIVERY_FEE = 500;
-const STAFF_PRICE = 500;
-const HELPER_PRICE = 500;
-const TABLE_PRICE = 200;
-
 const VALID_COUPONS = {
   GSR10: 10,
   GSR15: 15,
 };
 
-const HYDERABAD_LOCATIONS = [
-  "Hitech City",
-  "Gachibowli",
-  "Madhapur",
-  "Jubilee Hills",
-  "Banjara Hills",
-  "Kukatpally",
-  "Ameerpet",
-  "Secunderabad",
-  "Begumpet",
-  "Kondapur",
-];
+// const HYDERABAD_LOCATIONS = [
+//   "Hitech City",
+//   "Gachibowli",
+//   "Madhapur",
+//   "Jubilee Hills",
+//   "Banjara Hills",
+//   "Kukatpally",
+//   "Ameerpet",
+//   "Secunderabad",
+//   "Begumpet",
+//   "Kondapur",
+// ];
 
 const MenuOrder = () => {
   const navigate = useNavigate();
@@ -36,13 +31,96 @@ const MenuOrder = () => {
     totalAmount = 0,
   } = location.state || {};
 
-
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState("");
   const [showCouponSuccess, setShowCouponSuccess] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [resources, setResources] = useState({
+    staff: { cost: 400, ratio: "100/4", min: 0 },
+    helper: { cost: 300, ratio: "100/2", min: 0 },
+    table: { cost: 200, ratio: "100/10", min: 0 },
+  });
+
+  const calculateMinRequirements = (guestCount) => {
+    const calculateForResource = (ratio) => {
+      const [base, units] = ratio.split("/").map(Number);
+      return Math.ceil((guestCount / base) * units);
+    };
+
+    return {
+      staff: calculateForResource(resources.staff.ratio),
+      helper: calculateForResource(resources.helper.ratio),
+      table: calculateForResource(resources.table.ratio),
+    };
+  };
+
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/get-resources.php"
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          const resourcesMap = data.data.reduce((acc, resource) => {
+            acc[resource.type] = {
+              cost: Number(resource.cost_per_unit),
+              ratio: resource.min_requirement_ratio,
+              description: resource.description,
+            };
+            return acc;
+          }, {});
+
+          setResources(resourcesMap);
+        }
+      } catch (error) {
+        console.error("Error fetching resources:", error);
+      }
+    };
+
+    fetchResources();
+  }, []);
+
+  useEffect(() => {
+    const minRequirements = calculateMinRequirements(guestCount);
+
+    setUserDetails((prev) => ({
+      ...prev,
+      numberOfStaff: Math.max(prev.numberOfStaff, minRequirements.staff),
+      numberOfHelpers: Math.max(prev.numberOfHelpers, minRequirements.helper),
+      numberOfTables: Math.max(prev.numberOfTables, minRequirements.table),
+    }));
+  }, [guestCount, resources]);
+
+  // Modify the handleInputChange function to enforce minimums
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    if (
+      name === "numberOfStaff" ||
+      name === "numberOfHelpers" ||
+      name === "numberOfTables"
+    ) {
+      const minRequirements = calculateMinRequirements(guestCount);
+      const resourceType = name.replace("numberOf", "").toLowerCase();
+      const minValue = minRequirements[resourceType];
+
+      if (Number(value) < minValue) {
+        alert(
+          `Minimum ${resourceType} requirement for ${guestCount} guests is ${minValue}`
+        );
+        return;
+      }
+    }
+
+    setUserDetails((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const timeSlots = [
     "12:00 PM",
@@ -154,9 +232,9 @@ const MenuOrder = () => {
   };
 
   const calculateTotals = () => {
-    const staffCost = userDetails.numberOfStaff * STAFF_PRICE;
-    const helperCost = userDetails.numberOfHelpers * HELPER_PRICE;
-    const tablesCost = userDetails.numberOfTables * TABLE_PRICE;
+    const staffCost = userDetails.numberOfStaff * resources.staff.cost;
+    const helperCost = userDetails.numberOfHelpers * resources.helper.cost;
+    const tablesCost = userDetails.numberOfTables * resources.table.cost;
 
     const baseCost = platePrice * guestCount;
     const extraItemsCost = extraItems.length * 50;
@@ -210,13 +288,13 @@ const MenuOrder = () => {
     setCouponError("");
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setUserDetails((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  // const handleInputChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setUserDetails((prev) => ({
+  //     ...prev,
+  //     [name]: value,
+  //   }));
+  // };
 
   const handleSubmit = () => {
     const requiredFields = [
@@ -238,6 +316,76 @@ const MenuOrder = () => {
     }
 
     setShowPaymentSuccess(true);
+  };
+
+  const renderResourceInputs = () => {
+    const minRequirements = calculateMinRequirements(guestCount);
+
+    return (
+      <div className="bg-gray-50 p-4 rounded-lg space-y-4">
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Tables</label>
+            <input
+              type="number"
+              name="numberOfTables"
+              value={userDetails.numberOfTables}
+              onChange={handleInputChange}
+              min={minRequirements.table}
+              className="w-full p-2 border rounded-md"
+            />
+            <span className="text-xs text-gray-500">
+              ₹{resources.table.cost} each
+            </span>
+            <p className="text-xs text-blue-600">
+              Min required: {minRequirements.table}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Staff</label>
+            <input
+              type="number"
+              name="numberOfStaff"
+              value={userDetails.numberOfStaff}
+              onChange={handleInputChange}
+              min={minRequirements.staff}
+              className="w-full p-2 border rounded-md"
+            />
+            <span className="text-xs text-gray-500">
+              ₹{resources.staff.cost} each
+            </span>
+            <p className="text-xs text-blue-600">
+              Min required: {minRequirements.staff}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Helpers</label>
+            <input
+              type="number"
+              name="numberOfHelpers"
+              value={userDetails.numberOfHelpers}
+              onChange={handleInputChange}
+              min={minRequirements.helper}
+              className="w-full p-2 border rounded-md"
+            />
+            <span className="text-xs text-gray-500">
+              ₹{resources.helper.cost} each
+            </span>
+            <p className="text-xs text-blue-600">
+              Min required: {minRequirements.helper}
+            </p>
+          </div>
+        </div>
+
+        <div className="text-sm text-gray-600 mt-2">
+          <p>{resources.staff.description}</p>
+          <p>{resources.helper.description}</p>
+          <p>{resources.table.description}</p>
+        </div>
+      </div>
+    );
   };
 
   const totals = calculateTotals();
@@ -289,7 +437,7 @@ const MenuOrder = () => {
                 />
               </div>
 
-              <select
+              {/* <select
                 name="city"
                 value={userDetails.city}
                 onChange={handleInputChange}
@@ -301,16 +449,16 @@ const MenuOrder = () => {
                     {location}
                   </option>
                 ))}
-              </select>
+              </select> */}
 
               <div className="relative">
-                <button
+                {/* <button
                   onClick={detectLocation}
                   className="p-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 flex items-center gap-2"
                 >
                   <MapPin size={16} />
                   {isLoadingLocation ? "Detecting..." : "Use current location"}
-                </button>
+                </button> */}
                 <textarea
                   name="address"
                   placeholder="Delivery Address *"
@@ -395,54 +543,7 @@ const MenuOrder = () => {
               </div>
 
               {/* Staff and Tables Section */}
-              <div className="bg-gray-50 p-4 rounded-lg space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Tables
-                    </label>
-                    <input
-                      type="number"
-                      name="numberOfTables"
-                      value={userDetails.numberOfTables}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full p-2 border rounded-md"
-                    />
-                    <span className="text-xs text-gray-500">₹200 each</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Staff
-                    </label>
-                    <input
-                      type="number"
-                      name="numberOfStaff"
-                      value={userDetails.numberOfStaff}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full p-2 border rounded-md"
-                    />
-                    <span className="text-xs text-gray-500">₹500 each</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">
-                      Helpers
-                    </label>
-                    <input
-                      type="number"
-                      name="numberOfHelpers"
-                      value={userDetails.numberOfHelpers}
-                      onChange={handleInputChange}
-                      min="0"
-                      className="w-full p-2 border rounded-md"
-                    />
-                    <span className="text-xs text-gray-500">₹500 each</span>
-                  </div>
-                </div>
-              </div>
+              {renderResourceInputs()}
             </div>
           </div>
 
@@ -535,13 +636,18 @@ const MenuOrder = () => {
               )}
 
               <div className="flex justify-between">
+                <span>Table Charges</span>
+                <span>₹{totals.tablesCost.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between">
                 <span>Staff Charges</span>
                 <span>₹{totals.staffCost.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between">
-                <span>Table Charges</span>
-                <span>₹{totals.tablesCost.toFixed(2)}</span>
+                <span>Helper Charges</span>
+                <span>₹{totals.helperCost.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between font-medium">
@@ -579,14 +685,14 @@ const MenuOrder = () => {
               Proceed to Payment
             </button>
 
-            <div className="mt-4 text-sm text-gray-500">
+            {/* <div className="mt-4 text-sm text-gray-500">
               <p>* Required fields</p>
               <p>
                 Note: Base staff count is calculated as 1 per 100 guests
                 (minimum 2)
               </p>
               <p>Minimum tables are calculated as 1 per 50 guests</p>
-            </div>
+            </div> */}
           </div>
         </div>
         {showPaymentSuccess && (
