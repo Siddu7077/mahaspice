@@ -722,12 +722,12 @@ const MenuSelection = () => {
                           </span>
                         )}
                       </h2>
-                    </div>
                     {notifications[category] && (
-                      <div className="mt-2 p-2 bg-yellow-50 text-yellow-800 rounded-md text-sm animate-fade-out">
+                      <div className="p-1 bg-yellow-50 text-yellow-800 rounded-md text-sm animate-fade-out">
                         {notifications[category].message}
                       </div>
                     )}
+                    </div>
                   </div>
                   
 
