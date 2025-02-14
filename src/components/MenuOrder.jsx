@@ -1,27 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { MapPin, X, Check, AlertCircle } from "lucide-react";
-const DELIVERY_FEE = 500;
-const VALID_COUPONS = {
-  GSR10: 10,
-  GSR15: 15,
-};
+import { useAuth } from "./AuthSystem";
 
-// const HYDERABAD_LOCATIONS = [
-//   "Hitech City",
-//   "Gachibowli",
-//   "Madhapur",
-//   "Jubilee Hills",
-//   "Banjara Hills",
-//   "Kukatpally",
-//   "Ameerpet",
-//   "Secunderabad",
-//   "Begumpet",
-//   "Kondapur",
-// ];
+const DEFAULT_DELIVERY_FEE = 500;
+
 
 const MenuOrder = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const location = useLocation();
   const {
     selectedItems = [],
@@ -37,11 +24,127 @@ const MenuOrder = () => {
   const [couponError, setCouponError] = useState("");
   const [showCouponSuccess, setShowCouponSuccess] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [availableLocations, setAvailableLocations] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [locationData, setLocationData] = useState([]);
+  const [deliveryFee, setDeliveryFee] = useState(DEFAULT_DELIVERY_FEE);
   const [resources, setResources] = useState({
     staff: { cost: 400, ratio: "100/4", min: 0 },
     helper: { cost: 300, ratio: "100/2", min: 0 },
     table: { cost: 200, ratio: "100/10", min: 0 },
   });
+
+  const [coupons, setCoupons] = useState([]);
+
+  const groupItemsByCategory = (items) => {
+    return items.reduce((acc, item) => {
+      const category = item.category || "Uncategorized";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(item);
+      return acc;
+    }, {});
+  };
+
+  const groupedItems = () => {
+    const allItems = {};
+
+    // Group selected items
+    selectedItems.forEach((item) => {
+      if (!allItems[item.category_name]) {
+        allItems[item.category_name] = [];
+      }
+      allItems[item.category_name].push({
+        ...item,
+        isExtra: false,
+      });
+    });
+
+    // Group extra items
+    extraItems.forEach((item) => {
+      if (!allItems[item.category_name]) {
+        allItems[item.category_name] = [];
+      }
+      allItems[item.category_name].push({
+        ...item,
+        isExtra: true,
+      });
+    });
+
+    return allItems;
+  };
+
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch("https://mahaspice.desoftimp.com/ms3/displayDeloc.php");
+        const data = await response.json();
+        
+        if (data.success && data.locations) {
+          // Filter locations for bulk catering and store full location data
+          const bulkCateringLocations = data.locations.filter(
+            loc => loc.service_type === "bulk_catering"
+          );
+          setLocationData(bulkCateringLocations);
+        }
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+
+    fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displaycoupons.php"
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          // Filter coupons to only include bulk_catering and active ones
+          const validCoupons = data.coupons.filter(
+            (coupon) =>
+              coupon.coupon_type === "bulk_catering" && coupon.is_active
+          );
+          setCoupons(validCoupons);
+        }
+      } catch (error) {
+        console.error("Error fetching coupons:", error);
+      }
+    };
+
+    fetchCoupons();
+  }, []);
+
+  const validateCoupon = (coupon, subtotal) => {
+    const currentDate = new Date();
+    const validFrom = new Date(coupon.valid_from);
+    const validUntil = new Date(coupon.valid_until);
+
+    // Check if the coupon is within its validity period
+    if (currentDate < validFrom || currentDate > validUntil) {
+      return { isValid: false, error: "Coupon is not valid at this time." };
+    }
+
+    // Check if the subtotal meets the minimum order value
+    if (coupon.min_order_value && subtotal < coupon.min_order_value) {
+      return {
+        isValid: false,
+        error: `Minimum order value of ₹${coupon.min_order_value} required.`,
+      };
+    }
+
+    // Check if the usage limit has been reached
+    if (coupon.usage_limit && coupon.usage_count >= coupon.usage_limit) {
+      return { isValid: false, error: "Coupon usage limit reached." };
+    }
+
+    return { isValid: true };
+  };
 
   const calculateMinRequirements = (guestCount) => {
     const calculateForResource = (ratio) => {
@@ -116,6 +219,15 @@ const MenuOrder = () => {
       }
     }
 
+    if (name === "city") {
+      const selectedLocationData = locationData.find(loc => loc.location === value);
+      if (selectedLocationData) {
+        setDeliveryFee(parseFloat(selectedLocationData.price));
+      } else {
+        setDeliveryFee(DEFAULT_DELIVERY_FEE);
+      }
+    }
+    
     setUserDetails((prev) => ({
       ...prev,
       [name]: value,
@@ -178,12 +290,12 @@ const MenuOrder = () => {
   }, [guestCount]);
 
   const [userDetails, setUserDetails] = useState({
-    fullName: "",
-    email: "",
-    phoneNumber: "",
+    fullName: user?.name || "",
+    email: user?.email || "",
+    phoneNumber: user?.phone || "",
     alternateNumber: "",
     city: "",
-    address: "",
+    address: user?.address || "",
     landmark: "",
     date: "",
     time: "",
@@ -191,6 +303,18 @@ const MenuOrder = () => {
     numberOfStaff: 0,
     numberOfHelpers: 0,
   });
+
+  useEffect(() => {
+    if (user) {
+      setUserDetails((prev) => ({
+        ...prev,
+        fullName: user.name || prev.fullName,
+        email: user.email || prev.email,
+        phoneNumber: user.phone || prev.phoneNumber,
+        address: user.address || prev.address,
+      }));
+    }
+  }, [user]);
 
   const [minDate, setMinDate] = useState("");
 
@@ -244,12 +368,22 @@ const MenuOrder = () => {
 
     let discount = 0;
     if (appliedCoupon) {
-      discount = (subtotal * VALID_COUPONS[appliedCoupon]) / 100;
+      if (appliedCoupon.discount_type === "percentage") {
+        discount = (subtotal * appliedCoupon.discount_value) / 100;
+        if (
+          appliedCoupon.max_discount &&
+          discount > appliedCoupon.max_discount
+        ) {
+          discount = appliedCoupon.max_discount;
+        }
+      } else if (appliedCoupon.discount_type === "fixed") {
+        discount = appliedCoupon.discount_value;
+      }
     }
 
     const discountedSubtotal = subtotal - discount;
     const gst = discountedSubtotal * 0.18;
-    const total = discountedSubtotal + gst + DELIVERY_FEE;
+    const total = discountedSubtotal + gst + deliveryFee;
 
     return {
       baseCost,
@@ -260,10 +394,10 @@ const MenuOrder = () => {
       subtotal,
       discount,
       gst,
+      deliveryFee,
       total,
     };
   };
-
   const handleCouponApply = () => {
     setCouponError("");
     setShowCouponSuccess(false);
@@ -273,13 +407,24 @@ const MenuOrder = () => {
       return;
     }
 
-    if (VALID_COUPONS[couponCode]) {
-      setAppliedCoupon(couponCode);
-      setShowCouponSuccess(true);
-      setTimeout(() => setShowCouponSuccess(false), 3000);
-    } else {
+    const coupon = coupons.find((c) => c.code === couponCode.toUpperCase());
+
+    if (!coupon) {
       setCouponError("Invalid coupon code");
+      return;
     }
+
+    const { isValid, error } = validateCoupon(coupon, totals.subtotal);
+
+    if (!isValid) {
+      setCouponError(error);
+      return;
+    }
+
+    // Apply the coupon
+    setAppliedCoupon(coupon);
+    setShowCouponSuccess(true);
+    setTimeout(() => setShowCouponSuccess(false), 3000);
   };
 
   const removeCoupon = () => {
@@ -407,6 +552,7 @@ const MenuOrder = () => {
                   value={userDetails.fullName}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md"
+                  disabled={!!user} // Disable if user is logged in
                 />
                 <input
                   type="email"
@@ -415,6 +561,7 @@ const MenuOrder = () => {
                   value={userDetails.email}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md"
+                  disabled={!!user} // Disable if user is logged in
                 />
               </div>
 
@@ -426,6 +573,7 @@ const MenuOrder = () => {
                   value={userDetails.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md"
+                  disabled={!!user} // Disable if user is logged in
                 />
                 <input
                   type="tel"
@@ -450,6 +598,29 @@ const MenuOrder = () => {
                   </option>
                 ))}
               </select> */}
+
+              <div className="space-y-2">
+                <select
+                  name="city"
+                  value={userDetails.city}
+                  onChange={handleInputChange}
+                  className="w-full p-3 border rounded-md"
+                  required
+                >
+                  <option value="">Select Area *</option>
+                  {locationData.map((loc) => (
+                    <option key={loc.id} value={loc.location}>
+                      {loc.location}
+                    </option>
+                  ))}
+                </select>
+                {userDetails.city && (
+                  <p className="text-sm text-gray-600">
+                    Delivery Fee for {userDetails.city}: ₹
+                    {deliveryFee.toFixed(2)}
+                  </p>
+                )}
+              </div>
 
               <div className="relative">
                 {/* <button
@@ -554,16 +725,46 @@ const MenuOrder = () => {
             {/* Selected Items */}
             <div className="mb-6 max-h-64 overflow-y-auto">
               <h3 className="font-semibold mb-2">Selected Items</h3>
-              <div className="space-y-2">
-                {selectedItems.map((item, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span>{item.item_name}</span>
-                    {item.isExtra && (
-                      <span className="text-orange-600">+₹50</span>
-                    )}
-                  </div>
-                ))}
-              </div>
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="text-left p-2 border-b font-medium text-gray-600 w-1/3">
+                      Category
+                    </th>
+                    <th className="text-left p-2 border-b font-medium text-gray-600 w-2/3">
+                      Items
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(groupedItems()).map(([category, items]) => (
+                    <tr key={category} className="border-b last:border-b-0">
+                      <td className="p-2 align-top font-medium text-gray-700">
+                        {category}
+                      </td>
+                      <td className="p-2">
+                        <div className="space-y-2">
+                          {items.map((item, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between text-sm items-center"
+                            >
+                              <span className="flex items-center gap-2">
+                                {item.item_name}
+                                {item.isExtra && (
+                                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded">
+                                    Extra
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             {/* Coupon Section */}
@@ -611,8 +812,8 @@ const MenuOrder = () => {
                   <div>
                     <p className="font-semibold">Success</p>
                     <p>
-                      Coupon applied successfully! You got{" "}
-                      {VALID_COUPONS[appliedCoupon]}% off
+                      Coupon applied successfully!
+                      {/* {VALID_COUPONS[appliedCoupon]}% off */}
                     </p>
                   </div>
                 </div>
@@ -657,7 +858,7 @@ const MenuOrder = () => {
 
               {totals.discount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Discount ({VALID_COUPONS[appliedCoupon]}% off)</span>
+                  <span>Discount</span>
                   <span>-₹{totals.discount.toFixed(2)}</span>
                 </div>
               )}
@@ -668,8 +869,8 @@ const MenuOrder = () => {
               </div>
 
               <div className="flex justify-between">
-                <span>Delivery Fee</span>
-                <span>₹{DELIVERY_FEE.toFixed(2)}</span>
+                <span>Delivery Fee {userDetails.city ? `(${userDetails.city})` : ''}</span>
+                <span>₹{deliveryFee.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between text-lg font-bold pt-2 border-t">
