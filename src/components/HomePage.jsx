@@ -11,6 +11,7 @@ import SuperFastDelivery from "./SFD";
 import SectionTwo from "./SectionTwo";
 import SectionThree from "./SectionThree";
 import ScrollToTop from "./ScrollToTop";
+import FAQ from "./FAQ";
 
 const HomePage = () => {
   
@@ -24,6 +25,7 @@ const HomePage = () => {
       <CateringCarousel />
       <SectionTwo/>
       <SectionThree/>
+      <FAQ />
       
 
       
