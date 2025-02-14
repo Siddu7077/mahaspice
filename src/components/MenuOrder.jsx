@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MapPin, X, Check, AlertCircle } from "lucide-react";
+import { MapPin, X, Check, AlertCircle, Plus, Minus } from "lucide-react";
 import { useAuth } from "./AuthSystem";
 
 const DEFAULT_DELIVERY_FEE = 500;
-
 
 const MenuOrder = () => {
   const navigate = useNavigate();
@@ -14,10 +13,12 @@ const MenuOrder = () => {
     selectedItems = [],
     extraItems = [],
     platePrice = 0,
-    guestCount = 0,
+    // guestCount = 0,
     totalAmount = 0,
   } = location.state || {};
-
+  const [guestCount, setGuestCount] = useState(
+    location.state?.guestCount || 10
+  );
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -28,11 +29,164 @@ const MenuOrder = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [locationData, setLocationData] = useState([]);
   const [deliveryFee, setDeliveryFee] = useState(DEFAULT_DELIVERY_FEE);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [minDate, setMinDate] = useState("");
+  const [gstPercentage, setGstPercentage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [resources, setResources] = useState({
     staff: { cost: 400, ratio: "100/4", min: 0 },
     helper: { cost: 300, ratio: "100/2", min: 0 },
     table: { cost: 200, ratio: "100/10", min: 0 },
   });
+
+  const getCurrentDateInIST = () => {
+    return new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })
+    );
+  };
+
+  // Calculate the minimum date (2 days ahead in IST)
+  useEffect(() => {
+    const todayInIST = getCurrentDateInIST();
+    const dayAfterTomorrow = new Date(todayInIST);
+    dayAfterTomorrow.setDate(todayInIST.getDate() + 3); // 2 days ahead
+    setMinDate(dayAfterTomorrow.toISOString().split("T")[0]);
+  }, []);
+
+  // Check if the selected date is today or tomorrow in IST
+  const isDateBlocked = (date) => {
+    if (!date) return false; // Return false if the date is empty or invalid
+
+    const todayInIST = getCurrentDateInIST();
+    const tomorrowInIST = new Date(todayInIST);
+    tomorrowInIST.setDate(todayInIST.getDate() + 1);
+
+    const selectedDate = new Date(date);
+
+    // Compare dates in IST
+    return (
+      selectedDate.toISOString().split("T")[0] ===
+        todayInIST.toISOString().split("T")[0] ||
+      selectedDate.toISOString().split("T")[0] ===
+        tomorrowInIST.toISOString().split("T")[0]
+    );
+  };
+
+  // Handle date change
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+
+    if (isDateBlocked(selectedDate)) {
+      alert("For dates today or tomorrow, please choose the Superfast option.");
+      setUserDetails((prev) => ({
+        ...prev,
+        date: "", // Clear the selected date
+      }));
+    } else {
+      setUserDetails((prev) => ({
+        ...prev,
+        date: selectedDate,
+      }));
+    }
+  };
+
+  useEffect(() => {
+    const fetchGSTRate = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displaygst.php"
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          const bulkCateringGST = data.data.find(
+            (item) => item.service_type === "bulk_catering"
+          );
+
+          if (bulkCateringGST) {
+            setGstPercentage(bulkCateringGST.gst_percentage);
+          } else {
+            setError("Bulk catering GST rate not found");
+          }
+        } else {
+          setError("Failed to fetch GST rates");
+        }
+      } catch (err) {
+        setError("Error fetching GST rates");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGSTRate();
+  }, []);
+
+  const handleGuestCountChange = (newCount) => {
+    // Ensure minimum of 10 guests
+    const validCount = Math.max(10, newCount);
+    setGuestCount(validCount);
+
+    // Update minimum requirements based on new guest count
+    const minRequirements = calculateMinRequirements(validCount);
+
+    // Update userDetails with new minimum requirements
+    setUserDetails((prev) => ({
+      ...prev,
+      numberOfStaff: Math.max(minRequirements.staff, prev.numberOfStaff),
+      numberOfHelpers: Math.max(minRequirements.helper, prev.numberOfHelpers),
+      numberOfTables: Math.max(minRequirements.table, prev.numberOfTables),
+    }));
+  };
+
+  const GuestCountControls = () => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-700">
+        Number of Guests *
+      </label>
+      <div className="flex items-center space-x-2">
+        <button
+          onClick={() => handleGuestCountChange(guestCount - 5)}
+          className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          aria-label="Decrease guest count by 5"
+        >
+          <Minus className="w-4 h-4" />
+        </button>
+
+        <input
+          type="number"
+          value={guestCount}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "") {
+              setGuestCount(""); // Allow empty input while typing
+            } else {
+              const newCount = parseInt(value, 10);
+              if (!isNaN(newCount)) {
+                handleGuestCountChange(newCount);
+              }
+            }
+          }}
+          onBlur={() => {
+            if (guestCount === "" || isNaN(guestCount)) {
+              handleGuestCountChange(10); // Reset to minimum on blur if invalid
+            }
+          }}
+          min="10"
+          className="w-20 p-2 border rounded-md text-center"
+          aria-label="Guest count"
+        />
+
+        <button
+          onClick={() => handleGuestCountChange(guestCount + 5)}
+          className="p-2 bg-gray-100 rounded-lg hover:bg-gray-200"
+          aria-label="Increase guest count by 5"
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
 
   const [coupons, setCoupons] = useState([]);
 
@@ -78,13 +232,15 @@ const MenuOrder = () => {
   useEffect(() => {
     const fetchLocations = async () => {
       try {
-        const response = await fetch("https://mahaspice.desoftimp.com/ms3/displayDeloc.php");
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displayDeloc.php"
+        );
         const data = await response.json();
-        
+
         if (data.success && data.locations) {
           // Filter locations for bulk catering and store full location data
           const bulkCateringLocations = data.locations.filter(
-            loc => loc.service_type === "bulk_catering"
+            (loc) => loc.service_type === "bulk_catering"
           );
           setLocationData(bulkCateringLocations);
         }
@@ -94,6 +250,28 @@ const MenuOrder = () => {
     };
 
     fetchLocations();
+  }, []);
+
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/dateblocking.php"
+        );
+        const data = await response.json();
+
+        // Filter dates that are blocked for "Catering"
+        const cateringBlockedDates = data
+          .filter((item) => item.for === "Catering")
+          .map((item) => item.date);
+
+        setBlockedDates(cateringBlockedDates);
+      } catch (error) {
+        console.error("Error fetching blocked dates:", error);
+      }
+    };
+
+    fetchBlockedDates();
   }, []);
 
   useEffect(() => {
@@ -146,18 +324,16 @@ const MenuOrder = () => {
     return { isValid: true };
   };
 
-  const calculateMinRequirements = (guestCount) => {
-    const calculateForResource = (ratio) => {
-      const [base, units] = ratio.split("/").map(Number);
-      return Math.ceil((guestCount / base) * units);
-    };
+  useEffect(() => {
+    const minRequirements = calculateMinRequirements(guestCount);
 
-    return {
-      staff: calculateForResource(resources.staff.ratio),
-      helper: calculateForResource(resources.helper.ratio),
-      table: calculateForResource(resources.table.ratio),
-    };
-  };
+    setUserDetails((prev) => ({
+      ...prev,
+      numberOfStaff: Math.max(minRequirements.staff, prev.numberOfStaff),
+      numberOfHelpers: Math.max(minRequirements.helper, prev.numberOfHelpers),
+      numberOfTables: Math.max(minRequirements.table, prev.numberOfTables),
+    }));
+  }, [guestCount]);
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -220,14 +396,16 @@ const MenuOrder = () => {
     }
 
     if (name === "city") {
-      const selectedLocationData = locationData.find(loc => loc.location === value);
+      const selectedLocationData = locationData.find(
+        (loc) => loc.location === value
+      );
       if (selectedLocationData) {
         setDeliveryFee(parseFloat(selectedLocationData.price));
       } else {
         setDeliveryFee(DEFAULT_DELIVERY_FEE);
       }
     }
-    
+
     setUserDetails((prev) => ({
       ...prev,
       [name]: value,
@@ -246,48 +424,7 @@ const MenuOrder = () => {
     "8:00 PM",
   ];
 
-  const getAvailableTimeSlots = () => {
-    if (guestCount < 30) {
-      // For less than 30 guests, allow times after 1 PM for next day
-      return timeSlots.filter((slot) => {
-        const hour = parseInt(slot.split(":")[0]);
-        return hour >= 1;
-      });
-    } else if (guestCount < 100) {
-      // For 30-100 guests, allow times after 7 PM for next day
-      return timeSlots.filter((slot) => {
-        const hour = parseInt(slot.split(":")[0]);
-        return hour >= 7;
-      });
-    }
-    // For more than 100 guests, show all time slots (but date will be after tomorrow)
-    return timeSlots;
-  };
-
-  useEffect(() => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-
-    // Set minimum date based on guest count
-    if (guestCount > 100) {
-      // More than 100 guests need to book at least 2 days in advance
-      tomorrow.setDate(today.getDate() + 2);
-    } else {
-      // Less than 100 guests can book for tomorrow
-      tomorrow.setDate(today.getDate() + 1);
-    }
-
-    setMinDate(tomorrow.toISOString().split("T")[0]);
-
-    // Reset time if it doesn't match new constraints
-    const availableSlots = getAvailableTimeSlots();
-    if (!availableSlots.includes(userDetails.time)) {
-      setUserDetails((prev) => ({
-        ...prev,
-        time: "",
-      }));
-    }
-  }, [guestCount]);
+  const getAvailableTimeSlots = () => timeSlots;
 
   const [userDetails, setUserDetails] = useState({
     fullName: user?.name || "",
@@ -315,15 +452,6 @@ const MenuOrder = () => {
       }));
     }
   }, [user]);
-
-  const [minDate, setMinDate] = useState("");
-
-  useEffect(() => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + (guestCount < 20 ? 1 : 2));
-    setMinDate(tomorrow.toISOString().split("T")[0]);
-  }, [guestCount]);
 
   const detectLocation = () => {
     setIsLoadingLocation(true);
@@ -356,24 +484,36 @@ const MenuOrder = () => {
   };
 
   const calculateTotals = () => {
-    const staffCost = userDetails.numberOfStaff * resources.staff.cost;
-    const helperCost = userDetails.numberOfHelpers * resources.helper.cost;
-    const tablesCost = userDetails.numberOfTables * resources.table.cost;
+    // Guard against undefined values
+    if (!resources.staff?.cost || !resources.helper?.cost || !resources.table?.cost) {
+      return {
+        baseCost: 0,
+        extraItemsCost: 0,
+        staffCost: 0,
+        helperCost: 0,
+        tablesCost: 0,
+        subtotal: 0,
+        discount: 0,
+        gst: 0,
+        deliveryFee: DEFAULT_DELIVERY_FEE,
+        total: 0
+      };
+    }
 
-    const baseCost = platePrice * guestCount;
-    const extraItemsCost = extraItems.length * 50;
+    const staffCost = (userDetails.numberOfStaff || 0) * resources.staff.cost;
+    const helperCost = (userDetails.numberOfHelpers || 0) * resources.helper.cost;
+    const tablesCost = (userDetails.numberOfTables || 0) * resources.table.cost;
 
-    const subtotal =
-      baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
+    const baseCost = (platePrice || 0) * (guestCount || 0);
+    const extraItemsCost = (extraItems?.length || 0) * 50;
+
+    const subtotal = baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
 
     let discount = 0;
     if (appliedCoupon) {
       if (appliedCoupon.discount_type === "percentage") {
         discount = (subtotal * appliedCoupon.discount_value) / 100;
-        if (
-          appliedCoupon.max_discount &&
-          discount > appliedCoupon.max_discount
-        ) {
+        if (appliedCoupon.max_discount && discount > appliedCoupon.max_discount) {
           discount = appliedCoupon.max_discount;
         }
       } else if (appliedCoupon.discount_type === "fixed") {
@@ -382,7 +522,7 @@ const MenuOrder = () => {
     }
 
     const discountedSubtotal = subtotal - discount;
-    const gst = discountedSubtotal * 0.18;
+    const gst = gstPercentage ? discountedSubtotal * (gstPercentage / 100) : 0;
     const total = discountedSubtotal + gst + deliveryFee;
 
     return {
@@ -395,9 +535,11 @@ const MenuOrder = () => {
       discount,
       gst,
       deliveryFee,
-      total,
+      total
     };
   };
+  
+
   const handleCouponApply = () => {
     setCouponError("");
     setShowCouponSuccess(false);
@@ -433,14 +575,6 @@ const MenuOrder = () => {
     setCouponError("");
   };
 
-  // const handleInputChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setUserDetails((prev) => ({
-  //     ...prev,
-  //     [name]: value,
-  //   }));
-  // };
-
   const handleSubmit = () => {
     const requiredFields = [
       "fullName",
@@ -452,6 +586,27 @@ const MenuOrder = () => {
       "date",
       "time",
     ];
+
+    const calculateMinRequirements = (guestCount) => {
+      if (guestCount <= 0) {
+        return {
+          staff: 0,
+          helper: 0,
+          table: 0,
+        };
+      }
+
+      const calculateForResource = (ratio) => {
+        const [base, units] = ratio.split("/").map(Number);
+        return Math.ceil((guestCount / base) * units);
+      };
+
+      return {
+        staff: calculateForResource(resources.staff.ratio),
+        helper: calculateForResource(resources.helper.ratio),
+        table: calculateForResource(resources.table.ratio),
+      };
+    };
 
     const missingFields = requiredFields.filter((field) => !userDetails[field]);
 
@@ -533,6 +688,27 @@ const MenuOrder = () => {
     );
   };
 
+  const calculateMinRequirements = (guestCount) => {
+    if (guestCount <= 0) {
+      return {
+        staff: 0,
+        helper: 0,
+        table: 0,
+      };
+    }
+
+    const calculateForResource = (ratio) => {
+      const [base, units] = ratio.split("/").map(Number);
+      return Math.ceil((guestCount / base) * units);
+    };
+
+    return {
+      staff: calculateForResource(resources.staff.ratio),
+      helper: calculateForResource(resources.helper.ratio),
+      table: calculateForResource(resources.table.ratio),
+    };
+  };
+
   const totals = calculateTotals();
 
   return (
@@ -585,20 +761,6 @@ const MenuOrder = () => {
                 />
               </div>
 
-              {/* <select
-                name="city"
-                value={userDetails.city}
-                onChange={handleInputChange}
-                className="w-full p-3 border rounded-md"
-              >
-                <option value="">Select Area *</option>
-                {HYDERABAD_LOCATIONS.map((location) => (
-                  <option key={location} value={location}>
-                    {location}
-                  </option>
-                ))}
-              </select> */}
-
               <div className="space-y-2">
                 <select
                   name="city"
@@ -648,14 +810,7 @@ const MenuOrder = () => {
                 className="w-full p-3 border rounded-md"
               />
 
-              <input
-                type="number"
-                name="landmark"
-                placeholder="Landmark *"
-                value={guestCount}
-                onChange={handleInputChange}
-                className="w-full p-3 border rounded-md"
-              />
+              <GuestCountControls />
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
@@ -666,10 +821,20 @@ const MenuOrder = () => {
                     type="date"
                     name="date"
                     value={userDetails.date}
-                    onChange={handleInputChange}
-                    min={minDate}
+                    onChange={handleDateChange} // Use the new handler
+                    min={minDate} // Set minimum selectable date
                     className="w-full p-3 border rounded-md"
                   />
+
+                  <p className="text-sm text-gray-600 mt-1">
+                    For dates today or tomorrow, please choose the Superfast
+                    option.
+                  </p>
+                  {isDateBlocked(userDetails.date) && (
+                    <p className="text-sm text-red-600 mt-1">
+                      This date is not available for catering.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">
@@ -679,7 +844,12 @@ const MenuOrder = () => {
                     name="time"
                     value={userDetails.time}
                     onChange={handleInputChange}
-                    className="w-full p-3 border rounded-md"
+                    className={`w-full p-3 border rounded-md ${
+                      isDateBlocked(userDetails.date)
+                        ? "cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled={isDateBlocked(userDetails.date)}
                   >
                     <option value="">Select Time</option>
                     {getAvailableTimeSlots().map((slot) => (
@@ -692,7 +862,7 @@ const MenuOrder = () => {
               </div>
 
               {/* Add this helper text */}
-              <div className="mt-2 text-sm text-gray-600">
+              {/* <div className="mt-2 text-sm text-gray-600">
                 {guestCount < 30 && (
                   <p>
                     For orders under 30 guests: Available for tomorrow after
@@ -711,7 +881,7 @@ const MenuOrder = () => {
                     tomorrow
                   </p>
                 )}
-              </div>
+              </div> */}
 
               {/* Staff and Tables Section */}
               {renderResourceInputs()}
@@ -811,10 +981,7 @@ const MenuOrder = () => {
                   <span>✓</span>
                   <div>
                     <p className="font-semibold">Success</p>
-                    <p>
-                      Coupon applied successfully!
-                      {/* {VALID_COUPONS[appliedCoupon]}% off */}
-                    </p>
+                    <p>Coupon applied successfully!</p>
                   </div>
                 </div>
               )}
@@ -851,7 +1018,7 @@ const MenuOrder = () => {
                 <span>₹{totals.helperCost.toFixed(2)}</span>
               </div>
 
-              <div className="flex justify-between font-medium">
+              <div className="flex justify-between font-medium border-t">
                 <span>Subtotal</span>
                 <span>₹{totals.subtotal.toFixed(2)}</span>
               </div>
@@ -864,12 +1031,14 @@ const MenuOrder = () => {
               )}
 
               <div className="flex justify-between">
-                <span>GST (18%)</span>
+                <span>GST ({gstPercentage}%)</span>
                 <span>₹{totals.gst.toFixed(2)}</span>
               </div>
 
               <div className="flex justify-between">
-                <span>Delivery Fee {userDetails.city ? `(${userDetails.city})` : ''}</span>
+                <span>
+                  Delivery Fee {userDetails.city ? `(${userDetails.city})` : ""}
+                </span>
                 <span>₹{deliveryFee.toFixed(2)}</span>
               </div>
 
@@ -885,15 +1054,6 @@ const MenuOrder = () => {
             >
               Proceed to Payment
             </button>
-
-            {/* <div className="mt-4 text-sm text-gray-500">
-              <p>* Required fields</p>
-              <p>
-                Note: Base staff count is calculated as 1 per 100 guests
-                (minimum 2)
-              </p>
-              <p>Minimum tables are calculated as 1 per 50 guests</p>
-            </div> */}
           </div>
         </div>
         {showPaymentSuccess && (

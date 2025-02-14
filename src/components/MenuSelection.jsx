@@ -34,7 +34,7 @@ const MenuSelection = () => {
 
   const getCommonItems = () => {
     return getFilteredItems().filter(
-      item => item.category_name.toLowerCase() === "common items"
+      (item) => item.category_name.toLowerCase() === "common items"
     );
   };
 
@@ -42,8 +42,6 @@ const MenuSelection = () => {
     const items = getCommonItems();
     setCommonItems(items);
   }, [menuData]);
-
-
 
   useEffect(() => {
     const fetchPreviousSelections = async () => {
@@ -55,7 +53,6 @@ const MenuSelection = () => {
         
         const data = await response.json();
         if (data.success && data.data) {
-          // Create a map of previously selected items by category
           const itemMap = {};
           data.data.forEach(cart => {
             if (cart.event_name === serviceType && cart.menu_type === menuType) {
@@ -86,7 +83,6 @@ const MenuSelection = () => {
       }
     }));
 
-    // Clear notification after 4 seconds
     setTimeout(() => {
       setNotifications(prev => {
         const newNotifications = { ...prev };
@@ -96,10 +92,8 @@ const MenuSelection = () => {
     }, 4000);
   };
 
-  
-
   useEffect(() => {
-    console.log("Component mounted. Showing Live Counter Alert."); // Debugging log
+    console.log("Component mounted. Showing Live Counter Alert.");
     setShowLiveCounterAlert(true);
   }, []);
 
@@ -120,9 +114,9 @@ const MenuSelection = () => {
   useEffect(() => {
     let timeoutId;
     if (showLiveCounterAlert) {
-      console.log("Setting timeout to hide Live Counter Alert"); // Debugging log
+      console.log("Setting timeout to hide Live Counter Alert");
       timeoutId = setTimeout(() => {
-        console.log("Hiding Live Counter Alert"); // Debugging log
+        console.log("Hiding Live Counter Alert");
         setShowLiveCounterAlert(false);
       }, 10000);
     }
@@ -136,7 +130,6 @@ const MenuSelection = () => {
     ];
 
     return uniqueCategories.sort((a, b) => {
-      // Always put Live Counter at the end
       if (a.toLowerCase() === "live counter") return -1;
       if (b.toLowerCase() === "live counter") return 1;
 
@@ -223,8 +216,6 @@ const MenuSelection = () => {
         if (pricingJson.success && Array.isArray(pricingJson.data)) {
           setPricingData(pricingJson.data);
         }
-        // console.log("Menu Data:", menuJson.data);
-        // console.log("Category Data:", categoryJson);
         setError(null);
       } catch (err) {
         setError("Failed to load menu data. Please try again later.");
@@ -255,7 +246,6 @@ const MenuSelection = () => {
         ? parseFloat(matchingPrice.veg_price)
         : parseFloat(matchingPrice.nonveg_price);
 
-    // Calculate extra items cost (excluding Live Counter items)
     const regularExtraItemsPrice = selectedItems
       .filter(
         (item) =>
@@ -263,7 +253,6 @@ const MenuSelection = () => {
       )
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
 
-    // Calculate Live Counter items cost separately
     const liveCounterItemsPrice = selectedItems
       .filter((item) => item.category_name.toLowerCase() === "live counter")
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
@@ -301,14 +290,12 @@ const MenuSelection = () => {
 
   const getFilteredItems = () => {
     return menuData.filter((item) => {
-      // Normalize the strings for comparison by converting to lowercase and replacing spaces/hyphens
       const normalizeString = (str) =>
         str
           .toLowerCase()
           .replace(/[-\s]+/g, " ")
           .trim();
 
-      // Get event categories and names from the item
       const itemEventCategories = (item.event_categories || "")
         .split(",")
         .map(normalizeString);
@@ -317,13 +304,11 @@ const MenuSelection = () => {
         .split(",")
         .map(normalizeString);
 
-      // Normalize the current types
       const normalizedEventType = normalizeString(eventType);
       const normalizedServiceType = normalizeString(serviceType);
       const normalizedMenuType = normalizeString(menuType);
       const normalizedItemMenuType = normalizeString(item.menu_type);
 
-      // Check if the item matches any of the event categories or names
       const matchesEvent =
         itemEventCategories.some(
           (cat) => normalizeString(cat) === normalizedServiceType
@@ -332,21 +317,20 @@ const MenuSelection = () => {
           (name) => normalizeString(name) === normalizedEventType
         );
 
-      // Check if menu type matches
       const matchesMenu = normalizedItemMenuType === normalizedMenuType;
 
-      // Check if the item matches the veg/non-veg preference
       const matchesPreference =
         menuPreference === "nonveg" ? true : item.is_veg === "1";
 
       return matchesEvent && matchesMenu && matchesPreference;
     });
   };
+
   useEffect(() => {
-    // console.log("Event Type:", eventType);
-    // console.log("Service Type:", serviceType);
-    // console.log("Menu Type:", menuType);
-    // console.log("Filtered Items:", getFilteredItems());
+    console.log("Event Type:", eventType);
+    console.log("Service Type:", serviceType);
+    console.log("Menu Type:", menuType);
+    console.log("Filtered Items:", getFilteredItems());
   }, [menuData, eventType, serviceType, menuType]);
 
   const getCategoryLimit = (categoryName) => {
@@ -354,7 +338,7 @@ const MenuSelection = () => {
       categoryName.toLowerCase() === "common items" ||
       categoryName.toLowerCase() === "live counter"
     ) {
-      return 0; // No limit for optional categories
+      return 0;
     }
     const category = categoryData.find(
       (cat) =>
@@ -370,7 +354,6 @@ const MenuSelection = () => {
 
   const handleActionButton = (action) => {
     const incompleteCategories = getSortedCategories().filter((category) => {
-      // Exclude "Live Counter" and "Common Items" from validation
       if (
         category.toLowerCase() === "common items" ||
         category.toLowerCase() === "live counter"
@@ -384,7 +367,7 @@ const MenuSelection = () => {
     });
 
     if (incompleteCategories.length > 0) {
-      console.log("Incomplete categories:", incompleteCategories); // Debugging log
+      console.log("Incomplete categories:", incompleteCategories);
       setShowAlert({
         message: `Please select required items from: ${incompleteCategories.join(
           ", "
@@ -403,14 +386,12 @@ const MenuSelection = () => {
     const categoryItems = getItemsInCategory(item.category_name);
     const limit = getCategoryLimit(item.category_name);
 
-    // Check if item was previously selected
     const wasSelectedPreviously = previouslySelectedItems[item.category_name]?.includes(item.item_name);
     
     if (wasSelectedPreviously && !selectedItems.some(selected => selected.id === item.id)) {
       showTemporaryNotification(item.category_name, item.item_name);
     }
 
-    // Continue with existing logic...
     if (selectedItems.some((selected) => selected.id === item.id)) {
       handleItemSelect(item);
       return;
@@ -453,12 +434,10 @@ const MenuSelection = () => {
     }
 
     if (selectedItems.some((selected) => selected.id === item.id)) {
-      // Remove the item
       const updatedItems = selectedItems.filter(
         (selected) => selected.id !== item.id
       );
 
-      // Recalculate isExtra status for remaining items in the same category
       const finalItems = updatedItems.map((selectedItem) => {
         if (
           selectedItem.category_name === item.category_name &&
@@ -480,7 +459,6 @@ const MenuSelection = () => {
 
       setSelectedItems(finalItems);
     } else {
-      // Adding a new item
       const newItem = {
         ...item,
         isExtra: isLiveCounter
@@ -504,7 +482,6 @@ const MenuSelection = () => {
       return;
     }
   
-    // Combine selected items with common items
     const allItems = [
       ...selectedItems,
       ...commonItems.map(item => ({
@@ -514,7 +491,6 @@ const MenuSelection = () => {
       }))
     ];
   
-    // Prepare order details
     const orderDetails = {
       user_id: user.id,
       event_name: serviceType,
@@ -556,29 +532,28 @@ const MenuSelection = () => {
     }
   };
 
-
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
   return (
-    <div className="min-h-screen bg-aliceBlue grid grid-cols-3 gap-1">
+    <div className="min-h-screen bg-aliceBlue grid grid-cols-1 lg:grid-cols-3 gap-1">
       {/* Live Counter Alert */}
       {showLiveCounterAlert && (
         <>
-          <div className="fixed inset-0  flex items-center justify-center z-50">
-            <div className="max-w-2xl w-full bg-white border border-green-300 rounded-2xl p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom mx-4">
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="max-w-2xl w-full bg-white border border-green-300 rounded-2xl p-4 sm:p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom mx-4">
               <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center bg-green-50">
-                    <span className="text-2xl">🌟</span>
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-green-50">
+                    <span className="text-xl sm:text-2xl">🌟</span>
                   </div>
                   <div>
-                    <p className="text-gray-900 font-semibold text-lg mb-1">
+                    <p className="text-gray-900 font-semibold text-base sm:text-lg mb-1">
                       We also provide{" "}
                       <span className="text-green-600">Live Counter</span>{" "}
                       options!
                     </p>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-sm sm:text-base">
                       Enhance your event experience with our special live
                       counters
                     </p>
@@ -588,48 +563,45 @@ const MenuSelection = () => {
                   onClick={() => setShowLiveCounterAlert(false)}
                   className="text-gray-500 hover:text-gray-700 transition-colors"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
 
-              <div className="mt-4 max-h-64 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="mt-4 max-h-48 sm:max-h-64 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
                   {getLiveCounterItems().map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center p-4 bg-gray-50 rounded-lg"
+                      className="flex items-center p-2 sm:p-4 bg-gray-50 rounded-lg"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`w-4 h-4 rounded flex items-center justify-center ${
+                            className={`w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center ${
                               item.is_veg === "1"
                                 ? "border-2 border-green-500"
                                 : "border-2 border-red-500"
                             }`}
                           >
                             <span
-                              className={`w-2 h-2 rounded-full ${
+                              className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
                                 item.is_veg === "1"
                                   ? "bg-green-500"
                                   : "bg-red-500"
                               }`}
                             ></span>
                           </span>
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-gray-900 text-sm sm:text-base">
                             {item.item_name}
                           </p>
                         </div>
-                        {/* <p className="text-green-600 font-medium mt-1">
-                          +₹{item.price} per plate
-                        </p> */}
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-6 text-center">
+              <div className="mt-4 text-center">
                 <p className="text-sm text-gray-500">
                   Click on any live counter item in the menu to add it to your
                   selection
@@ -639,41 +611,41 @@ const MenuSelection = () => {
           </div>
 
           <style>
-        {`
-          @keyframes fadeOut {
-            from { opacity: 1; }
-            to { opacity: 0; }
-          }
-          .animate-fade-out {
-            animation: fadeOut 4s ease-out forwards;
-          }
-        `}
-      </style>
+            {`
+              @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+              }
+              .animate-fade-out {
+                animation: fadeOut 4s ease-out forwards;
+              }
+            `}
+          </style>
         </>
       )}
 
-      <div className="max-w-full mx-auto p-6 lg:col-span-2 ">
+      <div className="max-w-full mx-auto p-4 lg:col-span-2">
         {/* Header */}
-        <div className="max-w-full bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div className="flex gap-6 items-center">
-            <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-lg">
-              <h1 className="text-3xl font-bold text-gray-800">
+        <div className="max-w-full bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
+            <div className="flex items-center gap-2 bg-green-50 px-3 sm:px-4 py-1 sm:py-2 rounded-lg">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-800">
                 {menuType
                   .split("-")
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                   .join(" ")}
               </h1>
-              <span className="text-gray-600">Base Price:</span>
-              <span className="text-2xl font-bold text-green-600">
+              <span className="text-gray-600 text-sm sm:text-base">Base Price:</span>
+              <span className="text-xl sm:text-2xl font-bold text-green-600">
                 ₹{calculatePlatePrice()}
               </span>
-              <span className="text-gray-600">per plate</span>
+              <span className="text-gray-600 text-sm sm:text-base">per plate</span>
             </div>
 
             <div className="flex gap-2">
               <button
                 onClick={() => handleMenuPreferenceChange("veg")}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg text-sm sm:text-base ${
                   menuPreference === "veg"
                     ? "bg-green-500 text-white"
                     : "bg-gray-200 text-gray-700"
@@ -683,7 +655,7 @@ const MenuSelection = () => {
               </button>
               <button
                 onClick={() => handleMenuPreferenceChange("nonveg")}
-                className={`px-4 py-2 rounded-lg ${
+                className={`px-3 sm:px-4 py-1 sm:py-2 rounded-lg text-sm sm:text-base ${
                   menuPreference === "nonveg"
                     ? "bg-red-500 text-white"
                     : "bg-gray-200 text-gray-700"
@@ -695,9 +667,9 @@ const MenuSelection = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Menu Categories */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {getSortedCategories().map((category) => {
               const limit = getCategoryLimit(category);
               const selectedCount = getItemsInCategory(category).length;
@@ -708,11 +680,11 @@ const MenuSelection = () => {
                 <div key={category} className={`bg-white rounded-xl shadow-lg overflow-hidden ${
                   category.toLowerCase() === "live counter" ? "border-2 border-green-500" : ""
                 }`}>
-                  <div className={`p-4 border-b ${
+                  <div className={`p-3 sm:p-4 border-b ${
                     category.toLowerCase() === "live counter" ? "bg-green-50" : "bg-gray-50"
                   }`}>
                     <div className="flex justify-between items-center">
-                      <h2 className={`text-xl font-bold ${
+                      <h2 className={`text-lg sm:text-xl font-bold ${
                         category.toLowerCase() === "live counter" ? "text-black" : "text-gray-800"
                       }`}>
                         {category} {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
@@ -722,25 +694,24 @@ const MenuSelection = () => {
                           </span>
                         )}
                       </h2>
-                    {notifications[category] && (
-                      <div className="p-1 bg-yellow-50 text-yellow-800 rounded-md text-sm animate-fade-out">
-                        {notifications[category].message}
-                      </div>
-                    )}
+                      {notifications[category] && (
+                        <div className="p-1 bg-yellow-50 text-yellow-800 rounded-md text-xs sm:text-sm animate-fade-out">
+                          {notifications[category].message}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  
 
-                  <div className="p-4 min-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-3 sm:p-4 min-w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4">
                     {getFilteredItems()
                       .filter((item) => item.category_name === category)
                       .map((item) => (
                         <div
                           key={item.id}
-                          className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                          className="flex items-center p-2 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <label className="flex items-center flex-1 cursor-pointer">
-                            <div className="relative w-5 h-5 mr-3">
+                            <div className="relative w-4 h-4 sm:w-5 sm:h-5 mr-2 sm:mr-3">
                               <input
                                 type="checkbox"
                                 checked={
@@ -758,7 +729,7 @@ const MenuSelection = () => {
                                 className="hidden"
                               />
                               <div
-                                className={`w-5 h-5 border-2 rounded transition-colors ${
+                                className={`w-4 h-4 sm:w-5 sm:h-5 border-2 rounded transition-colors ${
                                   isCommonItems ||
                                   selectedItems.some(
                                     (selected) => selected.id === item.id
@@ -785,18 +756,18 @@ const MenuSelection = () => {
                                 )}
                               </div>
                             </div>
-                            <span className="flex-1">{item.item_name}</span>
+                            <span className="flex-1 text-sm sm:text-base">{item.item_name}</span>
                           </label>
 
                           <span
-                            className={`flex items-center justify-center w-6 h-6 rounded ${
+                            className={`flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded ${
                               item.is_veg === "1"
                                 ? "border-2 border-green-500"
                                 : "border-2 border-red-500"
                             }`}
                           >
                             <span
-                              className={`w-2.5 h-2.5 rounded-full ${
+                              className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
                                 item.is_veg === "1"
                                   ? "bg-green-500"
                                   : "bg-red-500"
@@ -814,30 +785,30 @@ const MenuSelection = () => {
 
         {/* Alert Dialog */}
         {showAlert && (
-          <div className="fixed inset-0  flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-              <div className="flex items-center gap-3 mb-4">
-                <AlertTriangle className="text-orange-500" size={24} />
-                <h3 className="text-lg font-bold">
+          <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 max-w-md w-full">
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <AlertTriangle className="text-orange-500" size={20} />
+                <h3 className="text-base sm:text-lg font-bold">
                   {showAlert.isConfirmation
                     ? "Confirmation Required"
                     : "Missing Items"}
                 </h3>
               </div>
 
-              <p className="text-gray-600 mb-6">{showAlert.message}</p>
+              <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">{showAlert.message}</p>
 
-              <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-2 sm:gap-3">
                 <button
                   onClick={() => setShowAlert(null)}
-                  className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                  className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-sm sm:text-base"
                 >
                   {showAlert.isConfirmation ? "Cancel" : "OK"}
                 </button>
                 {showAlert.isConfirmation && (
                   <button
                     onClick={showAlert.onConfirm}
-                    className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                    className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors text-sm sm:text-base"
                   >
                     Add Anyway
                   </button>
@@ -847,38 +818,38 @@ const MenuSelection = () => {
           </div>
         )}
       </div>
-      <div className="lg:sticky lg:top-6 lg:col-span-1 mt-5 mr-5">
-        <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4">
-          <h2 className="text-xl font-bold text-gray-800 mb-6">
+      <div className="lg:sticky lg:top-6 lg:col-span-1 mt-4 sm:mt-5 mr-4 sm:mr-5">
+        <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 sticky top-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">
             Your Selection
           </h2>
 
-          <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg">
-            <span className="text-gray-600">Guests:</span>
+          <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6 p-2 sm:p-4 bg-gray-50 rounded-lg">
+            <span className="text-gray-600 text-sm sm:text-base">Guests:</span>
             <button
               onClick={() => setGuestCount(Math.max(10, guestCount - 5))}
-              className="p-2 rounded hover:bg-gray-200 transition-colors"
+              className="p-1 sm:p-2 rounded hover:bg-gray-200 transition-colors"
             >
-              <Minus size={16} />
+              <Minus size={14} />
             </button>
             <input
               type="text"
               value={inputValue}
               onChange={handleInputChange}
               onBlur={handleInputBlur}
-              className="w-16 text-center font-bold bg-white border rounded-md py-1 px-2 focus:outline-none"
+              className="w-12 sm:w-16 text-center font-bold bg-white border rounded-md py-1 px-2 focus:outline-none text-sm sm:text-base"
               maxLength={4}
             />
             <button
               onClick={() => setGuestCount(guestCount + 5)}
-              className="p-2 rounded hover:bg-gray-200 transition-colors"
+              className="p-1 sm:p-2 rounded hover:bg-gray-200 transition-colors"
             >
-              <Plus size={16} />
+              <Plus size={14} />
             </button>
           </div>
 
-          <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
-            <h3 className="font-bold">Selected Items</h3>
+          <div className="space-y-2 sm:space-y-4 mb-4 sm:mb-6 max-h-48 sm:max-h-96 overflow-y-auto">
+            <h3 className="font-bold text-sm sm:text-base">Selected Items</h3>
             {Object.entries(
               selectedItems.reduce((acc, item) => {
                 if (!acc[item.category_name]) acc[item.category_name] = [];
@@ -888,13 +859,13 @@ const MenuSelection = () => {
             )
               .reverse()
               .map(([category, items]) => (
-                <div key={category} className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-bold text-gray-700 mb-2">{category}</h3>
-                  <ul className="space-y-2">
+                <div key={category} className="p-2 sm:p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-bold text-gray-700 text-sm sm:text-base mb-1 sm:mb-2">{category}</h3>
+                  <ul className="space-y-1 sm:space-y-2">
                     {items.map((item) => (
                       <li
                         key={item.id}
-                        className="flex justify-between items-center"
+                        className="flex justify-between items-center text-sm sm:text-base"
                       >
                         <span className="text-gray-600">{item.item_name}</span>
                         {item.isExtra && (
@@ -909,15 +880,15 @@ const MenuSelection = () => {
               ))}
           </div>
 
-          <div className="border-t pt-4 mb-6">
-            <div className="space-y-2">
-              <div className="flex justify-between text-gray-600">
+          <div className="border-t pt-2 sm:pt-4 mb-4 sm:mb-6">
+            <div className="space-y-1 sm:space-y-2">
+              <div className="flex justify-between text-gray-600 text-sm sm:text-base">
                 <span>
                   Plate Cost (₹{calculatePlatePrice()} × {guestCount})
                 </span>
                 <span>₹{(calculatePlatePrice() * guestCount).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 text-sm sm:text-base">
                 <span>Extra Items Per Plate</span>
                 <span>
                   ₹
@@ -927,30 +898,30 @@ const MenuSelection = () => {
                     .toFixed(2)}
                 </span>
               </div>
-              <div className="flex justify-between text-gray-600">
+              <div className="flex justify-between text-gray-600 text-sm sm:text-base">
                 <span>Delivery Charge</span>
                 <span>₹500</span>
               </div>
-              <div className="flex justify-between text-xl font-bold pt-2 border-t">
+              <div className="flex justify-between text-lg sm:text-xl font-bold pt-2 border-t">
                 <span>Total</span>
                 <span>₹{calculateTotal().toFixed(2)}</span>
               </div>
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             <button
               onClick={() => handleActionButton("pay")}
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors"
+              className="w-full py-2 sm:py-3 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 bg-green-600 hover:bg-green-700 text-white transition-colors text-sm sm:text-base"
             >
-              <CreditCard size={20} />
+              <CreditCard size={16} />
               Proceed to Pay
             </button>
             <button
               onClick={handleAddToCart}
-              className="w-full py-3 px-4 rounded-lg flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+              className="w-full py-2 sm:py-3 px-3 sm:px-4 rounded-lg flex items-center justify-center gap-1 sm:gap-2 bg-blue-600 hover:bg-blue-700 text-white transition-colors text-sm sm:text-base"
             >
-              <ShoppingCart size={20} />
+              <ShoppingCart size={16} />
               Add to Cart
             </button>
           </div>
@@ -961,5 +932,3 @@ const MenuSelection = () => {
 };
 
 export default MenuSelection;
-
-// http://localhost:5173/events/wedding-catering/Engagement-ceremony/Menu/Silver%20Menu
