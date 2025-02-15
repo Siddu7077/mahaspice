@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { IndianRupee, Calendar, Tag, Package } from "lucide-react";
 import { useAuth } from "./AuthSystem";
 
-const MealPrevOrders = ({ activeTab }) => {
+const DeliveryPrevOrders = ({ activeTab }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -17,7 +17,7 @@ const MealPrevOrders = ({ activeTab }) => {
   const fetchOrders = async (phone, type) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://mahaspice.desoftimp.com/ms3/fetch_orders.php?phone=${phone}`);
+      const response = await fetch(`https://mahaspice.desoftimp.com/ms3/SupDelPrevOrders.php?phone=${phone}&type=${type}`);
       const data = await response.json();
       if (data.success) {
         setOrders(data.orders);
@@ -57,13 +57,12 @@ const MealPrevOrders = ({ activeTab }) => {
 
   return (
     <div>
-      {/* Orders */}
       {orders.map((order) => (
         <div key={order.payment_order.payment_id} className="bg-white rounded-lg shadow-md p-6 mb-6">
           {/* Customer Details */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold mb-4">
-              OrderId: {order.order_items[0]?.order_id}
+              OrderId: {order.sup_home_orders?.[0]?.order_id || "N/A"}
             </h2>
             <div className="space-y-2">
               <div className="flex items-center">
@@ -89,12 +88,12 @@ const MealPrevOrders = ({ activeTab }) => {
             </div>
             <span
               className={`px-3 py-1 rounded-full text-sm ${
-                order.payment_order.order_status === "completed"
+                order.payment_order.status === "completed"
                   ? "bg-green-100 text-green-800"
                   : "bg-yellow-100 text-yellow-800"
               }`}
             >
-              {order.payment_order.order_status}
+              {order.payment_order.status}
             </span>
           </div>
 
@@ -111,12 +110,11 @@ const MealPrevOrders = ({ activeTab }) => {
 
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Items</h3>
-            {order.order_items.map((item, index) => (
+            {(order.order_home || []).map((item, index) => (
               <div key={index} className="flex justify-between items-center border-b py-2">
                 <div className="flex items-center">
                   <Package size={16} className="text-gray-500 mr-2" />
                   <span className="text-sm">{item.item_name}</span>
-                  <span className="text-sm ml-4">{item.package}</span>
                 </div>
                 <div className="text-sm text-gray-600">
                   {item.quantity} x ₹{item.price}
@@ -130,4 +128,4 @@ const MealPrevOrders = ({ activeTab }) => {
   );
 };
 
-export default MealPrevOrders;
+export default DeliveryPrevOrders;

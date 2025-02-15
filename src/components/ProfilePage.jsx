@@ -3,6 +3,9 @@ import { User, Phone, Home, Package, Box, Edit, Save, X } from "lucide-react";
 import { useAuth } from "./AuthSystem";
 import MealPrevOrders from "./MealPrevOrders";
 import DeliveryPrevOrders from "./DeliveryPrevOrders";
+import SupMealPrevOrders from "./SupMealPrevOrders";
+import SupDeliveryPrevOrders from "./SupDelPrevOrders";
+
 
 const ProfilePage = () => {
   const { user } = useAuth();
@@ -38,7 +41,7 @@ const ProfilePage = () => {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    
+
     try {
       // Validation and submission logic here
     } catch (err) {
@@ -174,34 +177,60 @@ const ProfilePage = () => {
           <div className="flex mb-6 border-b">
             <button
               onClick={() => setActiveTab("mealbox")}
-              className={`flex items-center mr-6 pb-3 ${
-                activeTab === "mealbox"
+              className={`flex items-center mr-6 pb-3 ${activeTab === "mealbox"
                   ? "border-b-2 border-blue-500 text-blue-500"
                   : "text-gray-500"
-              }`}
+                }`}
             >
               <Package size={20} className="mr-2" />
               Mealbox Orders
             </button>
+
             <button
-              onClick={() => setActiveTab("home")}
-              className={`flex items-center pb-3 ${
-                activeTab === "home"
+              onClick={() => setActiveTab("superfast-box")}
+              className={`flex items-center pb-3 ${activeTab === "superfast-box"
                   ? "border-b-2 border-blue-500 text-blue-500"
                   : "text-gray-500"
-              }`}
+                }`}
             >
-              <Box size={20} className="mr-2" />
+              <Package size={20} className="m-2" />
+              Superfast Box Genie Orders
+            </button>
+
+            <button
+              onClick={() => setActiveTab("home")}
+              className={`flex items-center pb-3 ${activeTab === "home"
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-500"
+                }`}
+            >
+              <Box size={20} className="m-2" />
               Home Delivery Orders
             </button>
+            <button
+              onClick={() => setActiveTab("superfast-home")}
+              className={`flex items-center pb-3 ${activeTab === "superfast-home"
+                  ? "border-b-2 border-blue-500 text-blue-500"
+                  : "text-gray-500"
+                }`}
+            >
+              <Box size={20} className="m-2" />
+              SuperfastHome Delivery Orders
+            </button>
+          
           </div>
 
           {/* Conditional rendering based on activeTab */}
-          {activeTab === "mealbox" ? (
+         {activeTab === "mealbox" ? (
             <MealPrevOrders activeTab={activeTab} />
-          ) : (
+          ) : activeTab === "home" ? (
             <DeliveryPrevOrders activeTab={activeTab} />
-          )}
+          ) : activeTab === "superfast-home" ? (
+            <SupDeliveryPrevOrders activeTab={activeTab} />
+          ) : activeTab === "superfast-box" ? (
+            <SupMealPrevOrders activeTab={activeTab} />
+          ) : null}
+
         </div>
       </div>
     </div>
