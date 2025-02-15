@@ -206,7 +206,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
 
             const options = {
                 key: "rzp_live_Mjm1GpVqxzwjQL",
-                amount: Math.round(totals.total * 100 /2800 ),
+                amount: Math.round(totals.total * 100  ),
                 currency: "INR",
                 name: "Mahaspice Caterers",
                 description: "Delbox Order Payment",
