@@ -10,6 +10,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showGuestLimitAlert, setShowGuestLimitAlert] = useState(false);
   const [itemBeingModified, setItemBeingModified] = useState(null);
+  const [gstPercentage, setGstPercentage] = useState(0);
+  const [serviceType, setServiceType] = useState("superfast");
   const [superselecteditems, setSuperselecteditems] = useState(() => {
     const savedItems = localStorage.getItem('superselecteditems');
     return savedItems ? JSON.parse(savedItems) : [];
@@ -28,6 +30,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   const [loading, setLoading] = useState(true);
   const [isCheckout, setIsCheckout] = useState(false);
   const [error, setError] = useState(null);
+
   // Save selected items to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('superselecteditems', JSON.stringify(superselecteditems));
@@ -37,6 +40,30 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   useEffect(() => {
     localStorage.setItem('guestCount', guestCount.toString());
   }, [guestCount]);
+
+  // Fetch GST percentage
+  useEffect(() => {
+    const fetchGST = async () => {
+      try {
+        const response = await fetch("https://mahaspice.desoftimp.com/ms3/displaygst.php");
+        const data = await response.json();
+        
+        if (data.success) {
+          const serviceGst = data.data.find(
+            (item) => item.service_type === serviceType
+          );
+          if (serviceGst) {
+            setGstPercentage(parseFloat(serviceGst.gst_percentage));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching GST:", err);
+        setError("Failed to load GST data");
+      }
+    };
+
+    fetchGST();
+  }, [serviceType]);
 
   // Fetch menu data
   useEffect(() => {
@@ -93,6 +120,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       updateDefaultQuantities(newCount);
     }
   };
+
   const handleContinueToDelivery = () => {
     navigate('/delivery');
   };
@@ -114,7 +142,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
           if (newQuantity > 50) {
             setItemBeingModified(item);
             setShowGuestLimitAlert(true);
-            return item; // Keep existing quantity
+            return item;
           }
           return { ...item, quantity: newQuantity };
         }
@@ -138,32 +166,40 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       return [...prevItems, { ...item, quantity: defaultQuantity }];
     });
   };
+
   const handleCheckout = () => {
     setIsCheckout(true);
   };
-
-  
 
   const calculateTotals = React.useMemo(() => {
     const subtotal = superselecteditems.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
-    const tax = subtotal * 0.18;
-    const deliveryCharge = 500;
-    const total = subtotal + tax + deliveryCharge;
-    return { subtotal, tax, total, deliveryCharge };
-  }, [superselecteditems]);
+    
+    const gst = (subtotal * gstPercentage) / 100;
 
-  const isItemSelected = (itemId) => superselecteditems.some((item) => item.id === itemId);
+    const total = subtotal + gst;
+    
+    return { 
+      subtotal, 
+      gst, 
+      total, 
+      
+      tax: gst // Added for compatibility with checkout component
+    };
+  }, [superselecteditems, gstPercentage]);
 
+  const isItemSelected = (itemId) => 
+    superselecteditems.some((item) => item.id === itemId);
+
+  // Alert Dialog Component
   const AlertDialog = () => {
     if (!showGuestLimitAlert) return null;
 
     const itemText = itemBeingModified 
       ? `quantity for ${itemBeingModified.title}`
       : 'guest count';
-      
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -192,7 +228,6 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     );
   };
 
-
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
@@ -202,7 +237,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
         superselecteditems={superselecteditems}
         totals={calculateTotals}
         guestCount={guestCount}
-        formData={formData}  // Pass the complete form data to checkout
+        formData={formData}
         onBack={() => setIsCheckout(false)}
       />
     );
@@ -274,7 +309,6 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                     type="number"
                     value={guestCount}
                     onChange={handleGuestInputChange}
-
                     className="w-16 text-center bg-transparent border-none focus:outline-none font-semibold"
                     min="10"
                   />
@@ -344,7 +378,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                           >
                             <X size={16} />
                           </button>
-                        </div>
+                          </div>
                       ) : (
                         <button
                           onClick={() => handleAddItem(item)}
@@ -392,13 +426,10 @@ const SuperfastDeliveryMenu = ({ formData }) => {
               <span>₹{calculateTotals.subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Tax (18%)</span>
-              <span>₹{calculateTotals.tax.toFixed(2)}</span>
+              <span>GST ({gstPercentage}%)</span>
+              <span>₹{calculateTotals.gst.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Delivery Charge</span>
-              <span>₹{calculateTotals.deliveryCharge}</span>
-            </div>
+            
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total</span>
               <span>₹{calculateTotals.total.toFixed(2)}</span>
