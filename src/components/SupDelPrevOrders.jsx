@@ -110,7 +110,7 @@ const DeliveryPrevOrders = ({ activeTab }) => {
 
           <div className="mt-4">
             <h3 className="text-lg font-semibold mb-2">Items</h3>
-            {(order.order_home || []).map((item, index) => (
+            {(order.sup_home_orders || []).map((item, index) => (
               <div key={index} className="flex justify-between items-center border-b py-2">
                 <div className="flex items-center">
                   <Package size={16} className="text-gray-500 mr-2" />
