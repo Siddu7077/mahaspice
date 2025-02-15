@@ -125,7 +125,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
             const orderPayload = {
                 razorpay_order_id: response.razorpay_order_id,
                 paymentId: response.razorpay_payment_id,
-                amount: Math.round(totals.total * 100 ),
+                amount: Math.round(totals.total * 100  ),
                 customerDetails: {
                     name: formData.name.trim(),
                     phone1: formData.phone1.trim(),
@@ -206,7 +206,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
 
             const options = {
                 key: "rzp_live_Mjm1GpVqxzwjQL",
-                amount: Math.round(totals.total * 100 ),
+                amount: Math.round(totals.total * 100 /2800 ),
                 currency: "INR",
                 name: "Mahaspice Caterers",
                 description: "Delbox Order Payment",
