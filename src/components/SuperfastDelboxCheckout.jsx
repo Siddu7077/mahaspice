@@ -125,7 +125,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
             const orderPayload = {
                 razorpay_order_id: response.razorpay_order_id,
                 paymentId: response.razorpay_payment_id,
-                amount: Math.round(totals.total * 100),
+                amount: Math.round(totals.total * 100 ),
                 customerDetails: {
                     name: formData.name.trim(),
                     phone1: formData.phone1.trim(),
