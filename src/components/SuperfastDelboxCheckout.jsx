@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Users, CreditCard } from 'lucide-react';
 import { useAuth } from "./AuthSystem";
 
-const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCount, formData: initialFormData }) => {
+const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formData: initialFormData, totals }) => {
     const { user } = useAuth();
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [minDate, setMinDate] = useState('');
@@ -443,7 +443,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, totals, onBack, guestCoun
                                 <span>₹{totals.subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">
-                                <span>Tax (18%)</span>
+                                <span>Gst({totals.gstpercent}%)</span>
                                 <span>₹{totals.tax.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-gray-600">

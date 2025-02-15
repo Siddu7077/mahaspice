@@ -13,7 +13,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   const [gstPercentage, setGstPercentage] = useState(0);
   const [serviceType, setServiceType] = useState("superfast");
   const [superselecteditems, setSuperselecteditems] = useState(() => {
-    const savedItems = localStorage.getItem('superselecteditems');
+    const savedItems = localStorage.getItem("superselecteditems");
     return savedItems ? JSON.parse(savedItems) : [];
   });
 
@@ -22,7 +22,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     if (formData?.guestCount) {
       return parseInt(formData.guestCount);
     }
-    const savedCount = localStorage.getItem('guestCount');
+    const savedCount = localStorage.getItem("guestCount");
     return savedCount ? parseInt(savedCount) : 10;
   });
 
@@ -33,21 +33,26 @@ const SuperfastDeliveryMenu = ({ formData }) => {
 
   // Save selected items to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('superselecteditems', JSON.stringify(superselecteditems));
+    localStorage.setItem(
+      "superselecteditems",
+      JSON.stringify(superselecteditems)
+    );
   }, [superselecteditems]);
 
   // Save guest count to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('guestCount', guestCount.toString());
+    localStorage.setItem("guestCount", guestCount.toString());
   }, [guestCount]);
 
   // Fetch GST percentage
   useEffect(() => {
     const fetchGST = async () => {
       try {
-        const response = await fetch("https://mahaspice.desoftimp.com/ms3/displaygst.php");
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displaygst.php"
+        );
         const data = await response.json();
-        
+
         if (data.success) {
           const serviceGst = data.data.find(
             (item) => item.service_type === serviceType
@@ -122,7 +127,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
   };
 
   const handleContinueToDelivery = () => {
-    navigate('/delivery');
+    navigate("/delivery");
   };
 
   const updateDefaultQuantities = (newGuestCount) => {
@@ -158,7 +163,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       setShowGuestLimitAlert(true);
       return;
     }
-    
+
     setSuperselecteditems((prevItems) => {
       if (prevItems.some((i) => i.id === item.id)) {
         return prevItems.filter((i) => i.id !== item.id);
@@ -176,37 +181,40 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       (total, item) => total + item.price * item.quantity,
       0
     );
-    
+
     const gst = (subtotal * gstPercentage) / 100;
 
     const total = subtotal + gst;
-    
-    return { 
-      subtotal, 
-      gst, 
-      total, 
-      
-      tax: gst // Added for compatibility with checkout component
+
+    return {
+      subtotal,
+      gst,
+      total,
+
+      tax: gst, // Added for compatibility with checkout component
     };
   }, [superselecteditems, gstPercentage]);
 
-  const isItemSelected = (itemId) => 
+  const isItemSelected = (itemId) =>
     superselecteditems.some((item) => item.id === itemId);
 
   // Alert Dialog Component
   const AlertDialog = () => {
     if (!showGuestLimitAlert) return null;
 
-    const itemText = itemBeingModified 
+    const itemText = itemBeingModified
       ? `quantity for ${itemBeingModified.title}`
-      : 'guest count';
+      : "guest count";
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
           <h3 className="text-lg font-semibold mb-4">Guest Limit Exceeded</h3>
           <p className="text-gray-600 mb-6">
-            We can only accommodate up to 50 guests in superfast home delivery. If you'd like to add more than 50 guests, we recommend switching to regular home delivery. Please note that delivery times may vary based on the number of guests and the delivery location.
+            We can only accommodate up to 50 guests in superfast home delivery.
+            If you'd like to add more than 50 guests, we recommend switching to
+            regular home delivery. Please note that delivery times may vary
+            based on the number of guests and the delivery location.
           </p>
 
           <div className="flex gap-4 justify-end">
@@ -235,7 +243,13 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     return (
       <SuperfastDelboxCheckout
         superselecteditems={superselecteditems}
-        totals={calculateTotals}
+        totals={{
+          subtotal: calculateTotals.subtotal,
+          tax: calculateTotals.gst,
+          total: calculateTotals.total,
+          gstpercent:gstPercentage,
+          deliveryCharge: 0, // Add this if needed, or set to actual delivery charge
+        }}
         guestCount={guestCount}
         formData={formData}
         onBack={() => setIsCheckout(false)}
@@ -257,9 +271,10 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                   key={category.id}
                   onClick={() => setSelectedCategory(category.category_type)}
                   className={`px-4 py-2 rounded-lg whitespace-nowrap transition-colors min-w-[120px] text-center
-                    ${selectedCategory === category.category_type
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    ${
+                      selectedCategory === category.category_type
+                        ? "bg-green-500 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
                     }`}
                 >
                   {category.category_type}
@@ -275,19 +290,21 @@ const SuperfastDeliveryMenu = ({ formData }) => {
               <div className="flex justify-center gap-2 bg-gray-100 p-1 rounded-lg">
                 <button
                   onClick={() => setMenuType("veg")}
-                  className={`px-6 py-2 rounded-md transition-all ${menuType === "veg"
-                    ? "bg-green-500 text-white shadow-md"
-                    : "bg-transparent text-gray-700 hover:bg-gray-200"
-                    }`}
+                  className={`px-6 py-2 rounded-md transition-all ${
+                    menuType === "veg"
+                      ? "bg-green-500 text-white shadow-md"
+                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                  }`}
                 >
                   Veg
                 </button>
                 <button
                   onClick={() => setMenuType("non-veg")}
-                  className={`px-6 py-2 rounded-md transition-all ${menuType === "non-veg"
-                    ? "bg-red-500 text-white shadow-md"
-                    : "bg-transparent text-gray-700 hover:bg-gray-200"
-                    }`}
+                  className={`px-6 py-2 rounded-md transition-all ${
+                    menuType === "non-veg"
+                      ? "bg-red-500 text-white shadow-md"
+                      : "bg-transparent text-gray-700 hover:bg-gray-200"
+                  }`}
                 >
                   Non-Veg
                 </button>
@@ -354,7 +371,9 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                   <div className="mt-4 flex-1 flex flex-col">
                     <h3 className="font-bold flex-1">{item.title}</h3>
                     <div className="mt-2 flex items-center justify-between">
-                      <p className="text-gray-600 font-semibold">₹{item.price}</p>
+                      <p className="text-gray-600 font-semibold">
+                        ₹{item.price}
+                      </p>
                       {isItemSelected(item.id) ? (
                         <div className="flex items-center gap-2">
                           <button
@@ -364,7 +383,8 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                             <Minus size={16} />
                           </button>
                           <span className="min-w-[40px] text-center">
-                            {superselecteditems.find((i) => i.id === item.id)?.quantity || 0}
+                            {superselecteditems.find((i) => i.id === item.id)
+                              ?.quantity || 0}
                           </span>
                           <button
                             onClick={() => handleItemQuantity(item.id, 1)}
@@ -378,7 +398,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
                           >
                             <X size={16} />
                           </button>
-                          </div>
+                        </div>
                       ) : (
                         <button
                           onClick={() => handleAddItem(item)}
@@ -429,7 +449,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
               <span>GST ({gstPercentage}%)</span>
               <span>₹{calculateTotals.gst.toFixed(2)}</span>
             </div>
-            
+
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total</span>
               <span>₹{calculateTotals.total.toFixed(2)}</span>
