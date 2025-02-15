@@ -19,6 +19,11 @@ const CartMenuOrder = () => {
   const [guestCount, setGuestCount] = useState(
     location.state?.guestCount || 10
   );
+
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState(null);
@@ -39,6 +44,159 @@ const CartMenuOrder = () => {
     helper: { cost: 300, ratio: "100/2", min: 0 },
     table: { cost: 200, ratio: "100/10", min: 0 },
   });
+
+  useEffect(() => {
+    const loadRazorpay = async () => {
+      const script = document.createElement("script");
+      script.src = "https://checkout.razorpay.com/v1/checkout.js";
+      script.async = true;
+      script.onload = () => setRazorpayLoaded(true);
+      document.body.appendChild(script);
+    };
+    loadRazorpay();
+
+    // Cleanup
+    return () => {
+      const script = document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
+      if (script) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  const isFormValid = () => {
+    const requiredFields = [
+      "fullName",
+      "email",
+      "phoneNumber",
+      "city",
+      "address",
+      "landmark",
+      "date",
+      "time",
+    ];
+
+    return !requiredFields.some((field) => !userDetails[field]);
+  };
+
+  const handlePaymentSuccess = async (response) => {
+    console.log("Payment successful, response:", response);
+    setIsLoading(false);
+    setShowPaymentSuccess(true);
+  
+    // Prepare the order data
+    const orderData = {
+      customerDetails: {
+        name: userDetails.fullName,
+        phone1: userDetails.phoneNumber,
+        phone2: userDetails.alternateNumber,
+        email: userDetails.email,
+        address: userDetails.address,
+        landmark: userDetails.landmark,
+        deliveryDate: userDetails.date,
+        deliveryTime: userDetails.time,
+      },
+      orderDetails: {
+        guestCount,
+        date: userDetails.date,
+        time: userDetails.time,
+        tables: userDetails.numberOfTables,
+        staff: userDetails.numberOfStaff,
+        helpers: userDetails.numberOfHelpers,
+        selectedItems: JSON.stringify(groupedItems()), // Convert to JSON
+        platePrice,
+        tableCharges: totals.tablesCost,
+        staffCharges: totals.staffCost,
+        helperCharges: totals.helperCost,
+        discount: totals.discount,
+        subtotal: totals.subtotal,
+        gst: totals.gst,
+        gstPercentage,
+        deliveryFee: totals.deliveryFee,
+        total: totals.total,
+      },
+      paymentDetails: {
+        paymentId: response.razorpay_payment_id,
+        amount: totals.total * 100, // Convert to paise for Razorpay
+      },
+    };
+  
+    try {
+      // Send the order data to the backend
+      const response = await fetch("https://mahaspice.desoftimp.com/ms3/payment/catering_order.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+  
+      const result = await response.json();
+      if (result.status === "success") {
+        console.log("Order created successfully:", result);
+      } else {
+        console.error("Order creation failed:", result.message);
+      }
+    } catch (error) {
+      console.error("Error sending order data:", error);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!isFormValid()) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      if (!window.Razorpay) {
+        throw new Error(
+          "Razorpay SDK failed to load. Please refresh the page and try again."
+        );
+      }
+
+      const options = {
+        key: "rzp_live_Mjm1GpVqxzwjQL",
+        amount: Math.round(totals.total * 100/1000),
+        currency: "INR",
+        name: "Mahaspice Caterers",
+        description: "Catering Order Payment",
+        prefill: {
+          name: userDetails.fullName,
+          contact: userDetails.phoneNumber,
+        },
+        handler: handlePaymentSuccess,
+        modal: {
+          ondismiss: function () {
+            setIsLoading(false);
+          },
+        },
+        theme: {
+          color: "#22c55e",
+        },
+      };
+
+      const razorpayInstance = new window.Razorpay(options);
+      razorpayInstance.open();
+    } catch (error) {
+      console.error("Payment Error:", error);
+      alert("Payment initiation failed: " + error.message);
+      setIsLoading(false);
+    }
+  };
+
+  // Modify the handleSubmit function to use Razorpay
+  const handleSubmit = () => {
+    if (!razorpayLoaded) {
+      alert("Payment system is loading. Please try again in a moment.");
+      return;
+    }
+    handlePayment();
+  };
 
   const getCurrentDateInIST = () => {
     return new Date(
@@ -485,7 +643,11 @@ const CartMenuOrder = () => {
 
   const calculateTotals = () => {
     // Guard against undefined values
-    if (!resources.staff?.cost || !resources.helper?.cost || !resources.table?.cost) {
+    if (
+      !resources.staff?.cost ||
+      !resources.helper?.cost ||
+      !resources.table?.cost
+    ) {
       return {
         baseCost: 0,
         extraItemsCost: 0,
@@ -496,24 +658,29 @@ const CartMenuOrder = () => {
         discount: 0,
         gst: 0,
         deliveryFee: DEFAULT_DELIVERY_FEE,
-        total: 0
+        total: 0,
       };
     }
 
     const staffCost = (userDetails.numberOfStaff || 0) * resources.staff.cost;
-    const helperCost = (userDetails.numberOfHelpers || 0) * resources.helper.cost;
+    const helperCost =
+      (userDetails.numberOfHelpers || 0) * resources.helper.cost;
     const tablesCost = (userDetails.numberOfTables || 0) * resources.table.cost;
 
     const baseCost = (platePrice || 0) * (guestCount || 0);
     const extraItemsCost = (extraItems?.length || 0) * 50;
 
-    const subtotal = baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
+    const subtotal =
+      baseCost + extraItemsCost + staffCost + helperCost + tablesCost;
 
     let discount = 0;
     if (appliedCoupon) {
       if (appliedCoupon.discount_type === "percentage") {
         discount = (subtotal * appliedCoupon.discount_value) / 100;
-        if (appliedCoupon.max_discount && discount > appliedCoupon.max_discount) {
+        if (
+          appliedCoupon.max_discount &&
+          discount > appliedCoupon.max_discount
+        ) {
           discount = appliedCoupon.max_discount;
         }
       } else if (appliedCoupon.discount_type === "fixed") {
@@ -535,10 +702,9 @@ const CartMenuOrder = () => {
       discount,
       gst,
       deliveryFee,
-      total
+      total,
     };
   };
-  
 
   const handleCouponApply = () => {
     setCouponError("");
@@ -575,48 +741,48 @@ const CartMenuOrder = () => {
     setCouponError("");
   };
 
-  const handleSubmit = () => {
-    const requiredFields = [
-      "fullName",
-      "email",
-      "phoneNumber",
-      "city",
-      "address",
-      "landmark",
-      "date",
-      "time",
-    ];
+  // const handleSubmit = () => {
+  //   const requiredFields = [
+  //     "fullName",
+  //     "email",
+  //     "phoneNumber",
+  //     "city",
+  //     "address",
+  //     "landmark",
+  //     "date",
+  //     "time",
+  //   ];
 
-    const calculateMinRequirements = (guestCount) => {
-      if (guestCount <= 0) {
-        return {
-          staff: 0,
-          helper: 0,
-          table: 0,
-        };
-      }
+  //   const calculateMinRequirements = (guestCount) => {
+  //     if (guestCount <= 0) {
+  //       return {
+  //         staff: 0,
+  //         helper: 0,
+  //         table: 0,
+  //       };
+  //     }
 
-      const calculateForResource = (ratio) => {
-        const [base, units] = ratio.split("/").map(Number);
-        return Math.ceil((guestCount / base) * units);
-      };
+  //     const calculateForResource = (ratio) => {
+  //       const [base, units] = ratio.split("/").map(Number);
+  //       return Math.ceil((guestCount / base) * units);
+  //     };
 
-      return {
-        staff: calculateForResource(resources.staff.ratio),
-        helper: calculateForResource(resources.helper.ratio),
-        table: calculateForResource(resources.table.ratio),
-      };
-    };
+  //     return {
+  //       staff: calculateForResource(resources.staff.ratio),
+  //       helper: calculateForResource(resources.helper.ratio),
+  //       table: calculateForResource(resources.table.ratio),
+  //     };
+  //   };
 
-    const missingFields = requiredFields.filter((field) => !userDetails[field]);
+  //   const missingFields = requiredFields.filter((field) => !userDetails[field]);
 
-    if (missingFields.length > 0) {
-      alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
-      return;
-    }
+  //   if (missingFields.length > 0) {
+  //     alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
+  //     return;
+  //   }
 
-    setShowPaymentSuccess(true);
-  };
+  //   setShowPaymentSuccess(true);
+  // };
 
   const renderResourceInputs = () => {
     const minRequirements = calculateMinRequirements(guestCount);
@@ -728,7 +894,6 @@ const CartMenuOrder = () => {
                   value={userDetails.fullName}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md"
-                  disabled={!!user} // Disable if user is logged in
                 />
                 <input
                   type="email"
@@ -737,7 +902,6 @@ const CartMenuOrder = () => {
                   value={userDetails.email}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md"
-                  disabled={!!user} // Disable if user is logged in
                 />
               </div>
 
@@ -749,7 +913,6 @@ const CartMenuOrder = () => {
                   value={userDetails.phoneNumber}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md"
-                  disabled={!!user} // Disable if user is logged in
                 />
                 <input
                   type="tel"
@@ -795,7 +958,7 @@ const CartMenuOrder = () => {
                 <textarea
                   name="address"
                   placeholder="Delivery Address *"
-                  value={userDetails.address}
+                  value={`${userDetails.address} (${userDetails.city})`}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md h-24"
                 />
@@ -1123,3 +1286,6 @@ const CartMenuOrder = () => {
 };
 
 export default CartMenuOrder;
+
+// pay_Pw73JJ497oUfmE
+// pay_Pw7GL4P81tNSQW
