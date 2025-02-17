@@ -10,6 +10,11 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
     const [isLoading, setIsLoading] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+    const [locations, setLocations] = useState([]);
+    const [blockedDates, setBlockedDates] = useState([]);
+    const [dateError, setDateError] = useState('');
+    const [deliveryCharge, setDeliveryCharge] = useState(0);
+
     const [formData, setFormData] = useState({
         name: initialFormData?.name || '',
         phone1: initialFormData?.phone1 || '',
@@ -18,7 +23,8 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
         address: initialFormData?.address || '',
         landmark: initialFormData?.landmark || '',
         date: initialFormData?.date || '',
-        time: initialFormData?.time || ''
+        time: initialFormData?.time || '',
+        location: initialFormData?.location || ''
     });
 
     // Pre-fill form with user data
@@ -44,7 +50,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
             document.body.appendChild(script);
         };
         loadRazorpay();
-        
+
         // Cleanup
         return () => {
             const script = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
@@ -54,52 +60,177 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
         };
     }, []);
 
-    // Initialize date/time constraints
+
+    const getAvailableTimeSlots = () => {
+        const today = new Date();
+        const selectedDate = new Date(formData.deliveryDate);
+        const isToday =
+            selectedDate.toISOString().split("T")[0] ===
+            today.toISOString().split("T")[0];
+
+        // Base time slots
+        const allTimeSlots = [
+            "10:00 AM",
+            "11:00 AM",
+            "12:00 PM",
+            "1:00 PM",
+            "2:00 PM",
+            "3:00 PM",
+            "4:00 PM",
+            "5:00 PM",
+            "6:00 PM",
+            "7:00 PM",
+        ];
+
+        if (!isToday) {
+            return allTimeSlots;
+        }
+        const istOffset = 330; // IST offset in minutes
+        const istTime = new Date(
+            today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000
+        );
+        const currentHour = istTime.getHours();
+        const currentMinutes = istTime.getMinutes();
+
+        return allTimeSlots.filter((slot) => {
+            const [time, period] = slot.split(" ");
+            let [hours, minutes] = time.split(":");
+            hours = parseInt(hours);
+            if (period === "PM" && hours !== 12) hours += 12;
+            if (period === "AM" && hours === 12) hours = 0;
+
+            // Calculate if slot is at least 4 hours ahead
+            const slotTotalMinutes = hours * 60;
+            const currentTotalMinutes = currentHour * 60 + currentMinutes;
+            return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19; // 19 is 7 PM
+        });
+    };
+
+    // Time slots
+    const timeSlots = [
+        "10:00 AM",
+        "11:00 AM",
+        "12:00 PM",
+        "1:00 PM",
+        "2:00 PM",
+        "3:00 PM",
+        "4:00 PM",
+        "5:00 PM",
+        "6:00 PM",
+        "7:00 PM",
+        "8:00 PM",
+    ];
+
+
+    // Fetch locations and blocked dates
     useEffect(() => {
-        updateDateTimeConstraints();
+        const fetchLocations = async () => {
+            try {
+                const response = await fetch("https://mahaspice.desoftimp.com/ms3/displayDeloc.php");
+                const data = await response.json();
+
+                if (data.success && data.locations) {
+                    const boxGenieLocations = data.locations
+                        .filter((loc) => loc.service_type === "superfast")
+                        .reduce((acc, loc) => {
+                            acc[loc.location] = {
+                                location: loc.location,
+                                price: parseFloat(loc.price),
+                            };
+                            return acc;
+                        }, {});
+
+                    const sortedLocations = Object.values(boxGenieLocations).sort((a, b) =>
+                        a.location.localeCompare(b.location)
+                    );
+
+                    setLocations(sortedLocations);
+                }
+            } catch (error) {
+                console.error("Error fetching locations:", error);
+            }
+        };
+
+        const fetchBlockedDates = async () => {
+            try {
+                const response = await fetch("https://mahaspice.desoftimp.com/ms3/dateblocking.php");
+                const data = await response.json();
+
+                const mealboxBlockedDates = data.filter(
+                    (item) => item.for === "Superfast Delivery Box"
+                );
+                setBlockedDates(mealboxBlockedDates);
+            } catch (error) {
+                console.error("Error fetching blocked dates:", error);
+            }
+        };
+
+        fetchLocations();
+        fetchBlockedDates();
     }, []);
 
-    const updateDateTimeConstraints = () => {
-        const now = new Date();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+    const handleLocationChange = (e) => {
+    const selectedLocation = locations.find((loc) => loc.location === e.target.value);
+    if (selectedLocation) {
+        setDeliveryCharge(selectedLocation.price);
+    }
+    handleInputChange(e);
+};
 
-        const minDateStr = tomorrow.toISOString().split('T')[0];
-        setMinDate(minDateStr);
+    const handleDateChange = (e) => {
+        const selectedDate = e.target.value;
+        const today = new Date().toISOString().split("T")[0];
 
-        const minTimeDate = new Date(now.getTime() + (15 * 60 * 60 * 1000));
-        const hours = minTimeDate.getHours().toString().padStart(2, '0');
-        const minutes = minTimeDate.getMinutes().toString().padStart(2, '0');
-        setMinTime(`${hours}:${minutes}`);
-
-        if (!formData.date) {
-            setFormData(prev => ({
+        if (selectedDate === today && isPastFourPM()) {
+            setDateError(
+                "We cannot deliver orders today after 4 PM IST. Please select another date."
+            );
+            setFormData((prev) => ({
                 ...prev,
-                date: minDateStr,
-                time: `${hours}:${minutes}`
+                deliveryDate: selectedDate,
+                deliveryTime: "",
             }));
-        } else if (formData.date === minDateStr && formData.time < `${hours}:${minutes}`) {
-            setFormData(prev => ({ ...prev, time: `${hours}:${minutes}` }));
+            return;
         }
+
+        const blockedDate = blockedDates.find((date) => date.date === selectedDate);
+        if (blockedDate) {
+            setDateError(blockedDate.reason);
+            setFormData((prev) => ({
+                ...prev,
+                deliveryDate: selectedDate,
+                deliveryTime: "",
+            }));
+            return;
+        }
+
+        setDateError("");
+        setFormData((prev) => ({
+            ...prev,
+            deliveryDate: selectedDate,
+            deliveryTime: "",
+        }));
+    };
+
+    const isPastFourPM = () => {
+        const now = new Date();
+        const istOffset = 330; // IST offset is UTC+5:30 (330 minutes)
+        const istTime = new Date(
+            now.getTime() + (istOffset + now.getTimezoneOffset()) * 60000
+        );
+        return istTime.getHours() >= 16;
+    };
+
+    const getMinDate = () => {
+        const today = new Date();
+        if (isPastFourPM()) {
+            today.setDate(today.getDate() + 1);
+        }
+        return today.toISOString().split("T")[0];
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-
-        if (name === 'date') {
-            const selectedDate = new Date(value);
-            const today = new Date();
-
-            if (selectedDate.toDateString() === today.toDateString()) {
-                setFormData(prev => ({
-                    ...prev,
-                    [name]: value,
-                    time: minTime
-                }));
-                return;
-            }
-        }
-
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -107,7 +238,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
     };
 
     const isFormValid = () => {
-        if (!formData.name || !formData.phone1 || !formData.address || !formData.date || !formData.time) {
+        if (!formData.name || !formData.phone1 || !formData.address || !formData.date || !formData.time || !formData.location) {
             return false;
         }
 
@@ -115,6 +246,50 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
         const minDateTime = new Date(Date.now() + (15 * 60 * 60 * 1000));
 
         return selectedDateTime > minDateTime;
+    };
+
+    const finalTotal = totals.total + deliveryCharge;
+
+    const handlePayment = async () => {
+        if (!isFormValid()) return;
+
+        try {
+            setIsLoading(true);
+
+            if (!window.Razorpay) {
+                throw new Error("Razorpay SDK failed to load. Please refresh the page and try again.");
+            }
+
+            const options = {
+                key: "rzp_live_Mjm1GpVqxzwjQL",
+                amount: Math.round(finalTotal * 100),
+                currency: "INR",
+                name: "Mahaspice Caterers",
+                description: "Superfast Home Delivery Order Payment",
+                prefill: {
+                    name: formData.name,
+                    email: formData.email,
+                    contact: formData.phone1
+                },
+                handler: handlePaymentSuccess,
+                modal: {
+                    ondismiss: function () {
+                        setIsLoading(false);
+                    }
+                },
+                theme: {
+                    color: "#22c55e"
+                }
+            };
+
+            const razorpayInstance = new window.Razorpay(options);
+            razorpayInstance.open();
+
+        } catch (error) {
+            console.error('Payment Error:', error);
+            alert('Payment initiation failed: ' + error.message);
+            setIsLoading(false);
+        }
     };
 
     const handlePaymentSuccess = async (response) => {
@@ -125,7 +300,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
             const orderPayload = {
                 razorpay_order_id: response.razorpay_order_id,
                 paymentId: response.razorpay_payment_id,
-                amount: Math.round(totals.total * 100  ),
+                amount: Math.round(finalTotal * 100),
                 customerDetails: {
                     name: formData.name.trim(),
                     phone1: formData.phone1.trim(),
@@ -134,7 +309,8 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
                     address: formData.address.trim(),
                     landmark: formData.landmark?.trim() || '',
                     deliveryDate: formData.date,
-                    deliveryTime: formData.time
+                    deliveryTime: formData.time,
+                    location: formData.location
                 },
                 orderDetails: superselecteditems.map(item => ({
                     name: item.title,
@@ -190,48 +366,6 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
             console.error("Error in payment success handler:", error);
             alert(`Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`);
         } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handlePayment = async () => {
-        if (!isFormValid()) return;
-
-        try {
-            setIsLoading(true);
-
-            if (!window.Razorpay) {
-                throw new Error("Razorpay SDK failed to load. Please refresh the page and try again.");
-            }
-
-            const options = {
-                key: "rzp_live_Mjm1GpVqxzwjQL",
-                amount: Math.round(totals.total * 100  ),
-                currency: "INR",
-                name: "Mahaspice Caterers",
-                description: "Delbox Order Payment",
-                prefill: {
-                    name: formData.name,
-                    email: formData.email,
-                    contact: formData.phone1
-                },
-                handler: handlePaymentSuccess,
-                modal: {
-                    ondismiss: function() {
-                        setIsLoading(false);
-                    }
-                },
-                theme: {
-                    color: "#22c55e"
-                }
-            };
-
-            const razorpayInstance = new window.Razorpay(options);
-            razorpayInstance.open();
-            
-        } catch (error) {
-            console.error('Payment Error:', error);
-            alert('Payment initiation failed: ' + error.message);
             setIsLoading(false);
         }
     };
@@ -292,7 +426,9 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
                             <span className="font-medium">Number of Guests: {guestCount}</span>
                         </div>
                         <form onSubmit={(e) => { e.preventDefault(); handlePayment(); }} className="space-y-4">
-                            {/* Form fields remain the same */}
+
+
+                            {/* Rest of the form fields */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Name *
@@ -347,6 +483,96 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
                                 />
                             </div>
 
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Delivery Date*
+                                    </label>
+                                    <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                                        {/* <Calendar className="ml-3 h-5 w-5 text-gray-400" /> */}
+                                        <input
+                                            type="date"
+                                            name="date"
+                                            value={formData.date}
+                                            onChange={handleDateChange}
+                                            min={getMinDate()}
+                                            className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                                        />
+                                    </div>
+                                    {dateError && (
+                                        <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                                            <div className="flex gap-2">
+                                                <div>
+                                                    <p className="text-red-800 font-medium">Date Unavailable</p>
+                                                    <p className="text-red-700 text-sm mt-1">
+                                                        Please choose another date. {dateError}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {/* {errors.date && !dateError && (
+                <p className="text-red-500 text-sm mt-1">{errors.date}</p>
+                )} */}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        Delivery Time*
+                                    </label>
+                                    <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                                        {/* <Clock className="ml-3 h-5 w-5 text-gray-400" /> */}
+                                        <select
+                                            name="time"
+                                            value={formData.time}
+                                            onChange={handleInputChange}
+                                            className={`w-full p-3 border-0 focus:ring-0 focus:outline-none ${dateError ? "bg-gray-100 cursor-not-allowed" : ""
+                                                }`}
+                                            disabled={!formData.deliveryDate || dateError}
+                                        >
+                                            <option value="">Select delivery time</option>
+                                            {formData.deliveryDate &&
+                                                !dateError &&
+                                                getAvailableTimeSlots().map((time) => (
+                                                    <option key={time} value={time}>
+                                                        {time}
+                                                    </option>
+                                                ))}
+                                        </select>
+                                    </div>
+
+                                    {formData.date &&
+                                        !dateError &&
+                                        getAvailableTimeSlots().length === 0 && (
+                                            <p className="text-red-500 text-sm mt-1">
+                                                No available delivery slots for today. Please select
+                                                another date.
+                                            </p>
+                                        )}
+                                </div>
+                            </div>
+
+                            {/* Location Selection */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Delivery Location *
+                                </label>
+                                <select
+                                    name="location"
+                                    required
+                                    value={formData.location}
+                                    onChange={handleLocationChange}
+                                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
+                                >
+                                    <option value="">Select a location</option>
+                                    {locations.map((loc) => (
+                                        <option key={loc.location} value={loc.location}>
+                                            {loc.location}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Delivery Address *
@@ -354,7 +580,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
                                 <textarea
                                     name="address"
                                     required
-                                    value={formData.address}
+                                    value={`${formData.address} (${formData.location})`}
                                     onChange={handleInputChange}
                                     rows="3"
                                     className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
@@ -374,46 +600,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Delivery Date *
-                                    </label>
-                                    <input
-                                        type="date"
-                                        name="date"
-                                        required
-                                        min={minDate}
-                                        value={formData.date}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        Delivery Time *
-                                    </label>
-                                    <input
-                                        type="time"
-                                        name="time"
-                                        required
-                                        min={formData.date === minDate ? minTime : '00:00'}
-                                        value={formData.time}
-                                        onChange={handleInputChange}
-                                        className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
-                                    />
-                                    {formData.date === minDate && (
-                                        <p className="text-sm text-gray-500 mt-1">
-                                            Minimum delivery time: {new Date(`1970-01-01T${minTime}:00`).toLocaleTimeString('en-US', {
-                                                hour: '2-digit',
-                                                minute: '2-digit',
-                                                hour12: true,
-                                            })}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
+                            
                         </form>
                     </div>
 
@@ -423,6 +610,7 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
 
                         <div className="max-h-[40vh] overflow-y-auto mb-6 pr-2">
                             {superselecteditems.map((item) => (
+
                                 <div key={item.id} className="flex justify-between items-center py-3 border-b">
                                     <div className="flex-1">
                                         <p className="font-medium">{item.title}</p>
@@ -448,22 +636,22 @@ const SuperfastDelboxCheckout = ({ superselecteditems, onBack, guestCount, formD
                             </div>
                             <div className="flex justify-between text-gray-600">
                                 <span>Delivery Charges</span>
-                                <span>₹{totals.deliveryCharge.toFixed(2)}</span>
+                                <span>₹{location.price}</span>
                             </div>
                             <div className="flex justify-between font-bold text-lg border-t pt-4">
                                 <span>Total</span>
-                                <span>₹{totals.total.toFixed(2)}</span>
+                                <span>₹{finalTotal.toFixed(2)}</span>
                             </div>
                         </div>
 
-                        <button
-                            onClick={handlePayment}
-                            disabled={!isFormValid()}
-                            className="w-full mt-6 bg-green-500 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                        >
-                            <CreditCard className="h-5 w-5" />
-                            Proceed to Pay
-                        </button>
+                       <button
+              onClick={handlePayment}
+              disabled={!isFormValid()}
+              className="w-full mt-6 bg-green-500 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              <CreditCard className="h-5 w-5" />
+              Proceed to Pay
+            </button>
                     </div>
                 </div>
             </div>

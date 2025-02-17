@@ -439,7 +439,7 @@ const CheckOutform = ({
   // Success Modal
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0 flex items-center justify-center z-50">
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
@@ -701,7 +701,7 @@ const CheckOutform = ({
                   <MapPin className="ml-3 h-5 w-5 text-gray-400" />
                   <textarea
                     name="address"
-                    value={formData.address}
+                    value={`${formData.address} (${formData.location})`}
                     onChange={handleChange}
                     className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
                     placeholder="Enter your delivery address"
@@ -815,12 +815,23 @@ const CheckOutform = ({
                 </div>
               </div>
 
+              {/* Replace your existing payment button with this */}
               <button
                 onClick={handleSubmit}
-                className="w-full mt-6 bg-green-500 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
+                disabled={dateError || !formData.deliveryDate}
+                className={`w-full mt-6 text-white py-3 rounded-lg flex items-center justify-center gap-2 transition-colors
+    ${dateError || !formData.deliveryDate
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600'
+                  }`}
               >
                 <CreditCard className="h-5 w-5" />
-                Proceed to Pay
+                {dateError
+                  ? 'Date Unavailable - Cannot Proceed'
+                  : !formData.deliveryDate
+                    ? 'Select Delivery Date to Proceed'
+                    : 'Proceed to Pay'
+                }
               </button>
             </div>
           </div>

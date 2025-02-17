@@ -14,7 +14,7 @@ import {
 import { useAuth } from "./AuthSystem";
 import DownloadInvoice from "./DownloadInvoice";
 
-const SuperfastCheckOutform = ({
+const CheckOutform = ({
   cart,
   onBack,
   cartTotal,
@@ -43,6 +43,65 @@ const SuperfastCheckOutform = ({
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [locations, setLocations] = useState([]);
   const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [blockedDates, setBlockedDates] = useState([]);
+  const [dateError, setDateError] = useState("");
+
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/dateblocking.php"
+        );
+        const data = await response.json();
+
+        // Filter only the mealbox blocked dates
+        const mealboxBlockedDates = data.filter(
+          (item) => item.for === "Superfast Mealbox"
+        );
+        setBlockedDates(mealboxBlockedDates);
+      } catch (error) {
+        console.error("Error fetching blocked dates:", error);
+      }
+    };
+
+    fetchBlockedDates();
+  }, []);
+
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    const today = new Date().toISOString().split("T")[0];
+
+    if (selectedDate === today && isPastFourPM()) {
+      setDateError(
+        "We cannot deliver orders today after 4 PM IST. Please select another date."
+      );
+      setFormData((prev) => ({
+        ...prev,
+        deliveryDate: selectedDate,
+        deliveryTime: "",
+      }));
+      return;
+    }
+
+    // Check if the selected date is blocked
+    const blockedDate = blockedDates.find((date) => date.date === selectedDate);
+    if (blockedDate) {
+      setDateError(blockedDate.reason);
+      setFormData((prev) => ({
+        ...prev,
+        deliveryDate: selectedDate,
+        deliveryTime: "",
+      }));
+      return;
+    }
+
+    setDateError("");
+    setFormData((prev) => ({
+      ...prev,
+      deliveryDate: selectedDate,
+      deliveryTime: "",
+    }));
+  };
 
   const isPastFourPM = () => {
     const now = new Date();
@@ -56,6 +115,7 @@ const SuperfastCheckOutform = ({
   const getMinDate = () => {
     const today = new Date();
     if (isPastFourPM()) {
+      // If it's past 4 PM IST, minimum date is tomorrow
       today.setDate(today.getDate() + 1);
     }
     return today.toISOString().split("T")[0];
@@ -68,6 +128,7 @@ const SuperfastCheckOutform = ({
       selectedDate.toISOString().split("T")[0] ===
       today.toISOString().split("T")[0];
 
+    // Base time slots
     const allTimeSlots = [
       "10:00 AM",
       "11:00 AM",
@@ -84,8 +145,7 @@ const SuperfastCheckOutform = ({
     if (!isToday) {
       return allTimeSlots;
     }
-
-    const istOffset = 330;
+    const istOffset = 330; // IST offset in minutes
     const istTime = new Date(
       today.getTime() + (istOffset + today.getTimezoneOffset()) * 60000
     );
@@ -99,29 +159,27 @@ const SuperfastCheckOutform = ({
       if (period === "PM" && hours !== 12) hours += 12;
       if (period === "AM" && hours === 12) hours = 0;
 
+      // Calculate if slot is at least 4 hours ahead
       const slotTotalMinutes = hours * 60;
       const currentTotalMinutes = currentHour * 60 + currentMinutes;
-      return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19;
+      return slotTotalMinutes - currentTotalMinutes >= 240 && hours <= 19; // 19 is 7 PM
     });
   };
 
-  const handleDateChange = (e) => {
-    const selectedDate = e.target.value;
-    const today = new Date().toISOString().split("T")[0];
-
-    if (selectedDate === today && isPastFourPM()) {
-      alert(
-        "We cannot deliver orders today after 4 PM IST. Please select another date."
-      );
-      return;
-    }
-
-    setFormData((prev) => ({
-      ...prev,
-      deliveryDate: selectedDate,
-      deliveryTime: "",
-    }));
-  };
+  // Time slots
+  const timeSlots = [
+    "10:00 AM",
+    "11:00 AM",
+    "12:00 PM",
+    "1:00 PM",
+    "2:00 PM",
+    "3:00 PM",
+    "4:00 PM",
+    "5:00 PM",
+    "6:00 PM",
+    "7:00 PM",
+    "8:00 PM",
+  ];
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -132,6 +190,7 @@ const SuperfastCheckOutform = ({
         const data = await response.json();
 
         if (data.success && data.locations) {
+          // Filter for box_genie service type and get unique locations with prices
           const boxGenieLocations = data.locations
             .filter((loc) => loc.service_type === "superfast")
             .reduce((acc, loc) => {
@@ -142,6 +201,7 @@ const SuperfastCheckOutform = ({
               return acc;
             }, {});
 
+          // Convert to array and sort alphabetically
           const sortedLocations = Object.values(boxGenieLocations).sort(
             (a, b) => a.location.localeCompare(b.location)
           );
@@ -156,6 +216,44 @@ const SuperfastCheckOutform = ({
     fetchLocations();
   }, []);
 
+  const handleLocationChange = (e) => {
+    const selectedLocation = locations.find(
+      (loc) => loc.location === e.target.value
+    );
+    setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
+    handleChange(e);
+  };
+
+  const finalTotal = totalAmount + deliveryCharge;
+
+  // Pre-fill form with user data
+  useEffect(() => {
+    if (user) {
+      console.log("User Data:", user);
+      setFormData((prevData) => ({
+        ...prevData,
+        name: user.name || "",
+        phone1: user.phone || "",
+        email: user.email || "",
+        address: user.address || "",
+      }));
+    }
+  }, [user]);
+
+  // Group cart items by package
+  const groupedCartItems = Object.entries(cart).reduce(
+    (acc, [itemId, item]) => {
+      const pkg = item.package || "Default";
+      if (!acc[pkg]) {
+        acc[pkg] = [];
+      }
+      acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
+      return acc;
+    },
+    {}
+  );
+
+  // Load Razorpay script
   useEffect(() => {
     const loadRazorpay = async () => {
       const script = document.createElement("script");
@@ -176,137 +274,103 @@ const SuperfastCheckOutform = ({
     };
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      setFormData((prevData) => ({
-        ...prevData,
-        name: user.name || "",
-        phone1: user.phone || "",
-        email: user.email || "",
-        address: user.address || "",
-      }));
-    }
-  }, [user]);
-
-  const handleLocationChange = (e) => {
-    const selectedLocation = locations.find(
-      (loc) => loc.location === e.target.value
-    );
-    setDeliveryCharge(selectedLocation ? selectedLocation.price : 0);
-    handleChange(e);
-  };
-
-  const finalTotal = totalAmount + deliveryCharge;
-
-  const groupedCartItems = Object.entries(cart).reduce(
-    (acc, [itemId, item]) => {
-      const pkg = item.package || "Default";
-      if (!acc[pkg]) {
-        acc[pkg] = [];
-      }
-      acc[pkg].push({ itemId, details: item.details, quantity: item.quantity });
-      return acc;
-    },
-    {}
-  );
-
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.phone1.trim()) newErrors.phone1 = "Phone number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.location) newErrors.location = "Location is required";
-    if (!formData.deliveryDate) newErrors.deliveryDate = "Delivery date is required";
-    if (!formData.deliveryTime) newErrors.deliveryTime = "Delivery time is required";
+    if (!formData.deliveryDate)
+      newErrors.deliveryDate = "Delivery date is required";
+    if (!formData.deliveryTime)
+      newErrors.deliveryTime = "Delivery time is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handlePaymentSuccess = async (response) => {
-  try {
-    setIsLoading(true);
-    console.log("Payment successful, response:", response);
+    try {
+      setIsLoading(true);
+      console.log("Payment successful, response:", response);
 
-    const orderPayload = {
-      razorpay_order_id: response.razorpay_order_id,
-      paymentId: response.razorpay_payment_id,
-      amount: Math.round(finalTotal * 100),
-      customerDetails: {
-        name: formData.name.trim(),
-        phone1: formData.phone1.trim(),
-        phone2: formData.phone2?.trim() || "",
-        email: formData.email?.trim() || "",
-        address: formData.address.trim(),
-        landmark: formData.landmark?.trim() || "",
-        location: formData.location,
-        deliveryDate: formData.deliveryDate,
-        deliveryTime: formData.deliveryTime,
-      },
-      orderDetails: Object.entries(cart).map(([id, item]) => ({
-        name: item.details.name,
-        price: parseFloat(item.details.price.replace(/[^\d.]/g, "")),
-        quantity: parseInt(item.quantity),
-        package: item.package,
-      })),
-      coupon: appliedCoupon
-        ? {
+      const orderPayload = {
+        razorpay_order_id: response.razorpay_order_id,
+        paymentId: response.razorpay_payment_id,
+        amount: Math.round(finalTotal * 100),
+        customerDetails: {
+          name: formData.name.trim(),
+          phone1: formData.phone1.trim(),
+          phone2: formData.phone2?.trim() || "",
+          email: formData.email?.trim() || "",
+          address: formData.address.trim(),
+          landmark: formData.landmark?.trim() || "",
+          deliveryDate: formData.deliveryDate,
+          deliveryTime: formData.deliveryTime,
+        },
+        orderDetails: Object.entries(cart).map(([id, item]) => ({
+          name: item.details.name,
+          price: parseFloat(item.details.price.replace(/[^\d.]/g, "")),
+          quantity: parseInt(item.quantity),
+          package: item.package,
+        })),
+        coupon: appliedCoupon
+          ? {
             code: appliedCoupon.code,
             discount: discountAmount,
             type: appliedCoupon.discount_type,
           }
-        : null,
-    };
+          : null,
+      };
 
-    console.log("Sending order payload:", orderPayload);
+      console.log("Sending order payload:", orderPayload);
 
-    const orderResponse = await fetch(
-      "https://mahaspice.desoftimp.com/ms3/payment/create_sup_box.php",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderPayload),
-      }
-    );
-
-    const responseText = await orderResponse.text();
-    console.log("Raw response:", responseText);
-
-    let orderData;
-    try {
-      orderData = JSON.parse(responseText);
-    } catch (e) {
-      throw new Error(`Invalid JSON response: ${responseText}`);
-    }
-
-    if (!orderResponse.ok) {
-      throw new Error(
-        `HTTP error! status: ${orderResponse.status}, message: ${
-          orderData.message || responseText
-        }`
+      const orderResponse = await fetch(
+        "https://mahaspice.desoftimp.com/ms3/payment/create_sup_box.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderPayload),
+        }
       );
+
+      const responseText = await orderResponse.text();
+      console.log("Raw response:", responseText);
+
+      let orderData;
+      try {
+        orderData = JSON.parse(responseText);
+      } catch (e) {
+        throw new Error(`Invalid JSON response: ${responseText}`);
+      }
+
+      if (!orderResponse.ok) {
+        throw new Error(
+          `HTTP error! status: ${orderResponse.status}, message: ${orderData.message || responseText
+          }`
+        );
+      }
+
+      if (orderData.status !== "success") {
+        throw new Error(orderData.message || "Failed to create order");
+      }
+
+      setIsSuccess(true);
+
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 3000);
+    } catch (error) {
+      console.error("Error in payment success handler:", error);
+      alert(
+        `Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`
+      );
+    } finally {
+      setIsLoading(false);
     }
-
-    if (orderData.status !== "success") {
-      throw new Error(orderData.message || "Failed to create order");
-    }
-
-    setIsSuccess(true);
-
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 3000);
-  } catch (error) {
-    console.error("Error in payment success handler:", error);
-    alert(
-      `Error processing order. Please take a screenshot and contact support:\n\nPayment ID: ${response.razorpay_payment_id}\nError: ${error.message}`
-    );
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   const handlePayment = async () => {
     if (!validate()) return;
@@ -371,10 +435,10 @@ const SuperfastCheckOutform = ({
       [name]: value,
     }));
   };
-
+  // Success Modal
   if (isSuccess) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed inset-0  flex items-center justify-center z-50">
         <div className="bg-white p-8 rounded-lg shadow-xl max-w-md w-full text-center">
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
@@ -402,6 +466,21 @@ const SuperfastCheckOutform = ({
       </div>
     );
   }
+
+  // Loading overlay
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+      <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          Processing Your Payment
+        </h3>
+        <p className="text-sm text-gray-500 text-center">
+          Please wait while we securely process your payment
+        </p>
+      </div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-gray-50">
@@ -473,11 +552,14 @@ const SuperfastCheckOutform = ({
                     placeholder="Enter alternate phone number"
                   />
                 </div>
+                {errors.phone2 && (
+                  <p className="text-red-500 text-sm mt-1">{errors.phone2}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email (Optional)
+                  Email*
                 </label>
                 <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
                   <Mail className="ml-3 h-5 w-5 text-gray-400" />
@@ -490,9 +572,13 @@ const SuperfastCheckOutform = ({
                     placeholder="Enter your email address"
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
               </div>
 
-              <div>
+              {/* Add Date Picker */}
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Delivery Date*
                 </label>
@@ -508,10 +594,46 @@ const SuperfastCheckOutform = ({
                   />
                 </div>
                 {errors.deliveryDate && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.deliveryDate}
+                  </p>
+                )}
+              </div> */}
+
+              {/* Modified Time Dropdown */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Delivery Date*
+                </label>
+                <div className="flex items-center border rounded-md focus-within:ring-2 focus-within:ring-green-500">
+                  <Calendar className="ml-3 h-5 w-5 text-gray-400" />
+                  <input
+                    type="date"
+                    name="deliveryDate"
+                    value={formData.deliveryDate}
+                    onChange={handleDateChange}
+                    min={getMinDate()}
+                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
+                  />
+                </div>
+                {dateError && (
+                  <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+                    <div className="flex gap-2">
+                      <div>
+                        <p className="text-red-800 font-medium">Date Unavailable</p>
+                        <p className="text-red-700 text-sm mt-1">
+                          Please choose another date. {dateError}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {errors.deliveryDate && !dateError && (
                   <p className="text-red-500 text-sm mt-1">{errors.deliveryDate}</p>
                 )}
               </div>
 
+              {/* Modify the time dropdown section */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Delivery Time*
@@ -522,11 +644,13 @@ const SuperfastCheckOutform = ({
                     name="deliveryTime"
                     value={formData.deliveryTime}
                     onChange={handleChange}
-                    className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
-                    disabled={!formData.deliveryDate}
+                    className={`w-full p-3 border-0 focus:ring-0 focus:outline-none ${dateError ? "bg-gray-100 cursor-not-allowed" : ""
+                      }`}
+                    disabled={!formData.deliveryDate || dateError}
                   >
                     <option value="">Select delivery time</option>
                     {formData.deliveryDate &&
+                      !dateError &&
                       getAvailableTimeSlots().map((time) => (
                         <option key={time} value={time}>
                           {time}
@@ -534,14 +658,19 @@ const SuperfastCheckOutform = ({
                       ))}
                   </select>
                 </div>
-                {errors.deliveryTime && (
-                  <p className="text-red-500 text-sm mt-1">{errors.deliveryTime}</p>
-                )}
-                {formData.deliveryDate && getAvailableTimeSlots().length === 0 && (
+                {errors.deliveryTime && !dateError && (
                   <p className="text-red-500 text-sm mt-1">
-                    No available delivery slots for today. Please select another date.
+                    {errors.deliveryTime}
                   </p>
                 )}
+                {formData.deliveryDate &&
+                  !dateError &&
+                  getAvailableTimeSlots().length === 0 && (
+                    <p className="text-red-500 text-sm mt-1">
+                      No available delivery slots for today. Please select
+                      another date.
+                    </p>
+                  )}
               </div>
 
               <div>
@@ -577,7 +706,7 @@ const SuperfastCheckOutform = ({
                   <MapPin className="ml-3 h-5 w-5 text-gray-400" />
                   <textarea
                     name="address"
-                    value={formData.address}
+                    value={`${formData.address} (${formData.location})`}
                     onChange={handleChange}
                     className="w-full p-3 border-0 focus:ring-0 focus:outline-none"
                     placeholder="Enter your delivery address"
@@ -611,6 +740,7 @@ const SuperfastCheckOutform = ({
 
         {/* Order Summary Section */}
         <div className="space-y-6">
+          {/* Selected Items */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Selected Items</h2>
             <div className="space-y-6">
@@ -648,7 +778,6 @@ const SuperfastCheckOutform = ({
               ))}
             </div>
           </div>
-
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold">Price Summary</h2>
             <DownloadInvoice
@@ -662,7 +791,7 @@ const SuperfastCheckOutform = ({
               gstPercentage={gstPercentage}
             />
           </div>
-
+          {/* Price Summary */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-2xl font-bold mb-6">Price Summary</h2>
             <div className="space-y-4">
@@ -691,12 +820,23 @@ const SuperfastCheckOutform = ({
                 </div>
               </div>
 
+              {/* Replace your existing payment button with this */}
               <button
                 onClick={handleSubmit}
-                className="w-full mt-6 bg-green-500 text-white py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-green-600 transition-colors"
+                disabled={dateError || !formData.deliveryDate}
+                className={`w-full mt-6 text-white py-3 rounded-lg flex items-center justify-center gap-2 transition-colors
+    ${dateError || !formData.deliveryDate
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600'
+                  }`}
               >
                 <CreditCard className="h-5 w-5" />
-                Proceed to Pay
+                {dateError
+                  ? 'Date Unavailable - Cannot Proceed'
+                  : !formData.deliveryDate
+                    ? 'Select Delivery Date to Proceed'
+                    : 'Proceed to Pay'
+                }
               </button>
             </div>
           </div>
@@ -704,14 +844,14 @@ const SuperfastCheckOutform = ({
       </div>
 
       {isLoading && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent mb-4"></div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Processing Your Payment
+              Connecting to Payment Gateway
             </h3>
             <p className="text-sm text-gray-500 text-center">
-              Please wait while we securely process your payment
+              Please wait while we securely connect you to our payment partner
             </p>
           </div>
         </div>
@@ -720,4 +860,4 @@ const SuperfastCheckOutform = ({
   );
 };
 
-export default SuperfastCheckOutform;
+export default CheckOutform;
