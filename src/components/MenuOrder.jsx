@@ -44,6 +44,123 @@ const MenuOrder = () => {
     helper: { cost: 300, ratio: "100/2", min: 0 },
     table: { cost: 200, ratio: "100/10", min: 0 },
   });
+  const [addressDetails, setAddressDetails] = useState({
+    streetAddress: "",
+    stateName: "",
+    districtName: "",
+    cityName: "",
+  });
+  const [locations, setLocations] = useState([]);
+  const [selectedState, setSelectedState] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
+
+  // Fetch locations data
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/catering_locations.php"
+        );
+        const data = await response.json();
+        setLocations(data);
+      } catch (error) {
+        console.error("Error fetching locations:", error);
+      }
+    };
+    fetchLocations();
+  }, []);
+
+  // Get unique states
+  const states = [
+    ...new Set(
+      locations
+        .map((loc) => ({ id: loc.state_id, name: loc.state_name }))
+        .filter((state) => state.id && state.name)
+        .map(JSON.stringify)
+    ),
+  ].map(JSON.parse);
+
+  // Get districts based on selected state
+  const districts = [
+    ...new Set(
+      locations
+        .filter((loc) => loc.state_id === selectedState)
+        .map((loc) => ({ id: loc.district_id, name: loc.district_name }))
+        .filter((district) => district.id && district.name)
+        .map(JSON.stringify)
+    ),
+  ].map(JSON.parse);
+
+  // Get cities based on selected district
+  const cities = locations
+    .filter(
+      (loc) =>
+        loc.district_id === selectedDistrict && loc.state_id === selectedState
+    )
+    .map((loc) => ({
+      id: loc.city_id,
+      name: loc.city_name,
+      price: loc.delivery_price,
+    }))
+    .filter((city) => city.id && city.name);
+
+  // Handle state change
+  const handleStateChange = (e) => {
+    const stateId = e.target.value;
+    const selectedStateName =
+      states.find((state) => state.id === stateId)?.name || "";
+
+    setSelectedState(stateId);
+    setSelectedDistrict("");
+    setAddressDetails((prev) => ({
+      ...prev,
+      stateName: selectedStateName,
+      districtName: "",
+      cityName: "",
+    }));
+    setUserDetails((prev) => ({
+      ...prev,
+      city: "",
+    }));
+    setDeliveryFee(DEFAULT_DELIVERY_FEE);
+  };
+
+  // Handle district change
+  const handleDistrictChange = (e) => {
+    const districtId = e.target.value;
+    const selectedDistrictName =
+      districts.find((district) => district.id === districtId)?.name || "";
+
+    setSelectedDistrict(districtId);
+    setAddressDetails((prev) => ({
+      ...prev,
+      districtName: selectedDistrictName,
+      cityName: "",
+    }));
+    setUserDetails((prev) => ({
+      ...prev,
+      city: "",
+    }));
+    setDeliveryFee(DEFAULT_DELIVERY_FEE);
+  };
+
+  // Handle city change
+  const handleCityChange = (e) => {
+    const cityId = e.target.value;
+    const selectedCity = cities.find((city) => city.id === cityId);
+
+    if (selectedCity) {
+      setAddressDetails((prev) => ({
+        ...prev,
+        cityName: selectedCity.name,
+      }));
+      setUserDetails((prev) => ({
+        ...prev,
+        city: selectedCity.name, // Keep this for internal tracking
+      }));
+      setDeliveryFee(Number(selectedCity.price));
+    }
+  };
 
   useEffect(() => {
     const loadRazorpay = async () => {
@@ -85,7 +202,9 @@ const MenuOrder = () => {
     console.log("Payment successful, response:", response);
     setIsLoading(false);
     setShowPaymentSuccess(true);
-  
+
+    const fullAddress = `${userDetails.address}, ${addressDetails.cityName}, ${addressDetails.districtName}, ${addressDetails.stateName}`;
+
     // Prepare the order data
     const orderData = {
       customerDetails: {
@@ -93,10 +212,15 @@ const MenuOrder = () => {
         phone1: userDetails.phoneNumber,
         phone2: userDetails.alternateNumber,
         email: userDetails.email,
-        address: userDetails.address,
+        address: fullAddress, // Use the concatenated address
         landmark: userDetails.landmark,
         deliveryDate: userDetails.date,
         deliveryTime: userDetails.time,
+        // Add individual address components for database storage if needed
+        streetAddress: userDetails.address,
+        city: addressDetails.cityName,
+        district: addressDetails.districtName,
+        state: addressDetails.stateName,
       },
       orderDetails: {
         guestCount,
@@ -122,17 +246,20 @@ const MenuOrder = () => {
         amount: totals.total * 100, // Convert to paise for Razorpay
       },
     };
-  
+
     try {
       // Send the order data to the backend
-      const response = await fetch("https://mahaspice.desoftimp.com/ms3/payment/catering_order.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(orderData),
-      });
-  
+      const response = await fetch(
+        "https://mahaspice.desoftimp.com/ms3/payment/catering_order.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderData),
+        }
+      );
+
       const result = await response.json();
       if (result.status === "success") {
         console.log("Order created successfully:", result);
@@ -160,8 +287,9 @@ const MenuOrder = () => {
       }
 
       const options = {
-        key: "rzp_live_Mjm1GpVqxzwjQL",
-        amount: Math.round(totals.total * 100/1000),
+        // key: "rzp_live_Mjm1GpVqxzwjQL",original
+        key: "rzp_test_CROYWIJ5dxBvRA",
+        amount: Math.round((totals.total * 100) / 1000),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: "Catering Order Payment",
@@ -924,27 +1052,78 @@ const MenuOrder = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <select
-                  name="city"
-                  value={userDetails.city}
-                  onChange={handleInputChange}
-                  className="w-full p-3 border rounded-md"
-                  required
-                >
-                  <option value="">Select Area *</option>
-                  {locationData.map((loc) => (
-                    <option key={loc.id} value={loc.location}>
-                      {loc.location}
-                    </option>
-                  ))}
-                </select>
-                {userDetails.city && (
-                  <p className="text-sm text-gray-600">
-                    Delivery Fee for {userDetails.city}: ₹
-                    {deliveryFee.toFixed(2)}
-                  </p>
-                )}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    State *
+                  </label>
+                  <select
+                    name="state"
+                    value={selectedState}
+                    onChange={handleStateChange}
+                    className="w-full p-3 border rounded-md"
+                    required
+                  >
+                    <option value="">Select State</option>
+                    {states.map((state) => (
+                      <option key={state.id} value={state.id}>
+                        {state.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    District *
+                  </label>
+                  <select
+                    name="district"
+                    value={selectedDistrict}
+                    onChange={handleDistrictChange}
+                    className="w-full p-3 border rounded-md"
+                    required
+                    disabled={!selectedState}
+                  >
+                    <option value="">Select District</option>
+                    {districts.map((district) => (
+                      <option key={district.id} value={district.id}>
+                        {district.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City *
+                  </label>
+                  <select
+                    name="city"
+                    value={
+                      cities.find((city) => city.name === userDetails.city)
+                        ?.id || ""
+                    }
+                    onChange={handleCityChange}
+                    className="w-full p-3 border rounded-md"
+                    required
+                    disabled={!selectedDistrict}
+                  >
+                    <option value="">Select City</option>
+                    {cities.map((city) => (
+                      <option key={city.id} value={city.id}>
+                        {city.name}
+                        {/* (Delivery: ₹{city.price}) */}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* {userDetails.city && (
+      <p className="text-sm text-gray-600 mt-1">
+        Delivery Fee for {userDetails.city}: ₹{deliveryFee.toFixed(2)}
+      </p>
+    )} */}
+                </div>
               </div>
 
               <div className="relative">
@@ -958,7 +1137,7 @@ const MenuOrder = () => {
                 <textarea
                   name="address"
                   placeholder="Delivery Address *"
-                  value={`${userDetails.address} (${userDetails.city})`}
+                  value={userDetails.address}
                   onChange={handleInputChange}
                   className="w-full p-3 border rounded-md h-24"
                 />
@@ -1286,6 +1465,3 @@ const MenuOrder = () => {
 };
 
 export default MenuOrder;
-
-// pay_Pw73JJ497oUfmE
-// pay_Pw7GL4P81tNSQW
