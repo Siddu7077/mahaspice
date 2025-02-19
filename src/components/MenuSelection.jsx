@@ -48,15 +48,20 @@ const MenuSelection = () => {
       if (!user?.id) return;
 
       try {
-        const response = await fetch(`https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${user.id}`);
-        if (!response.ok) throw new Error('Failed to fetch cart data');
-        
+        const response = await fetch(
+          `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${user.id}`
+        );
+        if (!response.ok) throw new Error("Failed to fetch cart data");
+
         const data = await response.json();
         if (data.success && data.data) {
           const itemMap = {};
-          data.data.forEach(cart => {
-            if (cart.event_name === serviceType && cart.menu_type === menuType) {
-              cart.items.forEach(item => {
+          data.data.forEach((cart) => {
+            if (
+              cart.event_name === serviceType &&
+              cart.menu_type === menuType
+            ) {
+              cart.items.forEach((item) => {
                 if (!itemMap[item.category_name]) {
                   itemMap[item.category_name] = [];
                 }
@@ -67,7 +72,7 @@ const MenuSelection = () => {
           setPreviouslySelectedItems(itemMap);
         }
       } catch (error) {
-        console.error('Error fetching previous selections:', error);
+        console.error("Error fetching previous selections:", error);
       }
     };
 
@@ -75,16 +80,16 @@ const MenuSelection = () => {
   }, [user, serviceType, menuType]);
 
   const showTemporaryNotification = (categoryName, itemName) => {
-    setNotifications(prev => ({
+    setNotifications((prev) => ({
       ...prev,
       [categoryName]: {
         message: `You've already selected ${itemName} in your previous cart. Consider trying a different variety!`,
-        timestamp: Date.now()
-      }
+        timestamp: Date.now(),
+      },
     }));
 
     setTimeout(() => {
-      setNotifications(prev => {
+      setNotifications((prev) => {
         const newNotifications = { ...prev };
         delete newNotifications[categoryName];
         return newNotifications;
@@ -386,9 +391,14 @@ const MenuSelection = () => {
     const categoryItems = getItemsInCategory(item.category_name);
     const limit = getCategoryLimit(item.category_name);
 
-    const wasSelectedPreviously = previouslySelectedItems[item.category_name]?.includes(item.item_name);
-    
-    if (wasSelectedPreviously && !selectedItems.some(selected => selected.id === item.id)) {
+    const wasSelectedPreviously = previouslySelectedItems[
+      item.category_name
+    ]?.includes(item.item_name);
+
+    if (
+      wasSelectedPreviously &&
+      !selectedItems.some((selected) => selected.id === item.id)
+    ) {
       showTemporaryNotification(item.category_name, item.item_name);
     }
 
@@ -477,18 +487,64 @@ const MenuSelection = () => {
   };
 
   const handleAddToCart = async () => {
+    // First check for incomplete categories
+    const incompleteCategories = getSortedCategories().filter((category) => {
+      if (
+        category.toLowerCase() === "common items" ||
+        category.toLowerCase() === "live counter"
+      ) {
+        return false;
+      }
+  
+      const limit = getCategoryLimit(category);
+      const selectedCount = getItemsInCategory(category).length;
+      return selectedCount < limit;
+    });
+  
+    // If there are incomplete categories, show alert and return
+    if (incompleteCategories.length > 0) {
+      setShowAlert({
+        message: `Please select required items from: ${incompleteCategories.join(
+          ", "
+        )}`,
+      });
+      return;
+    }
+  
+    // Check if user is logged in
     if (!user) {
-      alert('Please login to add items to the cart.');
+      setShowAlert({
+        message:
+          "You need to login before adding items to cart. Would you like to proceed to login?",
+        isConfirmation: true,
+        onConfirm: () => {
+          const selectionState = {
+            selectedItems,
+            guestCount,
+            menuPreference,
+            path: window.location.pathname,
+            eventType,
+            serviceType,
+            menuType,
+          };
+          localStorage.setItem(
+            "pendingCartSelection",
+            JSON.stringify(selectionState)
+          );
+          setShowAlert(null);
+          window.location.href = "/login";
+        },
+      });
       return;
     }
   
     const allItems = [
       ...selectedItems,
-      ...commonItems.map(item => ({
+      ...commonItems.map((item) => ({
         ...item,
         isExtra: false,
-        isComplimentary: true
-      }))
+        isComplimentary: true,
+      })),
     ];
   
     const orderDetails = {
@@ -498,39 +554,68 @@ const MenuSelection = () => {
       guest_count: guestCount,
       plate_price: calculatePlatePrice(),
       total_price: calculateTotal(),
-      items: allItems.map(item => ({
+      items: allItems.map((item) => ({
         category_name: item.category_name,
         item_name: item.item_name,
         price: parseFloat(item.price || 0),
         is_extra: item.isExtra,
-        is_complimentary: item.category_name.toLowerCase() === "common items"
-      }))
+        is_complimentary: item.category_name.toLowerCase() === "common items",
+      })),
     };
   
     try {
-      const response = await fetch('https://mahaspice.desoftimp.com/ms3/add-to-cart.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderDetails)
-      });
+      const response = await fetch(
+        "https://mahaspice.desoftimp.com/ms3/add-to-cart.php",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(orderDetails),
+        }
+      );
   
       if (!response.ok) {
-        throw new Error('Failed to add to cart');
+        throw new Error("Failed to add to cart");
       }
   
       const data = await response.json();
       if (data.success) {
-        alert('Order added to cart successfully!');
+        alert("Order added to cart successfully!");
       } else {
-        throw new Error(data.error || 'Failed to add to cart');
+        throw new Error(data.error || "Failed to add to cart");
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      alert('Failed to add to cart. Please try again.');
+      console.error("Error adding to cart:", error);
+      alert("Failed to add to cart. Please try again.");
     }
   };
+
+  useEffect(() => {
+    const pendingSelection = localStorage.getItem("pendingCartSelection");
+    if (pendingSelection && user) {
+      try {
+        const {
+          selectedItems: savedItems,
+          guestCount: savedCount,
+          menuPreference: savedPreference,
+          path,
+        } = JSON.parse(pendingSelection);
+
+        // Only restore if we're on the same page
+        if (path === window.location.pathname) {
+          setSelectedItems(savedItems);
+          setGuestCount(savedCount);
+          setMenuPreference(savedPreference);
+          // Clear the pending selection
+          localStorage.removeItem("pendingCartSelection");
+        }
+      } catch (error) {
+        console.error("Error restoring selection state:", error);
+        localStorage.removeItem("pendingCartSelection");
+      }
+    }
+  }, [user]);
 
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
@@ -598,6 +683,48 @@ const MenuSelection = () => {
                       </div>
                     </div>
                   ))}
+                  {showAlert && (
+                    <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+                      <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 max-w-md w-full">
+                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                          {showAlert.isConfirmation ? (
+                            <ShoppingCart className="text-blue-500" size={20} />
+                          ) : (
+                            <AlertTriangle
+                              className="text-orange-500"
+                              size={20}
+                            />
+                          )}
+                          <h3 className="text-base sm:text-lg font-bold">
+                            {showAlert.isConfirmation
+                              ? "Login Required"
+                              : "Missing Items"}
+                          </h3>
+                        </div>
+
+                        <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">
+                          {showAlert.message}
+                        </p>
+
+                        <div className="flex justify-end gap-2 sm:gap-3">
+                          <button
+                            onClick={() => setShowAlert(null)}
+                            className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-sm sm:text-base"
+                          >
+                            Cancel
+                          </button>
+                          {showAlert.isConfirmation && (
+                            <button
+                              onClick={showAlert.onConfirm}
+                              className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm sm:text-base"
+                            >
+                              Proceed to Login
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -635,11 +762,15 @@ const MenuSelection = () => {
                   .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                   .join(" ")}
               </h1>
-              <span className="text-gray-600 text-sm sm:text-base">Base Price:</span>
+              <span className="text-gray-600 text-sm sm:text-base">
+                Base Price:
+              </span>
               <span className="text-xl sm:text-2xl font-bold text-green-600">
                 ₹{calculatePlatePrice()}
               </span>
-              <span className="text-gray-600 text-sm sm:text-base">per plate</span>
+              <span className="text-gray-600 text-sm sm:text-base">
+                per plate
+              </span>
             </div>
 
             <div className="flex gap-2">
@@ -677,17 +808,31 @@ const MenuSelection = () => {
               const isLiveCounter = category.toLowerCase() === "live counter";
 
               return (
-                <div key={category} className={`bg-white rounded-xl shadow-lg overflow-hidden ${
-                  category.toLowerCase() === "live counter" ? "border-2 border-green-500" : ""
-                }`}>
-                  <div className={`p-3 sm:p-4 border-b ${
-                    category.toLowerCase() === "live counter" ? "bg-green-50" : "bg-gray-50"
-                  }`}>
+                <div
+                  key={category}
+                  className={`bg-white rounded-xl shadow-lg overflow-hidden ${
+                    category.toLowerCase() === "live counter"
+                      ? "border-2 border-green-500"
+                      : ""
+                  }`}
+                >
+                  <div
+                    className={`p-3 sm:p-4 border-b ${
+                      category.toLowerCase() === "live counter"
+                        ? "bg-green-50"
+                        : "bg-gray-50"
+                    }`}
+                  >
                     <div className="flex justify-between items-center">
-                      <h2 className={`text-lg sm:text-xl font-bold ${
-                        category.toLowerCase() === "live counter" ? "text-black" : "text-gray-800"
-                      }`}>
-                        {category} {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
+                      <h2
+                        className={`text-lg sm:text-xl font-bold ${
+                          category.toLowerCase() === "live counter"
+                            ? "text-black"
+                            : "text-gray-800"
+                        }`}
+                      >
+                        {category}{" "}
+                        {!isCommonItems && !isLiveCounter && `(ANY ${limit})`}
                         {category.toLowerCase() === "live counter" && (
                           <span className="ml-2 text-sm font-normal text-black animate-pulse">
                             ✨ Special Addition (Optional)
@@ -756,7 +901,9 @@ const MenuSelection = () => {
                                 )}
                               </div>
                             </div>
-                            <span className="flex-1 text-sm sm:text-base">{item.item_name}</span>
+                            <span className="flex-1 text-sm sm:text-base">
+                              {item.item_name}
+                            </span>
                           </label>
 
                           <span
@@ -796,7 +943,9 @@ const MenuSelection = () => {
                 </h3>
               </div>
 
-              <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">{showAlert.message}</p>
+              <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">
+                {showAlert.message}
+              </p>
 
               <div className="flex justify-end gap-2 sm:gap-3">
                 <button
@@ -810,7 +959,7 @@ const MenuSelection = () => {
                     onClick={showAlert.onConfirm}
                     className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors text-sm sm:text-base"
                   >
-                    Add Anyway
+                    Proceed to Login
                   </button>
                 )}
               </div>
@@ -859,8 +1008,13 @@ const MenuSelection = () => {
             )
               .reverse()
               .map(([category, items]) => (
-                <div key={category} className="p-2 sm:p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-bold text-gray-700 text-sm sm:text-base mb-1 sm:mb-2">{category}</h3>
+                <div
+                  key={category}
+                  className="p-2 sm:p-4 bg-gray-50 rounded-lg"
+                >
+                  <h3 className="font-bold text-gray-700 text-sm sm:text-base mb-1 sm:mb-2">
+                    {category}
+                  </h3>
                   <ul className="space-y-1 sm:space-y-2">
                     {items.map((item) => (
                       <li
