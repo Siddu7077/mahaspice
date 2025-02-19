@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Minus, ShoppingCart, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthSystem";
+
 import SuperfastDelboxCheckout from "./SuperfastDelboxCheckout";
 
 const SuperfastDeliveryMenu = ({ formData }) => {
@@ -26,6 +28,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     return savedCount ? parseInt(savedCount) : 10;
   });
 
+  const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isCheckout, setIsCheckout] = useState(false);
@@ -172,9 +175,64 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     });
   };
 
-  const handleCheckout = () => {
-    setIsCheckout(true);
-  };
+const handleCheckout = () => {
+  // Check if cart is empty
+  if (superselecteditems.length === 0) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  // If user is not logged in
+  if (!user) {
+    // Store current cart state in localStorage
+    localStorage.setItem('pendingCart', JSON.stringify({
+      superselecteditems,
+      guestCount,
+      menuType,
+      selectedCategory
+    }));
+
+    // Store the current path for redirect
+    const currentPath = window.location.pathname;
+    localStorage.setItem('checkoutRedirect', currentPath);
+
+    // Use react-router navigate instead of window.location
+    navigate("/login");
+    return;
+  }
+
+  // If user is logged in, proceed to checkout
+  setIsCheckout(true);
+};
+
+// Add this useEffect at the component level to handle post-login redirect
+useEffect(() => {
+  // Check if there's a pending cart and we're returning from login
+  const pendingCart = localStorage.getItem('pendingCart');
+  const checkoutRedirect = localStorage.getItem('checkoutRedirect');
+
+  if (user && pendingCart && checkoutRedirect) {
+    try {
+      // Restore cart state
+      const cartData = JSON.parse(pendingCart);
+      setSuperselecteditems(cartData.superselecteditems);
+      setGuestCount(cartData.guestCount);
+      setMenuType(cartData.menuType);
+      setSelectedCategory(cartData.selectedCategory);
+
+      // Clear the pending cart and redirect data
+      localStorage.removeItem('pendingCart');
+      localStorage.removeItem('checkoutRedirect');
+      
+      // If we're not on the correct page, navigate back
+      if (window.location.pathname !== checkoutRedirect) {
+        navigate(checkoutRedirect);
+      }
+    } catch (error) {
+      console.error('Error restoring cart:', error);
+    }
+  }
+}, [user, navigate]); // Include navigate in dependencies
 
   const calculateTotals = React.useMemo(() => {
     const subtotal = superselecteditems.reduce(

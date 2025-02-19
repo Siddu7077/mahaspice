@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Minus, ShoppingCart, X } from "lucide-react";
 import DelboxCheckout from "./DelboxCheckout";
+import { useAuth } from "./AuthSystem";
+import { useNavigate } from "react-router-dom";
 
 const DeliveryMenu = () => {
   const [menuData, setMenuData] = useState([]);
@@ -9,7 +11,10 @@ const DeliveryMenu = () => {
   const [selectedItems, setSelectedItems] = useState(() => {
     const savedItems = localStorage.getItem('selectedItems');
     return savedItems ? JSON.parse(savedItems) : [];
+  
   });
+  const [gstPercentage, setGstPercentage] = useState(0);
+  const [serviceType, setServiceType] = useState("home_delivery");
   const [guestCount, setGuestCount] = useState(() => {
     const savedCount = localStorage.getItem('guestCount');
     return savedCount ? parseInt(savedCount) : 5;
@@ -20,8 +25,9 @@ const DeliveryMenu = () => {
     const savedCheckout = localStorage.getItem('isCheckout');
     return savedCheckout ? JSON.parse(savedCheckout) : false;
   });
+  const navigate = useNavigate();
   const [error, setError] = useState(null);
-
+  const { user } = useAuth();
   // Function to clear localStorage
   const clearLocalStorage = () => {
     localStorage.removeItem('selectedItems');
@@ -31,6 +37,9 @@ const DeliveryMenu = () => {
 
   // Handle page visibility change
   useEffect(() => {
+
+    
+
     const handleVisibilityChange = () => {
       if (document.hidden) {
         clearLocalStorage();
@@ -43,6 +52,31 @@ const DeliveryMenu = () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
+
+  useEffect(() => {
+    const fetchGST = async () => {
+      try {
+        const response = await fetch(
+          "https://mahaspice.desoftimp.com/ms3/displaygst.php"
+        );
+        const data = await response.json();
+
+        if (data.success) {
+          const serviceGst = data.data.find(
+            (item) => item.service_type === serviceType
+          );
+          if (serviceGst) {
+            setGstPercentage(parseFloat(serviceGst.gst_percentage));
+          }
+        }
+      } catch (err) {
+        console.error("Error fetching GST:", err);
+        setError("Failed to load GST data");
+      }
+    };
+
+    fetchGST();
+  }, [serviceType]);
 
   // Handle window unload
   useEffect(() => {
@@ -61,7 +95,7 @@ const DeliveryMenu = () => {
   // Handle inactivity timer
   useEffect(() => {
     let inactivityTimer;
-    const INACTIVITY_TIMEOUT = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 2 minutes in milliseconds
 
     const resetTimer = () => {
       if (inactivityTimer) {
@@ -176,8 +210,58 @@ const DeliveryMenu = () => {
   };
 
   const handleCheckout = () => {
-    setIsCheckout(true);
-  };
+  // Check if cart is empty
+  if (selectedItems.length === 0) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  // If user is not logged in
+  if (!user) {
+    // Store current cart state in localStorage
+    localStorage.setItem('pendingCart', JSON.stringify({
+      selectedItems,
+      guestCount,
+      menuType,
+      selectedCategory
+    }));
+
+    // Store the current path for redirect
+    const currentPath = window.location.pathname;
+    localStorage.setItem('checkoutRedirect', currentPath);
+
+    // Redirect to login page
+    window.location.href = "/login";
+    return;
+  }
+
+  // If user is logged in, proceed to checkout
+  setIsCheckout(true);
+};
+
+// Add this useEffect at the component level to handle post-login redirect
+useEffect(() => {
+  // Check if there's a pending cart and we're returning from login
+  const pendingCart = localStorage.getItem('pendingCart');
+  const checkoutRedirect = localStorage.getItem('checkoutRedirect');
+
+  if (user && pendingCart && checkoutRedirect) {
+    try {
+      // Restore cart state
+      const cartData = JSON.parse(pendingCart);
+      setSelectedItems(cartData.selectedItems);
+      setGuestCount(cartData.guestCount);
+      setMenuType(cartData.menuType);
+      setSelectedCategory(cartData.selectedCategory);
+
+      // Clear the pending cart and redirect data
+      localStorage.removeItem('pendingCart');
+      localStorage.removeItem('checkoutRedirect');
+    } catch (error) {
+      console.error('Error restoring cart:', error);
+    }
+  }
+}, [user]); // Only run when user auth state changes
 
   const handleAddItem = (item) => {
     const defaultQuantity = Math.ceil(guestCount);
@@ -195,10 +279,10 @@ const DeliveryMenu = () => {
       (total, item) => total + item.price * item.quantity,
       0
     );
-    const tax = subtotal * 0.18;
-    const deliveryCharge = 500;
-    const total = subtotal + tax + deliveryCharge;
-    return { subtotal, tax, total, deliveryCharge };
+    const gst = (subtotal * gstPercentage) / 100;
+    
+    const total = subtotal + gst ;
+    return { subtotal, gst, total};
   }, [selectedItems]);
 
   const isItemSelected = (itemId) => selectedItems.some((item) => item.id === itemId);
@@ -423,16 +507,13 @@ const DeliveryMenu = () => {
               <span>₹{subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Tax (18%)</span>
-              <span>₹{tax.toFixed(2)}</span>
+              <span>GST ({gstPercentage}%)</span>
+              <span>₹{calculateTotals.gst.toFixed(2)}</span>
             </div>
-            <div className="flex justify-between">
-              <span>Delivery Charge</span>
-              <span>₹{deliveryCharge}</span>
-            </div>
+
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total</span>
-              <span>₹{total.toFixed(2)}</span>
+              <span>₹{calculateTotals.total.toFixed(2)}</span>
             </div>
           </div>
 
