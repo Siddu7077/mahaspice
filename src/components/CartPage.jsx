@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "./AuthSystem";
 import { useNavigate } from "react-router-dom";
+import DownloadPDFButton from './CartPdf';
 
 const CartPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -123,6 +124,7 @@ const CartPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+      
 
       {/* Display grouped carts */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
@@ -131,6 +133,7 @@ const CartPage = () => {
           Select any two carts to compare. You can view the menu as soon as you
           select one cart.
         </p>
+        
         {Object.entries(groupedCarts).map(([key, carts]) => (
           <div key={key} className="mb-6">
             <h3 className="text-xl font-bold mb-2">
@@ -147,7 +150,7 @@ const CartPage = () => {
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   } transition-colors`}
                 >
-                  Cart #{cart.cart_id} (₹{cart.total_price})
+                  Cart #{cart.cart_id} (₹{cart.plate_price})
                 </button>
               ))}
             </div>
@@ -159,6 +162,7 @@ const CartPage = () => {
       {selectedCarts.length > 0 && (
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-2xl font-bold mb-6">Selected Cart(s)</h2>
+          <DownloadPDFButton selectedCarts={selectedCarts} carts={carts} />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {selectedCarts.map((cartId) => {
               const cart = carts.find((c) => c.cart_id === cartId);
