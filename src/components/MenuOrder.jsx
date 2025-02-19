@@ -289,7 +289,7 @@ const MenuOrder = () => {
       const options = {
         // key: "rzp_live_Mjm1GpVqxzwjQL",original
         key: "rzp_test_CROYWIJ5dxBvRA",
-        amount: Math.round((totals.total * 100) / 1000),
+        amount: Math.round((totals.total * 100)),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: "Catering Order Payment",
