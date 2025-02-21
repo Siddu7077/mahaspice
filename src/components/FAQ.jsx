@@ -42,7 +42,7 @@ const FAQ = () => {
           <div
             key={faq.id}
             className={`bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 ${
-              activeIndex === index ? 'ring-2 ring-blue-500' : ''
+              activeIndex === index ? 'ring-2 ring-green-500' : ''
             }`}
           >
             <div
@@ -96,7 +96,7 @@ const FAQ = () => {
                         key={idx}
                         className="flex items-start gap-2"
                       >
-                        <span className="w-2 h-2 mt-2 rounded-full bg-blue-500 flex-shrink-0" />
+                        {/* <span className="w-2 h-2 mt-2 rounded-full bg-blue-500 flex-shrink-0" /> */}
                         <span className="text-gray-700">{point}</span>
                       </li>
                     ))}

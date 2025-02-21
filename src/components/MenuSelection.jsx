@@ -158,7 +158,7 @@ const MenuSelection = () => {
         selectedItems: filteredItems,
         extraItems,
         platePrice,
-        guestCount,
+        guestCount,eventType, serviceType, menuType,menuPreference,
         totalAmount: calculateTotal(),
       },
     });
