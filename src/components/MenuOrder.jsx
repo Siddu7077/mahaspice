@@ -107,9 +107,8 @@ const MenuOrder = () => {
   // Handle state change
   const handleStateChange = (e) => {
     const stateId = e.target.value;
-    const selectedStateName =
-      states.find((state) => state.id === stateId)?.name || "";
-
+    const selectedStateName = states.find((state) => state.id === stateId)?.name || "";
+  
     setSelectedState(stateId);
     setSelectedDistrict("");
     setAddressDetails((prev) => ({
@@ -124,13 +123,11 @@ const MenuOrder = () => {
     }));
     setDeliveryFee(DEFAULT_DELIVERY_FEE);
   };
-
-  // Handle district change
+  
   const handleDistrictChange = (e) => {
     const districtId = e.target.value;
-    const selectedDistrictName =
-      districts.find((district) => district.id === districtId)?.name || "";
-
+    const selectedDistrictName = districts.find((district) => district.id === districtId)?.name || "";
+  
     setSelectedDistrict(districtId);
     setAddressDetails((prev) => ({
       ...prev,
@@ -143,12 +140,11 @@ const MenuOrder = () => {
     }));
     setDeliveryFee(DEFAULT_DELIVERY_FEE);
   };
-
-  // Handle city change
+  
   const handleCityChange = (e) => {
     const cityId = e.target.value;
     const selectedCity = cities.find((city) => city.id === cityId);
-
+  
     if (selectedCity) {
       setAddressDetails((prev) => ({
         ...prev,
@@ -156,11 +152,13 @@ const MenuOrder = () => {
       }));
       setUserDetails((prev) => ({
         ...prev,
-        city: selectedCity.name, // Keep this for internal tracking
+        city: selectedCity.name,
       }));
       setDeliveryFee(Number(selectedCity.price));
     }
   };
+
+ 
 
   useEffect(() => {
     const loadRazorpay = async () => {
@@ -859,6 +857,7 @@ const MenuOrder = () => {
       try {
         const response = await fetch('https://mahaspice.desoftimp.com/ms3/cat_date_blocking.php');
         const data = await response.json();
+        console.log("Blocked Dates:", data); // Log the response
         setBlockedDates(data);
       } catch (error) {
         console.error('Error fetching blocked dates:', error);
@@ -867,22 +866,33 @@ const MenuOrder = () => {
     fetchBlockedDates();
   }, []);
 
-  // Function to check if a date is blocked for the selected location
   const isDateBlockedForLocation = (date) => {
     if (!date || !selectedState || !selectedDistrict || !userDetails.city) return false;
-
-    return blockedDates.some(blocked => 
-      blocked.state_id === selectedState &&
-      blocked.district_id === selectedDistrict &&
-      blocked.city_name === userDetails.city &&
-      blocked.blocked_date === date
-    );
+  
+    const selectedDateFormatted = new Date(date).toISOString().split("T")[0];
+  
+    console.log("Selected Date (Formatted):", selectedDateFormatted);
+    console.log("Blocked Dates:", blockedDates);
+    console.log("Selected State:", selectedState);
+    console.log("Selected District:", selectedDistrict);
+    console.log("Selected City:", userDetails.city);
+  
+    return blockedDates.some((blocked) => {
+      const isBlocked =
+        blocked.state_id === selectedState &&
+        blocked.district_id === selectedDistrict &&
+        blocked.city_name === userDetails.city &&
+        blocked.blocked_date === selectedDateFormatted;
+  
+      console.log("Is Blocked:", isBlocked, "for Blocked Date:", blocked.blocked_date);
+      return isBlocked;
+    });
   };
 
   // Modified handleDateChange function to avoid double alerts
   const handleDateChange = (e) => {
     const selectedDate = e.target.value;
-
+  
     // Check for today/tomorrow first
     const todayInIST = getCurrentDateInIST();
     const tomorrowInIST = new Date(todayInIST);
@@ -890,10 +900,10 @@ const MenuOrder = () => {
     
     const selectedDateTime = new Date(selectedDate);
     const isEarlyDate = selectedDateTime <= tomorrowInIST;
-
+  
     // Check for location blocking
     const isLocationBlocked = isDateBlockedForLocation(selectedDate);
-
+  
     if (isLocationBlocked) {
       alert(`Sorry, catering services are not available in ${userDetails.city} on ${selectedDate}. Please select another date.`);
       setUserDetails(prev => ({

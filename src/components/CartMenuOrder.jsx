@@ -12,7 +12,7 @@ const CartMenuOrder = () => {
   const {
     selectedItems = [],
     extraItems = [],
-    platePrice = 0,
+    platePrice = 0,eventType, serviceType, menuType,menuPreference,
     // guestCount = 0,
     totalAmount = 0,
   } = location.state || {};
@@ -107,9 +107,8 @@ const CartMenuOrder = () => {
   // Handle state change
   const handleStateChange = (e) => {
     const stateId = e.target.value;
-    const selectedStateName =
-      states.find((state) => state.id === stateId)?.name || "";
-
+    const selectedStateName = states.find((state) => state.id === stateId)?.name || "";
+  
     setSelectedState(stateId);
     setSelectedDistrict("");
     setAddressDetails((prev) => ({
@@ -124,13 +123,11 @@ const CartMenuOrder = () => {
     }));
     setDeliveryFee(DEFAULT_DELIVERY_FEE);
   };
-
-  // Handle district change
+  
   const handleDistrictChange = (e) => {
     const districtId = e.target.value;
-    const selectedDistrictName =
-      districts.find((district) => district.id === districtId)?.name || "";
-
+    const selectedDistrictName = districts.find((district) => district.id === districtId)?.name || "";
+  
     setSelectedDistrict(districtId);
     setAddressDetails((prev) => ({
       ...prev,
@@ -143,12 +140,11 @@ const CartMenuOrder = () => {
     }));
     setDeliveryFee(DEFAULT_DELIVERY_FEE);
   };
-
-  // Handle city change
+  
   const handleCityChange = (e) => {
     const cityId = e.target.value;
     const selectedCity = cities.find((city) => city.id === cityId);
-
+  
     if (selectedCity) {
       setAddressDetails((prev) => ({
         ...prev,
@@ -156,11 +152,13 @@ const CartMenuOrder = () => {
       }));
       setUserDetails((prev) => ({
         ...prev,
-        city: selectedCity.name, // Keep this for internal tracking
+        city: selectedCity.name,
       }));
       setDeliveryFee(Number(selectedCity.price));
     }
   };
+
+ 
 
   useEffect(() => {
     const loadRazorpay = async () => {
@@ -240,10 +238,14 @@ const CartMenuOrder = () => {
         gstPercentage,
         deliveryFee: totals.deliveryFee,
         total: totals.total,
+        eventType: eventType,
+        serviceType: serviceType,
+        menuType: menuType,
+        vegNonveg: menuPreference,
       },
       paymentDetails: {
         paymentId: response.razorpay_payment_id,
-        amount: totals.total * 100, // Convert to paise for Razorpay
+        amount: totals.total * 100,
       },
     };
 
@@ -289,7 +291,7 @@ const CartMenuOrder = () => {
       const options = {
         // key: "rzp_live_Mjm1GpVqxzwjQL",original
         key: "rzp_test_CROYWIJ5dxBvRA",
-        amount: Math.round((totals.total * 100) / 1000),
+        amount: Math.round(totals.total * 100),
         currency: "INR",
         name: "Mahaspice Caterers",
         description: "Catering Order Payment",
@@ -358,25 +360,6 @@ const CartMenuOrder = () => {
         tomorrowInIST.toISOString().split("T")[0]
     );
   };
-
-  // Handle date change
-  const handleDateChange = (e) => {
-    const selectedDate = e.target.value;
-
-    if (isDateBlocked(selectedDate)) {
-      alert("For dates today or tomorrow, please choose the Superfast option.");
-      setUserDetails((prev) => ({
-        ...prev,
-        date: "", // Clear the selected date
-      }));
-    } else {
-      setUserDetails((prev) => ({
-        ...prev,
-        date: selectedDate,
-      }));
-    }
-  };
-
   useEffect(() => {
     const fetchGSTRate = async () => {
       try {
@@ -869,48 +852,103 @@ const CartMenuOrder = () => {
     setCouponError("");
   };
 
-  // const handleSubmit = () => {
-  //   const requiredFields = [
-  //     "fullName",
-  //     "email",
-  //     "phoneNumber",
-  //     "city",
-  //     "address",
-  //     "landmark",
-  //     "date",
-  //     "time",
-  //   ];
+  useEffect(() => {
+    const fetchBlockedDates = async () => {
+      try {
+        const response = await fetch('https://mahaspice.desoftimp.com/ms3/cat_date_blocking.php');
+        const data = await response.json();
+        console.log("Blocked Dates:", data); // Log the response
+        setBlockedDates(data);
+      } catch (error) {
+        console.error('Error fetching blocked dates:', error);
+      }
+    };
+    fetchBlockedDates();
+  }, []);
 
-  //   const calculateMinRequirements = (guestCount) => {
-  //     if (guestCount <= 0) {
-  //       return {
-  //         staff: 0,
-  //         helper: 0,
-  //         table: 0,
-  //       };
-  //     }
+  const isDateBlockedForLocation = (date) => {
+    if (!date || !selectedState || !selectedDistrict || !userDetails.city) return false;
+  
+    const selectedDateFormatted = new Date(date).toISOString().split("T")[0];
+  
+    console.log("Selected Date (Formatted):", selectedDateFormatted);
+    console.log("Blocked Dates:", blockedDates);
+    console.log("Selected State:", selectedState);
+    console.log("Selected District:", selectedDistrict);
+    console.log("Selected City:", userDetails.city);
+  
+    return blockedDates.some((blocked) => {
+      const isBlocked =
+        blocked.state_id === selectedState &&
+        blocked.district_id === selectedDistrict &&
+        blocked.city_name === userDetails.city &&
+        blocked.blocked_date === selectedDateFormatted;
+  
+      console.log("Is Blocked:", isBlocked, "for Blocked Date:", blocked.blocked_date);
+      return isBlocked;
+    });
+  };
 
-  //     const calculateForResource = (ratio) => {
-  //       const [base, units] = ratio.split("/").map(Number);
-  //       return Math.ceil((guestCount / base) * units);
-  //     };
+  // Modified handleDateChange function to avoid double alerts
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+  
+    // Check for today/tomorrow first
+    const todayInIST = getCurrentDateInIST();
+    const tomorrowInIST = new Date(todayInIST);
+    tomorrowInIST.setDate(todayInIST.getDate() + 1);
+    
+    const selectedDateTime = new Date(selectedDate);
+    const isEarlyDate = selectedDateTime <= tomorrowInIST;
+  
+    // Check for location blocking
+    const isLocationBlocked = isDateBlockedForLocation(selectedDate);
+  
+    if (isLocationBlocked) {
+      alert(`Sorry, catering services are not available in ${userDetails.city} on ${selectedDate}. Please select another date.`);
+      setUserDetails(prev => ({
+        ...prev,
+        date: '',
+        time: ''
+      }));
+    } else if (isEarlyDate) {
+      alert("For dates today or tomorrow, please choose the Superfast option.");
+      setUserDetails(prev => ({
+        ...prev,
+        date: '',
+        time: ''
+      }));
+    } else {
+      setUserDetails(prev => ({
+        ...prev,
+        date: selectedDate
+      }));
+    }
+  };
 
-  //     return {
-  //       staff: calculateForResource(resources.staff.ratio),
-  //       helper: calculateForResource(resources.helper.ratio),
-  //       table: calculateForResource(resources.table.ratio),
-  //     };
-  //   };
 
-  //   const missingFields = requiredFields.filter((field) => !userDetails[field]);
+  const renderDateInput = () => (
+    <div>
+      <label className="block text-sm font-medium mb-1">Date *</label>
+      <input
+        type="date"
+        name="date"
+        value={userDetails.date}
+        onChange={handleDateChange}
+        min={minDate}
+        className="w-full p-3 border rounded-md"
+      />
+      {userDetails.date && isDateBlockedForLocation(userDetails.date) && (
+        <p className="text-sm text-red-600 mt-1">
+          This date is not available for catering in {userDetails.city}.
+        </p>
+      )}
+      <p className="text-sm text-gray-600 mt-1">
+        For dates today or tomorrow, please choose the Superfast option.
+      </p>
+    </div>
+  );
 
-  //   if (missingFields.length > 0) {
-  //     alert(`Please fill in all required fields: ${missingFields.join(", ")}`);
-  //     return;
-  //   }
-
-  //   setShowPaymentSuccess(true);
-  // };
 
   const renderResourceInputs = () => {
     const minRequirements = calculateMinRequirements(guestCount);
@@ -1012,7 +1050,7 @@ const CartMenuOrder = () => {
           {/* Customer Details Form */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-6">Customer Details</h2>
-
+            
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <input
@@ -1156,17 +1194,19 @@ const CartMenuOrder = () => {
 
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Date *
-                  </label>
-                  <input
-                    type="date"
-                    name="date"
-                    value={userDetails.date}
-                    onChange={handleDateChange} // Use the new handler
-                    min={minDate} // Set minimum selectable date
-                    className="w-full p-3 border rounded-md"
-                  />
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Date *
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={userDetails.date}
+                      onChange={handleDateChange}
+                      min={minDate}
+                      className="w-full p-3 border rounded-md"
+                    />
+                  </div>
 
                   <p className="text-sm text-gray-600 mt-1">
                     For dates today or tomorrow, please choose the Superfast
@@ -1232,8 +1272,8 @@ const CartMenuOrder = () => {
 
           {/* Order Summary */}
           <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-bold mb-6">{eventType} {serviceType} {menuType}</h2>
             <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
-
             {/* Selected Items */}
             <div className="mb-6 max-h-64 overflow-y-auto">
               <h3 className="font-semibold mb-2">Selected Items</h3>
