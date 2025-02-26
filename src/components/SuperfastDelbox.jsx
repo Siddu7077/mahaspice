@@ -52,7 +52,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
     const fetchGST = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/displaygst.php"
+          "https://adminmahaspice.in/ms3/displaygst.php"
         );
         const data = await response.json();
 
@@ -79,7 +79,7 @@ const SuperfastDeliveryMenu = ({ formData }) => {
       try {
         setLoading(true);
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/getSupHomeItems.php"
+          "https://adminmahaspice.in/ms3/getSupHomeItems.php"
         );
         const data = await response.json();
         const processedMenuItems = data.items || [];
@@ -418,7 +418,7 @@ useEffect(() => {
                   className="bg-white rounded-lg shadow p-4 flex flex-col"
                 >
                   <img
-                    src={`https://mahaspice.desoftimp.com/ms3/uploads/sup/homeCategory/${item.image_path}`}
+                    src={`https://adminmahaspice.in/ms3/uploads/sup/homeCategory/${item.image_path}`}
                     alt={item.title}
                     className="w-full h-48 object-cover rounded-lg"
                     onError={(e) => {

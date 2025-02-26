@@ -46,7 +46,7 @@ export const EventProvider = ({ children }) => {
   useEffect(() => {
     const fetchEventData = async () => {
       try {
-        const response = await fetch('https://mahaspice.desoftimp.com/ms3/get_events.php');
+        const response = await fetch('https://adminmahaspice.in/ms3/get_events.php');
         const data = await response.json();
         const transformedData = transformEventData(data);
         setEventCategories(transformedData);

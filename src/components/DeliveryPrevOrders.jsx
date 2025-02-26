@@ -17,7 +17,7 @@ const DeliveryPrevOrders = ({ activeTab }) => {
   const fetchOrders = async (phone, type) => {
     setLoading(true);
     try {
-      const response = await fetch(`https://mahaspice.desoftimp.com/ms3/DelPrevOrders.php?phone=${phone}&type=${type}`);
+      const response = await fetch(`https://adminmahaspice.in/ms3/DelPrevOrders.php?phone=${phone}&type=${type}`);
       const data = await response.json();
       if (data.success) {
         setOrders(data.orders);

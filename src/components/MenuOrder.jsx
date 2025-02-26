@@ -59,7 +59,7 @@ const MenuOrder = () => {
     const fetchLocations = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/catering_locations.php"
+          "https://adminmahaspice.in/ms3/catering_locations.php"
         );
         const data = await response.json();
         setLocations(data);
@@ -252,7 +252,7 @@ const MenuOrder = () => {
     try {
       // Send the order data to the backend
       const response = await fetch(
-        "https://mahaspice.desoftimp.com/ms3/payment/catering_order.php",
+        "https://adminmahaspice.in/ms3/payment/catering_order.php",
         {
           method: "POST",
           headers: {
@@ -364,7 +364,7 @@ const MenuOrder = () => {
     const fetchGSTRate = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/displaygst.php"
+          "https://adminmahaspice.in/ms3/displaygst.php"
         );
         const data = await response.json();
 
@@ -502,7 +502,7 @@ const MenuOrder = () => {
     const fetchLocations = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/displayDeloc.php"
+          "https://adminmahaspice.in/ms3/displayDeloc.php"
         );
         const data = await response.json();
 
@@ -525,7 +525,7 @@ const MenuOrder = () => {
     const fetchBlockedDates = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/dateblocking.php"
+          "https://adminmahaspice.in/ms3/dateblocking.php"
         );
         const data = await response.json();
 
@@ -547,7 +547,7 @@ const MenuOrder = () => {
     const fetchCoupons = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/displaycoupons.php"
+          "https://adminmahaspice.in/ms3/displaycoupons.php"
         );
         const data = await response.json();
 
@@ -608,7 +608,7 @@ const MenuOrder = () => {
     const fetchResources = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/get-resources.php"
+          "https://adminmahaspice.in/ms3/get-resources.php"
         );
         const data = await response.json();
 
@@ -855,7 +855,7 @@ const MenuOrder = () => {
   useEffect(() => {
     const fetchBlockedDates = async () => {
       try {
-        const response = await fetch('https://mahaspice.desoftimp.com/ms3/cat_date_blocking.php');
+        const response = await fetch('https://adminmahaspice.in/ms3/cat_date_blocking.php');
         const data = await response.json();
         console.log("Blocked Dates:", data); // Log the response
         setBlockedDates(data);

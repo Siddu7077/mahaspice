@@ -49,7 +49,7 @@ const MenuSelection = () => {
 
       try {
         const response = await fetch(
-          `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${user.id}`
+          `https://adminmahaspice.in/ms3/get-cart.php?user_id=${user.id}`
         );
         if (!response.ok) throw new Error("Failed to fetch cart data");
 
@@ -198,9 +198,9 @@ const MenuSelection = () => {
         setLoading(true);
         const [menuResponse, categoryResponse, pricingResponse] =
           await Promise.all([
-            fetch("https://mahaspice.desoftimp.com/ms3/menu_display.php"),
-            fetch("https://mahaspice.desoftimp.com/ms3/getcategory.php"),
-            fetch("https://mahaspice.desoftimp.com/ms3/get_pricing.php"),
+            fetch("https://adminmahaspice.in/ms3/menu_display.php"),
+            fetch("https://adminmahaspice.in/ms3/getcategory.php"),
+            fetch("https://adminmahaspice.in/ms3/get_pricing.php"),
           ]);
 
         const menuJson = await menuResponse.json();
@@ -565,7 +565,7 @@ const MenuSelection = () => {
   
     try {
       const response = await fetch(
-        "https://mahaspice.desoftimp.com/ms3/add-to-cart.php",
+        "https://adminmahaspice.in/ms3/add-to-cart.php",
         {
           method: "POST",
           headers: {

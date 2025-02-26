@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
 
       const userData = JSON.parse(storedUser);
       const response = await fetch(
-        "https://mahaspice.desoftimp.com/ms3/login/get-user-details.php",
+        "https://adminmahaspice.in/ms3/login/get-user-details.php",
         {
           method: "POST",
           headers: {
@@ -103,7 +103,7 @@ const AuthSystem = () => {
     otp: "",
   });
 
-  const API_BASE_URL = "https://mahaspice.desoftimp.com/ms3/login";
+  const API_BASE_URL = "https://adminmahaspice.in/ms3/login";
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

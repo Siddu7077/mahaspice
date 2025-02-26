@@ -26,7 +26,7 @@ const CartPage = () => {
           return;
         }
 
-        const url = `https://mahaspice.desoftimp.com/ms3/get-cart.php?user_id=${currentUser.id}`;
+        const url = `https://adminmahaspice.in/ms3/get-cart.php?user_id=${currentUser.id}`;
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error("Failed to fetch cart data.");
@@ -61,7 +61,7 @@ const CartPage = () => {
   const handleDeleteCart = async (cartId) => {
     if (window.confirm("Are you sure you want to delete this cart? This action cannot be undone.")) {
       try {
-        const response = await fetch(`https://mahaspice.desoftimp.com/ms3/delete-cart.php?cart_id=${cartId}`);
+        const response = await fetch(`https://adminmahaspice.in/ms3/delete-cart.php?cart_id=${cartId}`);
         if (!response.ok) {
           throw new Error("Failed to delete cart.");
         }

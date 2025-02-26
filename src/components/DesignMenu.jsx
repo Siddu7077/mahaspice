@@ -47,7 +47,7 @@ const AlertMessage = ({ message, onClose }) => {
   );
 };
 
-const API_BASE_URL = 'https://mahaspice.desoftimp.com/ms3/design';
+const API_BASE_URL = 'https://adminmahaspice.in/ms3/design';
 
 const DesignMenu = () => {
   const [items, setItems] = useState([]);

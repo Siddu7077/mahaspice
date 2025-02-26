@@ -16,8 +16,8 @@ const MenuPage = () => {
     const fetchData = async () => {
         try {
             const [categoriesResponse, pricingResponse] = await Promise.all([
-                fetch('https://mahaspice.desoftimp.com/ms3/getgscd.php'),
-                fetch('https://mahaspice.desoftimp.com/ms3/get_pricing.php')
+                fetch('https://adminmahaspice.in/ms3/getgscd.php'),
+                fetch('https://adminmahaspice.in/ms3/get_pricing.php')
             ]);
             const categoriesData = await categoriesResponse.json();
             const pricingData = await pricingResponse.json();
@@ -60,7 +60,7 @@ const MenuPage = () => {
 
     const getImageUrl = (imageUrl) => {
         if (imageUrl && !imageUrl.startsWith('http')) {
-            return `https://mahaspice.desoftimp.com/ms3/${imageUrl}`;
+            return `https://adminmahaspice.in/ms3/${imageUrl}`;
         }
         return imageUrl;
     };

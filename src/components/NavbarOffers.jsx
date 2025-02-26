@@ -7,7 +7,7 @@ const NavbarOffers = ({ isNavExpanded }) => {
     const [currentOfferIndex, setCurrentOfferIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
-    const baseUrl = 'https://mahaspice.desoftimp.com/ms3/';
+    const baseUrl = 'https://adminmahaspice.in/ms3/';
 
     useEffect(() => {
         const fetchOffers = async () => {

@@ -11,7 +11,7 @@ const DynamicServices = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const BASE_URL = "https://mahaspice.desoftimp.com/ms3/";
+  const BASE_URL = "https://adminmahaspice.in/ms3/";
 
   useEffect(() => {
     fetchSections();

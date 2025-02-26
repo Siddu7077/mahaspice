@@ -13,7 +13,7 @@ const Platinum = () => {
   const [pricingData, setPricingData] = useState(null);
   const [inputValue, setInputValue] = useState(guestCount.toString());
 
-  const baseUrl = 'https://mahaspice.desoftimp.com/ms3/';
+  const baseUrl = 'https://adminmahaspice.in/ms3/';
 
   useEffect(() => {
     const fetchData = async () => {

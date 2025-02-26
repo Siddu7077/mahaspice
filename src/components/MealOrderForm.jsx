@@ -83,7 +83,7 @@ const MealOrderForm = () => {
         formSubmissionData.append(key, formData[key]);
       });
 
-      const response = await fetch('https://mahaspice.desoftimp.com/ms3/superfast.php', {
+      const response = await fetch('https://adminmahaspice.in/ms3/superfast.php', {
         method: 'POST',
         body: formSubmissionData
       });

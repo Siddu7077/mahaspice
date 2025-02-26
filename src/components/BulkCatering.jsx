@@ -13,7 +13,7 @@ const BulkCatering = () => {
 
     const fetchItems = async () => {
         try {
-            const response = await fetch('https://mahaspice.desoftimp.com/ms3/getSectionThree.php');
+            const response = await fetch('https://adminmahaspice.in/ms3/getSectionThree.php');
             const data = await response.json();
             setItems(data);
             setLoading(false);
@@ -47,7 +47,7 @@ const BulkCatering = () => {
                         >
                             <Link to={link} className="block h-full">
                                 <img
-                                    src={`https://mahaspice.desoftimp.com/ms3/${image}`}
+                                    src={`https://adminmahaspice.in/ms3/${image}`}
                                     alt={title}
                                     className="w-full h-48 object-cover"
                                 />

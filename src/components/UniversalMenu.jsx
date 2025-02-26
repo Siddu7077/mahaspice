@@ -18,7 +18,7 @@ const UniversalMenu = ({ eventName, packageName }) => {
   const [showOrder, setShowOrder] = useState(false);
   const [showGuestLimitPopup, setShowGuestLimitPopup] = useState(false);
 
-  const baseUrl = 'https://mahaspice.desoftimp.com/ms3/';
+  const baseUrl = 'https://adminmahaspice.in/ms3/';
 
   // Create a ref to the component's root element
   const componentRef = useRef(null);

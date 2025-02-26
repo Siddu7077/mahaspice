@@ -40,7 +40,7 @@ const transformApiData = (apiData) => {
     const transformedItem = {
       id: item.id.toString(),
       name: item.cp_name,
-      image: `https://mahaspice.desoftimp.com/ms3${item.image_address}`,
+      image: `https://adminmahaspice.in/ms3${item.image_address}`,
       items: item.description.split(","),
       price: `₹${item.price}`,
       rating: 4.5,
@@ -106,7 +106,7 @@ const SuperfastMeal = () => {
 
   useEffect(() => {
     // Fetch GST data
-    fetch("https://mahaspice.desoftimp.com/ms3/displaygst.php")
+    fetch("https://adminmahaspice.in/ms3/displaygst.php")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -121,7 +121,7 @@ const SuperfastMeal = () => {
       .catch((err) => console.error("Error fetching GST:", err));
 
     // Fetch coupons
-    fetch("https://mahaspice.desoftimp.com/ms3/displaycoupons.php")
+    fetch("https://adminmahaspice.in/ms3/displaycoupons.php")
       .then((res) => res.json())
       .then((data) => {
         if (data.success) {
@@ -143,7 +143,7 @@ const SuperfastMeal = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/cptypes.php"
+          "https://adminmahaspice.in/ms3/cptypes.php"
         );
         const data = await response.json();
         const { data: transformedData, cpTypes } = transformApiData(data);

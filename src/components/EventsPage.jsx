@@ -11,7 +11,7 @@ const EventsPage = () => {
     const fetchEventData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('https://mahaspice.desoftimp.com/ms3/get_events.php');
+        const response = await fetch('https://adminmahaspice.in/ms3/get_events.php');
         const data = await response.json();
         
         // Find all events that match the category
@@ -28,7 +28,7 @@ const EventsPage = () => {
             services: matchedEvents.map(event => ({
               title: event.event_category,
               description: event.event_description,
-              image: `https://mahaspice.desoftimp.com/ms3/${event.event_file_path}`,
+              image: `https://adminmahaspice.in/ms3/${event.event_file_path}`,
               startingPrice: parseFloat(event.event_veg_price),
               nonVegPrice: parseFloat(event.event_nonveg_price),
               highlights: [

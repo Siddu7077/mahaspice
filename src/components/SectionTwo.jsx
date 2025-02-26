@@ -9,7 +9,7 @@ const SectionTwo = () => {
     useEffect(() => {
         const fetchServices = async () => {
             try {
-                const response = await fetch('https://mahaspice.desoftimp.com/ms3/getSectionTwo.php');
+                const response = await fetch('https://adminmahaspice.in/ms3/getSectionTwo.php');
                 
                 // Log the raw response for debugging
                 const textResponse = await response.text();
@@ -30,7 +30,7 @@ const SectionTwo = () => {
                 if (Array.isArray(data)) {
                     const processedServices = data.map(service => ({
                         title: service.service_name,
-                        image: `https://mahaspice.desoftimp.com/ms3/${service.image_path}`,
+                        image: `https://adminmahaspice.in/ms3/${service.image_path}`,
                         buttonText: "Order Now",
                         link: getServiceLink(service.service_name)
                     }));

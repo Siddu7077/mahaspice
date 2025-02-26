@@ -15,10 +15,10 @@ const Superfast = ({ eventName }) => {
     const fetchData = async () => {
       try {
         const [crpbResponse, categoriesResponse, itemsResponse, pricingResponse] = await Promise.all([
-          axios.get('https://mahaspice.desoftimp.com/ms3/getcrpb.php'),
-          axios.get('https://mahaspice.desoftimp.com/ms3/getsf_categories.php'),
-          axios.get('https://mahaspice.desoftimp.com/ms3/getsf_items.php'),
-          axios.get('https://mahaspice.desoftimp.com/ms3/get_sup_event_pricing.php')
+          axios.get('https://adminmahaspice.in/ms3/getcrpb.php'),
+          axios.get('https://adminmahaspice.in/ms3/getsf_categories.php'),
+          axios.get('https://adminmahaspice.in/ms3/getsf_items.php'),
+          axios.get('https://adminmahaspice.in/ms3/get_sup_event_pricing.php')
         ]);
 
         const sortedCRPBData = crpbResponse.data.sort((a, b) => a.position - b.position);
@@ -62,7 +62,7 @@ const Superfast = ({ eventName }) => {
             }`}
           >
             <img
-              src={`https://mahaspice.desoftimp.com/ms3/${crpb.img_address}`}
+              src={`https://adminmahaspice.in/ms3/${crpb.img_address}`}
               alt={crpb.name}
               className="w-full object-full rounded-md"
             />

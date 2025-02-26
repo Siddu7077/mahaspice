@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 const FAQ = () => {
   const [faqs, setFaqs] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
-  const BASE_URL = 'https://mahaspice.desoftimp.com/ms3';
+  const BASE_URL = 'https://adminmahaspice.in/ms3';
 
   useEffect(() => {
     const fetchFaqs = async () => {

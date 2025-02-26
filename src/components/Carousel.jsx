@@ -8,7 +8,7 @@ const Carousel = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch('https://mahaspice.desoftimp.com/ms3/getCarousel.php')
+    fetch('https://adminmahaspice.in/ms3/getCarousel.php')
       .then(res => res.json())
       .then(data => {
         console.log('Carousel Data:', data); // Debug log
@@ -62,12 +62,12 @@ const Carousel = () => {
                 muted
                 playsInline
               >
-                <source src={`https://mahaspice.desoftimp.com/ms3/uploads/carousel/${slide.media_path}`} type="video/mp4" />
+                <source src={`https://adminmahaspice.in/ms3/uploads/carousel/${slide.media_path}`} type="video/mp4" />
                 Your browser does not support video playback.
               </video>
             ) : (
               <img
-                src={`https://mahaspice.desoftimp.com/ms3/uploads/carousel/${slide.media_path}`}
+                src={`https://adminmahaspice.in/ms3/uploads/carousel/${slide.media_path}`}
                 alt={slide.button_text}
                 className="absolute top-0 left-0 w-full h-full object-cover"
               />

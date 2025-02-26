@@ -50,7 +50,7 @@ const CheckOutform = ({
     const fetchBlockedDates = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/dateblocking.php"
+          "https://adminmahaspice.in/ms3/dateblocking.php"
         );
         const data = await response.json();
 
@@ -185,7 +185,7 @@ const CheckOutform = ({
     const fetchLocations = async () => {
       try {
         const response = await fetch(
-          "https://mahaspice.desoftimp.com/ms3/displayDeloc.php"
+          "https://adminmahaspice.in/ms3/displayDeloc.php"
         );
         const data = await response.json();
 
@@ -326,7 +326,7 @@ const CheckOutform = ({
       console.log("Sending order payload:", orderPayload);
 
       const orderResponse = await fetch(
-        "https://mahaspice.desoftimp.com/ms3/payment/create_sup_box.php",
+        "https://adminmahaspice.in/ms3/payment/create_sup_box.php",
         {
           method: "POST",
           headers: {
