@@ -98,7 +98,7 @@ const MenuSelection = () => {
   };
 
   useEffect(() => {
-    console.log("Component mounted. Showing Live Counter Alert.");
+    // console.log("Component mounted. Showing Live Counter Alert.");
     setShowLiveCounterAlert(true);
   }, []);
 
@@ -119,9 +119,9 @@ const MenuSelection = () => {
   useEffect(() => {
     let timeoutId;
     if (showLiveCounterAlert) {
-      console.log("Setting timeout to hide Live Counter Alert");
+      // console.log("Setting timeout to hide Live Counter Alert");
       timeoutId = setTimeout(() => {
-        console.log("Hiding Live Counter Alert");
+        // console.log("Hiding Live Counter Alert");
         setShowLiveCounterAlert(false);
       }, 10000);
     }
@@ -220,6 +220,7 @@ const MenuSelection = () => {
         }
         if (pricingJson.success && Array.isArray(pricingJson.data)) {
           setPricingData(pricingJson.data);
+          console.log(pricingJson.data);
         }
         setError(null);
       } catch (err) {
@@ -236,37 +237,52 @@ const MenuSelection = () => {
     if (!pricingData || !serviceType || !menuType) {
       return 0;
     }
-
+  
+    // Format the serviceType and menuType to match the API format
+    const formattedServiceType = serviceType.replace(/-/g, " ");
     const formattedMenuType = menuType.replace(/-/g, " ");
+    
+    // Debug the matching process
+    console.log("Looking for pricing with:", { 
+      serviceType: formattedServiceType, 
+      menuType: formattedMenuType 
+    });
+    console.log("Available pricing data:", pricingData);
+    
+    // Find the matching price in the pricingData
     const matchingPrice = pricingData.find(
-      (price) => price.gscd?.toLowerCase() === formattedMenuType.toLowerCase()
+      (price) => 
+        price.event_category?.toLowerCase() === formattedServiceType.toLowerCase() && 
+        price.gscd?.toLowerCase() === formattedMenuType.toLowerCase()
     );
-
+  
+    console.log("Matching price found:", matchingPrice);
+  
     if (!matchingPrice) {
       return 0;
     }
-
+  
     const basePrice =
       menuPreference === "veg"
         ? parseFloat(matchingPrice.veg_price)
         : parseFloat(matchingPrice.nonveg_price);
-
+  
     const regularExtraItemsPrice = selectedItems
       .filter(
         (item) =>
           item.isExtra && item.category_name.toLowerCase() !== "live counter"
       )
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-
+  
     const liveCounterItemsPrice = selectedItems
       .filter((item) => item.category_name.toLowerCase() === "live counter")
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-
+  
     const totalPlatePrice =
       basePrice + regularExtraItemsPrice + liveCounterItemsPrice;
-
+  
     let discountAmount = 0;
-
+  
     if (guestCount <= 50) {
       const tiers = Math.floor(guestCount / 10);
       discountAmount = tiers * 1;
@@ -282,16 +298,17 @@ const MenuSelection = () => {
     } else {
       discountAmount = 5 * 2 + 10 * 1 + 2 * 1;
     }
-
+  
     return Math.max(totalPlatePrice - discountAmount, 0);
   };
 
   const calculateTotal = () => {
     const platePrice = calculatePlatePrice();
     const baseCost = platePrice * guestCount;
-    const deliveryCharge = 500;
-    return baseCost + deliveryCharge;
+    return baseCost;
   };
+
+  // Inside the MenuSelection component, replace the getFilteredItems function with this improved version:
 
   const getFilteredItems = () => {
     return menuData.filter((item) => {
@@ -300,20 +317,20 @@ const MenuSelection = () => {
           .toLowerCase()
           .replace(/[-\s]+/g, " ")
           .trim();
-
+  
       const itemEventCategories = (item.event_categories || "")
         .split(",")
         .map(normalizeString);
-
+  
       const itemEventNames = (item.event_names || "")
         .split(",")
         .map(normalizeString);
-
+  
       const normalizedEventType = normalizeString(eventType);
       const normalizedServiceType = normalizeString(serviceType);
       const normalizedMenuType = normalizeString(menuType);
       const normalizedItemMenuType = normalizeString(item.menu_type);
-
+  
       const matchesEvent =
         itemEventCategories.some(
           (cat) => normalizeString(cat) === normalizedServiceType
@@ -321,21 +338,36 @@ const MenuSelection = () => {
         itemEventNames.some(
           (name) => normalizeString(name) === normalizedEventType
         );
-
+  
       const matchesMenu = normalizedItemMenuType === normalizedMenuType;
-
-      const matchesPreference =
-        menuPreference === "nonveg" ? true : item.is_veg === "1";
-
+  
+      // Special case for Live Counter and Common Items - they should always show
+      const isLiveCounter = item.category_name.toLowerCase() === "live counter";
+      const isCommonItems = item.category_name.toLowerCase() === "common items";
+      
+      // Preference matching logic
+      let matchesPreference = false;
+      
+      if (isLiveCounter || isCommonItems) {
+        // For Live Counter and Common Items, always show regardless of preference
+        matchesPreference = true;
+      } else if (menuPreference === "nonveg") {
+        // For non-veg preference, show non-veg items
+        matchesPreference = item.is_veg === "0";
+      } else {
+        // For veg preference, only show veg items
+        matchesPreference = item.is_veg === "1";
+      }
+      
+      // Add debugging
+      // console.log(`Item: ${item.item_name}, category: ${item.category_name}, is_veg: ${item.is_veg}, matches: ${matchesEvent && matchesMenu && matchesPreference}`);
+  
       return matchesEvent && matchesMenu && matchesPreference;
     });
   };
 
   useEffect(() => {
-    console.log("Event Type:", eventType);
-    console.log("Service Type:", serviceType);
-    console.log("Menu Type:", menuType);
-    console.log("Filtered Items:", getFilteredItems());
+
   }, [menuData, eventType, serviceType, menuType]);
 
   const getCategoryLimit = (categoryName) => {
@@ -358,6 +390,31 @@ const MenuSelection = () => {
   };
 
   const handleActionButton = (action) => {
+    if (!user) {
+      setShowAlert({
+        message:
+          "You need to login before adding items to cart. Would you like to proceed to login?",
+        isConfirmation: true,
+        onConfirm: () => {
+          const selectionState = {
+            selectedItems,
+            guestCount,
+            menuPreference,
+            path: window.location.pathname,
+            eventType,
+            serviceType,
+            menuType,
+          };
+          localStorage.setItem(
+            "pendingCartSelection",
+            JSON.stringify(selectionState)
+          );
+          setShowAlert(null);
+          window.location.href = "/login";
+        },
+      });
+      return;
+    }
     const incompleteCategories = getSortedCategories().filter((category) => {
       if (
         category.toLowerCase() === "common items" ||
@@ -372,7 +429,7 @@ const MenuSelection = () => {
     });
 
     if (incompleteCategories.length > 0) {
-      console.log("Incomplete categories:", incompleteCategories);
+      // console.log("Incomplete categories:", incompleteCategories);
       setShowAlert({
         message: `Please select required items from: ${incompleteCategories.join(
           ", "
@@ -661,7 +718,7 @@ const MenuSelection = () => {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span
+                          {/* <span
                             className={`w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center ${
                               item.is_veg === "1"
                                 ? "border-2 border-green-500"
@@ -675,7 +732,7 @@ const MenuSelection = () => {
                                   : "bg-red-500"
                               }`}
                             ></span>
-                          </span>
+                          </span> */}
                           <p className="font-medium text-gray-900 text-sm sm:text-base">
                             {item.item_name}
                           </p>
@@ -718,7 +775,7 @@ const MenuSelection = () => {
                               onClick={showAlert.onConfirm}
                               className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm sm:text-base"
                             >
-                              Proceed to Login
+                              Proceed
                             </button>
                           )}
                         </div>
@@ -906,7 +963,7 @@ const MenuSelection = () => {
                             </span>
                           </label>
 
-                          <span
+                          {/* <span
                             className={`flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded ${
                               item.is_veg === "1"
                                 ? "border-2 border-green-500"
@@ -920,7 +977,7 @@ const MenuSelection = () => {
                                   : "bg-red-500"
                               }`}
                             ></span>
-                          </span>
+                          </span> */}
                         </div>
                       ))}
                   </div>
@@ -959,7 +1016,7 @@ const MenuSelection = () => {
                     onClick={showAlert.onConfirm}
                     className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors text-sm sm:text-base"
                   >
-                    Proceed to Login
+                    Proceed
                   </button>
                 )}
               </div>
@@ -1051,10 +1108,6 @@ const MenuSelection = () => {
                     .reduce((sum, item) => sum + parseFloat(item.price || 0), 0)
                     .toFixed(2)}
                 </span>
-              </div>
-              <div className="flex justify-between text-gray-600 text-sm sm:text-base">
-                <span>Delivery Charge</span>
-                <span>₹500</span>
               </div>
               <div className="flex justify-between text-lg sm:text-xl font-bold pt-2 border-t">
                 <span>Total</span>
