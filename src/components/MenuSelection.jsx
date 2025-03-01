@@ -31,6 +31,23 @@ const MenuSelection = () => {
   const [previouslySelectedItems, setPreviouslySelectedItems] = useState({});
   const [notifications, setNotifications] = useState({});
   const [commonItems, setCommonItems] = useState([]);
+  const [discountRules, setDiscountRules] = useState([]);
+
+  const fetchDiscountRules = async () => {
+    try {
+      const response = await fetch(
+        "https://adminmahaspice.in/ms3/fetch_discount_rules.php"
+      );
+      const data = await response.json();
+      setDiscountRules(data);
+    } catch (error) {
+      console.error("Error fetching discount rules:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDiscountRules();
+  }, []);
 
   const getCommonItems = () => {
     return getFilteredItems().filter(
@@ -135,9 +152,15 @@ const MenuSelection = () => {
     ];
 
     return uniqueCategories.sort((a, b) => {
-      if (a.toLowerCase() === "live counter") return -1;
-      if (b.toLowerCase() === "live counter") return 1;
+      // Move "Common Items" to the last position
+      if (a.toLowerCase() === "common items") return 1;
+      if (b.toLowerCase() === "common items") return -1;
 
+      // Move "Live Counter" to the second last position (just above "Common Items")
+      if (a.toLowerCase() === "live counter") return 1;
+      if (b.toLowerCase() === "live counter") return -1;
+
+      // For all other categories, sort by their position
       const categoryA = categoryData.find((cat) => cat.category_name === a);
       const categoryB = categoryData.find((cat) => cat.category_name === b);
       const posA = categoryA ? parseInt(categoryA.position) || 0 : 0;
@@ -158,7 +181,11 @@ const MenuSelection = () => {
         selectedItems: filteredItems,
         extraItems,
         platePrice,
-        guestCount,eventType, serviceType, menuType,menuPreference,
+        guestCount,
+        eventType,
+        serviceType,
+        menuType,
+        menuPreference,
         totalAmount: calculateTotal(),
       },
     });
@@ -237,68 +264,60 @@ const MenuSelection = () => {
     if (!pricingData || !serviceType || !menuType) {
       return 0;
     }
-  
+
     // Format the serviceType and menuType to match the API format
     const formattedServiceType = serviceType.replace(/-/g, " ");
     const formattedMenuType = menuType.replace(/-/g, " ");
-    
-    // Debug the matching process
-    console.log("Looking for pricing with:", { 
-      serviceType: formattedServiceType, 
-      menuType: formattedMenuType 
-    });
-    console.log("Available pricing data:", pricingData);
-    
+
     // Find the matching price in the pricingData
     const matchingPrice = pricingData.find(
-      (price) => 
-        price.event_category?.toLowerCase() === formattedServiceType.toLowerCase() && 
+      (price) =>
+        price.event_category?.toLowerCase() ===
+          formattedServiceType.toLowerCase() &&
         price.gscd?.toLowerCase() === formattedMenuType.toLowerCase()
     );
-  
-    console.log("Matching price found:", matchingPrice);
-  
+
     if (!matchingPrice) {
       return 0;
     }
-  
+
     const basePrice =
       menuPreference === "veg"
         ? parseFloat(matchingPrice.veg_price)
         : parseFloat(matchingPrice.nonveg_price);
-  
+
     const regularExtraItemsPrice = selectedItems
       .filter(
         (item) =>
           item.isExtra && item.category_name.toLowerCase() !== "live counter"
       )
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-  
+
     const liveCounterItemsPrice = selectedItems
       .filter((item) => item.category_name.toLowerCase() === "live counter")
       .reduce((sum, item) => sum + parseFloat(item.price || 0), 0);
-  
+
     const totalPlatePrice =
       basePrice + regularExtraItemsPrice + liveCounterItemsPrice;
-  
+
+    // Calculate discount based on fetched discount rules
     let discountAmount = 0;
-  
-    if (guestCount <= 50) {
-      const tiers = Math.floor(guestCount / 10);
-      discountAmount = tiers * 1;
-    } else if (guestCount <= 150) {
-      discountAmount = 5 * 2;
-      const additionalTiers = Math.floor((guestCount - 50) / 10);
-      discountAmount += additionalTiers * 1;
-    } else if (guestCount < 250) {
-      discountAmount = 5 * 2;
-      discountAmount += 10 * 1;
-      const remainingTiers = Math.floor((guestCount - 150) / 50);
-      discountAmount += remainingTiers * 1;
-    } else {
-      discountAmount = 5 * 2 + 10 * 1 + 2 * 1;
+    if (discountRules.length > 0) {
+      // Sort discount rules by people_count in ascending order
+      const sortedRules = discountRules.sort(
+        (a, b) => a.people_count - b.people_count
+      );
+
+      // Find the applicable discount rule
+      for (const rule of sortedRules) {
+        if (guestCount >= parseInt(rule.people_count)) {
+          discountAmount = parseFloat(rule.discount_amount);
+        } else {
+          break; // Stop when the guest count is less than the rule's people_count
+        }
+      }
     }
-  
+
     return Math.max(totalPlatePrice - discountAmount, 0);
   };
 
@@ -317,20 +336,20 @@ const MenuSelection = () => {
           .toLowerCase()
           .replace(/[-\s]+/g, " ")
           .trim();
-  
+
       const itemEventCategories = (item.event_categories || "")
         .split(",")
         .map(normalizeString);
-  
+
       const itemEventNames = (item.event_names || "")
         .split(",")
         .map(normalizeString);
-  
+
       const normalizedEventType = normalizeString(eventType);
       const normalizedServiceType = normalizeString(serviceType);
       const normalizedMenuType = normalizeString(menuType);
       const normalizedItemMenuType = normalizeString(item.menu_type);
-  
+
       const matchesEvent =
         itemEventCategories.some(
           (cat) => normalizeString(cat) === normalizedServiceType
@@ -338,16 +357,16 @@ const MenuSelection = () => {
         itemEventNames.some(
           (name) => normalizeString(name) === normalizedEventType
         );
-  
+
       const matchesMenu = normalizedItemMenuType === normalizedMenuType;
-  
+
       // Special case for Live Counter and Common Items - they should always show
       const isLiveCounter = item.category_name.toLowerCase() === "live counter";
       const isCommonItems = item.category_name.toLowerCase() === "common items";
-      
+
       // Preference matching logic
       let matchesPreference = false;
-      
+
       if (isLiveCounter || isCommonItems) {
         // For Live Counter and Common Items, always show regardless of preference
         matchesPreference = true;
@@ -358,17 +377,15 @@ const MenuSelection = () => {
         // For veg preference, only show veg items
         matchesPreference = item.is_veg === "1";
       }
-      
+
       // Add debugging
       // console.log(`Item: ${item.item_name}, category: ${item.category_name}, is_veg: ${item.is_veg}, matches: ${matchesEvent && matchesMenu && matchesPreference}`);
-  
+
       return matchesEvent && matchesMenu && matchesPreference;
     });
   };
 
-  useEffect(() => {
-
-  }, [menuData, eventType, serviceType, menuType]);
+  useEffect(() => {}, [menuData, eventType, serviceType, menuType]);
 
   const getCategoryLimit = (categoryName) => {
     if (
@@ -552,12 +569,12 @@ const MenuSelection = () => {
       ) {
         return false;
       }
-  
+
       const limit = getCategoryLimit(category);
       const selectedCount = getItemsInCategory(category).length;
       return selectedCount < limit;
     });
-  
+
     // If there are incomplete categories, show alert and return
     if (incompleteCategories.length > 0) {
       setShowAlert({
@@ -567,7 +584,7 @@ const MenuSelection = () => {
       });
       return;
     }
-  
+
     // Check if user is logged in
     if (!user) {
       setShowAlert({
@@ -594,7 +611,7 @@ const MenuSelection = () => {
       });
       return;
     }
-  
+
     const allItems = [
       ...selectedItems,
       ...commonItems.map((item) => ({
@@ -603,7 +620,7 @@ const MenuSelection = () => {
         isComplimentary: true,
       })),
     ];
-  
+
     const orderDetails = {
       user_id: user.id,
       event_name: serviceType,
@@ -619,7 +636,7 @@ const MenuSelection = () => {
         is_complimentary: item.category_name.toLowerCase() === "common items",
       })),
     };
-  
+
     try {
       const response = await fetch(
         "https://adminmahaspice.in/ms3/add-to-cart.php",
@@ -631,11 +648,11 @@ const MenuSelection = () => {
           body: JSON.stringify(orderDetails),
         }
       );
-  
+
       if (!response.ok) {
         throw new Error("Failed to add to cart");
       }
-  
+
       const data = await response.json();
       if (data.success) {
         alert("Order added to cart successfully!");
@@ -858,11 +875,16 @@ const MenuSelection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Menu Categories */}
           <div className="lg:col-span-2 space-y-4">
-            {getSortedCategories().map((category) => {
+          {getSortedCategories().map((category) => {
               const limit = getCategoryLimit(category);
               const selectedCount = getItemsInCategory(category).length;
               const isCommonItems = category.toLowerCase() === "common items";
               const isLiveCounter = category.toLowerCase() === "live counter";
+
+              // Find the category type (veg or non-veg) from categoryData
+              const categoryType = categoryData.find(
+                (cat) => cat.category_name === category
+              )?.category_type;
 
               return (
                 <div
@@ -880,9 +902,26 @@ const MenuSelection = () => {
                         : "bg-gray-50"
                     }`}
                   >
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-start items-center">
+                      {!isCommonItems && (
+                        <span
+                          className={`w-4 h-4 sm:w-6 sm:h-6 rounded-lg border-2 flex items-center justify-center ${
+                            categoryType === "nonveg"
+                              ? "border-red-500"
+                              : "border-green-500"
+                          }`}
+                        >
+                          <span
+                            className={`w-3 h-3 sm:w-3 sm:h-3 rounded-full ${
+                              categoryType === "nonveg"
+                                ? "bg-red-500"
+                                : "bg-green-500"
+                            }`}
+                          ></span>
+                        </span>
+                      )}
                       <h2
-                        className={`text-lg sm:text-xl font-bold ${
+                        className={`text-lg sm:text-xl font-bold ml-2 ${
                           category.toLowerCase() === "live counter"
                             ? "text-black"
                             : "text-gray-800"
@@ -962,28 +1001,13 @@ const MenuSelection = () => {
                               {item.item_name}
                             </span>
                           </label>
-
-                          {/* <span
-                            className={`flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded ${
-                              item.is_veg === "1"
-                                ? "border-2 border-green-500"
-                                : "border-2 border-red-500"
-                            }`}
-                          >
-                            <span
-                              className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
-                                item.is_veg === "1"
-                                  ? "bg-green-500"
-                                  : "bg-red-500"
-                              }`}
-                            ></span>
-                          </span> */}
                         </div>
                       ))}
                   </div>
                 </div>
               );
             })}
+
           </div>
         </div>
 
