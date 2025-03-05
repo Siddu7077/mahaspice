@@ -49,6 +49,41 @@ const MenuSelection = () => {
     fetchDiscountRules();
   }, []);
 
+  // Show Live Counter Alert only for Silver Menu
+  useEffect(() => {
+    if (currentMenuType.toLowerCase() === "silver menu") {
+      setShowLiveCounterAlert(true);
+    }
+  }, [currentMenuType]);
+
+  // Rest of the code remains the same...
+
+  // Modify the guest count increment to +1
+  const handleGuestCountIncrement = () => {
+    setGuestCount((prevCount) => prevCount + 1);
+  };
+
+  // Modify the guest count decrement to -1
+  const handleGuestCountDecrement = () => {
+    setGuestCount((prevCount) => Math.max(10, prevCount - 1));
+  };
+
+  // Update the guest count input field
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    if (value === "" || /^\d+$/.test(value)) {
+      setInputValue(value);
+      const numValue = parseInt(value);
+      if (!isNaN(numValue) && numValue >= 10) {
+        setGuestCount(numValue);
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchDiscountRules();
+  }, []);
+
   const getCommonItems = () => {
     return getFilteredItems().filter(
       (item) => item.category_name.toLowerCase() === "common items"
@@ -196,16 +231,16 @@ const MenuSelection = () => {
     setSelectedItems([]);
   };
 
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    if (value === "" || /^\d+$/.test(value)) {
-      setInputValue(value);
-      const numValue = parseInt(value);
-      if (!isNaN(numValue) && numValue >= 10) {
-        setGuestCount(numValue);
-      }
-    }
-  };
+  // const handleInputChange = (e) => {
+  //   const value = e.target.value;
+  //   if (value === "" || /^\d+$/.test(value)) {
+  //     setInputValue(value);
+  //     const numValue = parseInt(value);
+  //     if (!isNaN(numValue) && numValue >= 10) {
+  //       setGuestCount(numValue);
+  //     }
+  //   }
+  // };
 
   const handleInputBlur = () => {
     const numValue = parseInt(inputValue);
@@ -697,133 +732,65 @@ const MenuSelection = () => {
   return (
     <div className="min-h-screen bg-aliceBlue grid grid-cols-1 lg:grid-cols-3 gap-1">
       {/* Live Counter Alert */}
-      {showLiveCounterAlert && (
-        <>
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="max-w-2xl w-full bg-white border border-green-300 rounded-2xl p-4 sm:p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom mx-4">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-green-50">
-                    <span className="text-xl sm:text-2xl">🌟</span>
+      {showLiveCounterAlert &&
+        currentMenuType.toLowerCase() === "silver menu" && (
+          <>
+            <div className="fixed inset-0 flex items-center justify-center z-50">
+              <div className="max-w-2xl w-full bg-white border border-green-300 rounded-2xl p-4 sm:p-6 shadow-2xl transform transition-all duration-500 ease-in-out scale-100 animate-zoom mx-4">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-2 sm:gap-4">
+                    <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center bg-green-50">
+                      <span className="text-xl sm:text-2xl">🌟</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-900 font-semibold text-base sm:text-lg mb-1">
+                        We also provide{" "}
+                        <span className="text-green-600">Live Counter</span>{" "}
+                        options!
+                      </p>
+                      <p className="text-gray-600 text-sm sm:text-base">
+                        Enhance your event experience with our special live
+                        counters
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-gray-900 font-semibold text-base sm:text-lg mb-1">
-                      We also provide{" "}
-                      <span className="text-green-600">Live Counter</span>{" "}
-                      options!
-                    </p>
-                    <p className="text-gray-600 text-sm sm:text-base">
-                      Enhance your event experience with our special live
-                      counters
-                    </p>
-                  </div>
+                  <button
+                    onClick={() => setShowLiveCounterAlert(false)}
+                    className="text-gray-500 hover:text-gray-700 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <button
-                  onClick={() => setShowLiveCounterAlert(false)}
-                  className="text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
 
-              <div className="mt-4 max-h-48 sm:max-h-64 overflow-y-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
-                  {getLiveCounterItems().map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center p-2 sm:p-4 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          {/* <span
-                            className={`w-4 h-4 sm:w-5 sm:h-5 rounded flex items-center justify-center ${
-                              item.is_veg === "1"
-                                ? "border-2 border-green-500"
-                                : "border-2 border-red-500"
-                            }`}
-                          >
-                            <span
-                              className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
-                                item.is_veg === "1"
-                                  ? "bg-green-500"
-                                  : "bg-red-500"
-                              }`}
-                            ></span>
-                          </span> */}
-                          <p className="font-medium text-gray-900 text-sm sm:text-base">
-                            {item.item_name}
-                          </p>
+                <div className="mt-4 max-h-48 sm:max-h-64 overflow-y-auto">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4">
+                    {getLiveCounterItems().map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center p-2 sm:p-4 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">
+                              {item.item_name}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  {showAlert && (
-                    <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-                      <div className="bg-white rounded-xl shadow-xl p-4 sm:p-6 max-w-md w-full">
-                        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                          {showAlert.isConfirmation ? (
-                            <ShoppingCart className="text-blue-500" size={20} />
-                          ) : (
-                            <AlertTriangle
-                              className="text-orange-500"
-                              size={20}
-                            />
-                          )}
-                          <h3 className="text-base sm:text-lg font-bold">
-                            {showAlert.isConfirmation
-                              ? "Login Required"
-                              : "Missing Items"}
-                          </h3>
-                        </div>
-
-                        <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">
-                          {showAlert.message}
-                        </p>
-
-                        <div className="flex justify-end gap-2 sm:gap-3">
-                          <button
-                            onClick={() => setShowAlert(null)}
-                            className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-sm sm:text-base"
-                          >
-                            Cancel
-                          </button>
-                          {showAlert.isConfirmation && (
-                            <button
-                              onClick={showAlert.onConfirm}
-                              className="px-3 sm:px-4 py-1 sm:py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm sm:text-base"
-                            >
-                              Proceed
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-500">
-                  Click on any live counter item in the menu to add it to your
-                  selection
-                </p>
+                <div className="mt-4 text-center">
+                  <p className="text-sm text-gray-500">
+                    Click on any live counter item in the menu to add it to your
+                    selection
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-
-          <style>
-            {`
-              @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
-              }
-              .animate-fade-out {
-                animation: fadeOut 4s ease-out forwards;
-              }
-            `}
-          </style>
-        </>
-      )}
+          </>
+        )}
 
       <div className="max-w-full mx-auto p-4 lg:col-span-2">
         {/* Header */}
@@ -875,7 +842,7 @@ const MenuSelection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
           {/* Menu Categories */}
           <div className="lg:col-span-2 space-y-4">
-          {getSortedCategories().map((category) => {
+            {getSortedCategories().map((category) => {
               const limit = getCategoryLimit(category);
               const selectedCount = getItemsInCategory(category).length;
               const isCommonItems = category.toLowerCase() === "common items";
@@ -1007,7 +974,6 @@ const MenuSelection = () => {
                 </div>
               );
             })}
-
           </div>
         </div>
 
@@ -1057,7 +1023,7 @@ const MenuSelection = () => {
           <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6 p-2 sm:p-4 bg-gray-50 rounded-lg">
             <span className="text-gray-600 text-sm sm:text-base">Guests:</span>
             <button
-              onClick={() => setGuestCount(Math.max(10, guestCount - 5))}
+              onClick={handleGuestCountDecrement}
               className="p-1 sm:p-2 rounded hover:bg-gray-200 transition-colors"
             >
               <Minus size={14} />
@@ -1071,7 +1037,7 @@ const MenuSelection = () => {
               maxLength={4}
             />
             <button
-              onClick={() => setGuestCount(guestCount + 5)}
+              onClick={handleGuestCountIncrement}
               className="p-1 sm:p-2 rounded hover:bg-gray-200 transition-colors"
             >
               <Plus size={14} />
