@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Breadcrumb from "./Breadcrumb";
 
 const EventsPage = () => {
   const { eventType } = useParams();
@@ -85,7 +86,11 @@ const EventsPage = () => {
   }
   
   return (
+
     <div className="p-8">
+       <div className="p-4">
+        <Breadcrumb />
+        </div>
       <h1 className="text-3xl font-bold text-green-700 mb-4">
         {eventData.mainTitle}
       </h1>

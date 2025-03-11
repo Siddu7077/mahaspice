@@ -9,6 +9,7 @@ import {
   X,
 } from "lucide-react";
 import { useAuth } from "./AuthSystem";
+import Breadcrumb from "./Breadcrumb";
 
 const MenuSelection = () => {
   const navigate = useNavigate();
@@ -726,6 +727,13 @@ const MenuSelection = () => {
     }
   }, [user]);
 
+  const breadcrumbItems = [
+    { label: 'Home', href: '/' },
+    { label: 'Products', href: '/products' },
+    { label: 'Category', href: '/products/category' },
+    { label: 'Current Page', href: '/products/category/current' },
+  ];
+
   if (loading) return <div className="p-8 text-center">Loading menu...</div>;
   if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
 
@@ -794,6 +802,9 @@ const MenuSelection = () => {
 
       <div className="max-w-full mx-auto p-4 lg:col-span-2">
         {/* Header */}
+        <div className="p-4">
+        <Breadcrumb />
+        </div>
         <div className="max-w-full bg-white rounded-xl shadow-lg p-4 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center">
             <div className="flex items-center gap-2 bg-green-50 px-3 sm:px-4 py-1 sm:py-2 rounded-lg">
