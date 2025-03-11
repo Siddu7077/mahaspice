@@ -30,9 +30,9 @@ const transformEventData = (apiResponse) => {
   });
 
   // Remove duplicates and sort
-  Object.keys(result).forEach(key => {
-    result[key] = [...new Set(result[key])].sort();
-  });
+  // Object.keys(result).forEach(key => {
+  //   result[key] = [...new Set(result[key])].sort();
+  // });
 
   return result;
 };
