@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Breadcrumb from "./Breadcrumb";
 
 const MenuPage = () => {
     const { eventType, serviceType } = useParams();
@@ -91,6 +92,9 @@ const MenuPage = () => {
 
     return (
         <div className="bg-white py-10 h-screen px-5">
+            <div className="p-4">
+        <Breadcrumb />
+        </div>
             <div className="max-w-7xl mx-auto">
                 <h1 className="text-3xl font-bold text-gray-900 mb-8 text-center">
                     Available Menu Categories for {serviceType.replace(/-/g, ' ')}

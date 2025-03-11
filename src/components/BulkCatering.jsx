@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Breadcrumb from "./Breadcrumb";
 
 const BulkCatering = () => {
     const [items, setItems] = useState([]);
@@ -28,6 +29,9 @@ const BulkCatering = () => {
 
     return (
         <div>
+            <div className="p-4">
+        <Breadcrumb />
+        </div>
             <section className="p-5 max-w-7xl">
                 <h2 className="text-3xl font-bold mb-8 text-green-700">
                     CATERING FOR ALL OCCASIONS
