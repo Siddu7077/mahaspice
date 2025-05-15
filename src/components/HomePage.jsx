@@ -14,9 +14,6 @@ import ScrollToTop from "./ScrollToTop";
 import FAQ from "./FAQ";
 
 const HomePage = () => {
-  
-
-
 
   return (
     <div className="bg-aliceBlue text-black font-sans">
