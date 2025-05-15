@@ -1,4 +1,4 @@
-<!-- <!doctype html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -14,134 +14,12 @@
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 
-  <script id="messenger-widget-b" src="https://cdn.botpenguin.com/website-bot.js" defer>675dd6bf936c5217814b5dcf,675dd670204a5c90d09a2956</script> 
+<!--   <script id="messenger-widget-b" src="https://cdn.botpenguin.com/website-bot.js" defer>675dd6bf936c5217814b5dcf,675dd670204a5c90d09a2956</script>  -->
  </body>
 
 </html>
 
 
- -->
 
 
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Website Blocked</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-black min-h-screen">
-  <div class="container mx-auto px-4 py-16">
-    <!-- Main Content Area -->
-    <div class="max-w-4xl mx-auto">
-      <!-- Top Decoration -->
-      <div class="flex justify-center mb-8">
-        <div class="w-full h-2 bg-gradient-to-r from-red-800 via-red-600 to-red-800"></div>
-      </div>
-      
-      <!-- Warning Triangle -->
-      <div class="flex justify-center mb-6">
-        <div class="w-32 h-32 relative">
-          <div class="absolute inset-0 bg-red-600 rotate-45 transform origin-center"></div>
-          <i class="fas fa-exclamation-triangle text-black text-5xl absolute inset-0 flex items-center justify-center"></i>
-        </div>
-      </div>
-      
-      <!-- Header -->
-      <div class="text-center mb-10">
-        <h1 class="text-5xl font-bold tracking-tight text-red-600 mb-4">ACCESS DENIED</h1>
-        <div class="inline-block">
-          <p class="text-xl text-white border-b-2 border-red-600 px-8 py-2">SITE BLOCKED</p>
-        </div>
-      </div>
-      
-      <!-- Main Message Box -->
-      <div class="bg-gray-900 border-2 border-red-700 rounded-lg p-8 mb-10">
-        <div class="flex items-start">
-          <!-- Left Side Icon -->
-          <div class="hidden md:block mr-6">
-            <i class="fas fa-lock text-red-500 text-6xl"></i>
-          </div>
-          
-          <!-- Content -->
-          <div class="flex-1">
-            <h2 class="text-2xl font-semibold text-white mb-4">Developer Payment Required</h2>
-            
-            <p class="text-gray-300 mb-6">
-              This website has been temporarily suspended due to an outstanding developer payment. The service will be restored automatically once the payment has been processed.
-            </p>
-            
-            <div class="grid md:grid-cols-2 gap-6 mb-6">
-              <div class="bg-black bg-opacity-50 p-4 rounded border border-red-800">
-                <div class="flex items-center mb-2">
-                  <i class="fas fa-calendar-times mr-2 text-red-500"></i>
-                  <span class="text-red-400 font-medium">Payment Overdue</span>
-                </div>
-                <p class="text-gray-400 text-sm">Development subscription has expired</p>
-              </div>
-              
-              <div class="bg-black bg-opacity-50 p-4 rounded border border-red-800">
-                <div class="flex items-center mb-2">
-                  <i class="fas fa-code mr-2 text-red-500"></i>
-                  <span class="text-red-400 font-medium">Service Suspended</span>
-                </div>
-                <p class="text-gray-400 text-sm">API access and features disabled</p>
-              </div>
-            </div>
-            
-            <div class="border-t border-red-900 pt-6 mt-6">
-              <div class="flex items-center justify-between flex-wrap">
-                <p class="text-gray-400 text-sm mb-2 md:mb-0">
-                  <span class="text-red-500 font-medium">ERROR CODE:</span> DEV-PAY-X7429
-                </p>
-                <p class="text-gray-400 text-sm">
-                  <span class="text-red-500 font-medium">TIMESTAMP:</span> <span id="timestamp">2025-05-15 12:00:00</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Bottom Actions -->
-      <div class="flex flex-col md:flex-row items-center justify-between bg-gray-900 bg-opacity-70 rounded-lg p-6">
-        <div class="mb-4 md:mb-0">
-          <p class="text-gray-400 text-sm">For support: <span class="text-red-400">admin@yourcompany.com</span></p>
-        </div>
-        
-        <div class="flex space-x-4">
-          <a href="#" class="px-4 py-2 bg-gray-800 text-gray-300 rounded border border-red-900 hover:bg-gray-700 transition-colors">
-            <i class="fas fa-info-circle mr-2"></i>Status
-          </a>
-          <a href="#" class="px-4 py-2 bg-red-900 text-white rounded border border-red-700 hover:bg-red-800 transition-colors">
-            <i class="fas fa-user-shield mr-2"></i>Admin Portal
-          </a>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Footer -->
-    <div class="max-w-4xl mx-auto mt-16 text-center">
-      <div class="flex items-center justify-center space-x-6 mb-6">
-        <div class="w-8 h-8 bg-red-800 rounded-full"></div>
-        <div class="w-8 h-8 bg-red-900 rounded-full"></div>
-        <div class="w-8 h-8 bg-red-800 rounded-full"></div>
-      </div>
-      <p class="text-gray-600 text-xs">Server Status Monitor v2.5.1</p>
-    </div>
-  </div>
-  
-  <script>
-    // Set the current timestamp
-    document.getElementById('timestamp').textContent = new Date().toISOString().replace('T', ' ').substr(0, 19);
-  </script>
-</body>
-</html>
-
-
-
-
- 
