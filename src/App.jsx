@@ -72,7 +72,7 @@
 
 import React from 'react';
 
-export default function BlockedSite() {
+export default function App() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white p-6">
       <div className="max-w-2xl w-full border-2 border-red-600 rounded-lg p-8 shadow-lg">
